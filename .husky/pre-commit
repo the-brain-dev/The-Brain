@@ -1,0 +1,41 @@
+#!/bin/sh
+
+# Get list of staged files before running check
+STAGED_FILES=$(git diff --cached --name-only)
+
+# Run linting and formatting check
+echo "Running lint and format check..."
+bun run lint
+if [ $? -ne 0 ]; then
+  echo "Lint/format checks failed. Run 'bun run format' to auto-fix."
+  exit 1
+fi
+
+# Run tests for staged source files
+HAS_SRC=0
+for file in $STAGED_FILES; do
+  case "$file" in
+    *.ts|*.tsx)
+      HAS_SRC=1
+      break
+      ;;
+  esac
+done
+
+if [ $HAS_SRC -eq 1 ]; then
+  echo "Running tests..."
+  bun test
+  if [ $? -ne 0 ]; then
+    echo "Tests failed. Please fix before committing."
+    exit 1
+  fi
+fi
+
+# Restage files that were previously staged and may have been modified by formatting
+for file in $STAGED_FILES; do
+  if [ -f "$file" ]; then
+    git add "$file"
+  fi
+done
+
+echo "All pre-commit checks passed!"

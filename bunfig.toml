@@ -1,0 +1,9 @@
+[test]
+# Timeout for each test (30s)
+timeout = 30000
+
+# Coverage settings
+coverageDir = "./coverage"
+coverageReporter = ["text", "lcov"]
+coverageInclude = ["packages/**/*.ts", "apps/**/*.ts"]
+coverageExclude = ["**/*.test.ts", "**/*.spec.ts", "**/node_modules/**", "**/dist/**"]

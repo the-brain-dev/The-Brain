@@ -1,0 +1,35 @@
+node_modules/
+dist/
+.env
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+data/
+.cache/
+logs/
+*.log
+.DS_Store
+.python-version
+__pycache__/
+*.pyc
+.venv/
+mlx_data/
+lora_checkpoints/
+
+# Test coverage
+coverage/
+*.lcov
+
+# IDE files
+.vscode/
+.zed/
+.idea/
+*.swp
+*.swo
+*~
+
+# Package specific
+.npm/
+.nyc_output/
+*.tsbuildinfo

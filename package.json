@@ -1,0 +1,40 @@
+{
+  "name": "my-brain",
+  "version": "0.1.0",
+  "description": "Pluggable Cognitive Operating System for AI Agents",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "bun run --watch apps/cli/src/index.ts",
+    "build": "bun run packages/core/build.ts && bun run apps/cli/build.ts",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "test:watch": "bun test --watch",
+    "test:core": "bun test --coverage packages/core",
+    "test:plugins": "bun test --coverage packages/plugin-*",
+    "test:cli": "bun test --coverage apps/cli",
+    "lint": "bunx biome check .",
+    "format": "bunx biome format --write .",
+    "cli": "bun run apps/cli/src/index.ts",
+    "daemon": "bun run apps/cli/src/index.ts daemon start"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "hookable": "^6.1.1",
+    "croner": "^10.0.1",
+    "zod": "^4.4.2",
+    "cac": "^7.0.0",
+    "consola": "^3.4.2"
+  },
+  "trustedDependencies": [
+    "my-brain"
+  ]
+}
