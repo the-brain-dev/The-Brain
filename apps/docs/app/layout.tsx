@@ -15,9 +15,6 @@ export const metadata: Metadata = {
   description:
     "Local-first, pluggable memory system for AI coding assistants. 3-layer cognitive architecture with graph memory, surprise-gated filtering, and local LoRA training.",
   metadataBase: new URL("https://the-brain.dev"),
-  alternates: {
-    canonical: "/docs",
-  },
   openGraph: {
     title: "the-brain — Cognitive OS",
     description: "Local-first memory system for AI agents",
