@@ -13,22 +13,28 @@ Intercepts prompts and injects real-time biases before they reach the LLM.
 
 ### Detection Pipeline
 
-The `AFTER_RESPONSE` handler runs a 6-stage pipeline:
+The `AFTER_RESPONSE` handler runs a 6-stage pipeline using **language-agnostic structural heuristics** (no English regex):
 
-1. **Correction detection** — 11 regex patterns with confidence weights 0.65-0.9
-   - `no, actually`, `I meant`, `that's not right`, `wrong`, `fix:`, `don't use`
-2. **Fallback corrections** — prompts starting with `no`, `fix`, `instead`
-3. **Preference detection** — 6 regex patterns: `explicit`, `style`, `paradigm`, `rule`
-4. **Pattern detection** — keywords appearing ≥3 times in recent interactions
-5. **Concept node creation** — new keywords not matching any existing node
-6. **Node interconnection** — bidirectional links between all new nodes
+1. **Correction detection** — structural heuristics with dynamic confidence weights
+   - Short prompt + long explanatory response (ratio > 2.5:1) → likely correction
+   - Very short prompt (< 50 chars) + substantial response (> 100 chars)
+   - High token novelty (response introduces new vocabulary not in prompt)
+2. **Preference detection** — cross-interaction cluster tracking
+   - Short declarative statements (15-150 chars) → preference candidates
+   - Token overlap with previously detected preferences → reinforced
+   - Repeated vocabulary across 2+ interactions → emerging preference
+3. **Pattern detection** — keywords appearing ≥3 times in recent interactions
+4. **Concept node creation** — new keywords not matching any existing node
+5. **Node interconnection** — bidirectional links between all new nodes
+6. **Weight decay** — periodic decay for >24h unmatched nodes
 
 ### Quality Filters
 
-- **60+ English stop words** excluded from keyword extraction
+- **Unicode-aware tokenizer** — splits on non-letter boundaries, works for all scripts
+  (Latin, Cyrillic, CJK, Arabic, etc.) — no English stop words needed
 - **Weight decay**: every ~10 interactions, nodes >24h old lose 2% weight (floor: 0.05)
 - **Weight boost**: matched nodes gain +0.05 per use
-- **Correction weights**: 0.65-0.9 depending on pattern confidence
+- **Correction weights**: 0.5-0.85 based on structural heuristic confidence
 - **Preference weight**: always 0.7
 - **Concept weight**: always 0.4
 

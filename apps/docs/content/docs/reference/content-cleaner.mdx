@@ -39,7 +39,8 @@ const cleaned = cleanMemoryContent(raw);
 
 ### `cleanGraphNodeLabel(label: string): string`
 
-Trims long code-fragment labels to keep graph nodes concise.
+Trims long code-fragment labels to keep graph nodes concise. Uses Unicode-aware
+sentence splitting (`.`, `!`, `?`, `。`, `！`, `？`) to work across all languages.
 
 ```typescript
 const label = cleanGraphNodeLabel("use `useCallback` instead of `useMemo` for the handler function in the parent component");
