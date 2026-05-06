@@ -8,7 +8,7 @@ import { BrainDB } from "@the-brain/core";
 import { createSpmCurator, SpmCuratorPlugin } from "../index";
 import { TfidfSurpriseDetector } from "../tfidf-detector";
 
-const REAL_DB_PATH = "/Users/oskarschachta/.the-brain/global/brain.db";
+const REAL_DB_PATH = process.env.THE_BRAIN_DB_PATH || "";
 
 describe("TF-IDF SPM — production data", () => {
   test("builds vocabulary from 715 production memories", async () => {

@@ -94,7 +94,7 @@ describe("MLX Trainer — end-to-end pipeline", () => {
   });
 
   test("real deep memories exist after consolidation", async () => {
-    const dbPath = "/Users/oskarschachta/.the-brain/global/brain.db";
+    const dbPath = process.env.THE_BRAIN_DB_PATH || "";
     const db = new BrainDB(dbPath);
 
     const deepMemories = await db.getMemoriesByLayer(MemoryLayer.DEEP);
@@ -113,7 +113,7 @@ describe("MLX Trainer — end-to-end pipeline", () => {
   });
 
   test("adapter file exists from previous training run", () => {
-    const adapterPath = "/Users/oskarschachta/.the-brain/lora-checkpoints/adapter.safetensors";
+    const adapterPath = process.env.THE_BRAIN_ADAPTER_PATH || "";
 
     if (existsSync(adapterPath)) {
       const stat = statSync(adapterPath);

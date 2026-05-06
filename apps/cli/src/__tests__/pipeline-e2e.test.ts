@@ -201,7 +201,8 @@ describe("Pipeline E2E: Harvester → Graph → SPM → Consolidation", () => {
 });
 
 describe("Pipeline E2E: Real data consolidation", () => {
-  const REAL_DB_PATH = "/Users/oskarschachta/.the-brain/global/brain.db";
+  // Integration test — requires real DB. Set THE_BRAIN_DB_PATH to run.
+  const REAL_DB_PATH = process.env.THE_BRAIN_DB_PATH || "";
 
   test("consolidation on real data produces Deep memories", async () => {
     const db = new BrainDB(REAL_DB_PATH);

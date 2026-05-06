@@ -15,7 +15,7 @@ import { Database } from "bun:sqlite";
 import { join } from "node:path";
 import { appendFileSync, mkdirSync, existsSync } from "node:fs";
 
-const HOME = process.env.HOME || "/Users/oskarschachta";
+const HOME = process.env.HOME || require("os").homedir();
 const DB_PATH = join(HOME, ".the-brain", "global", "brain.db");
 const LOG_DIR = join(HOME, ".the-brain", "logs");
 const METRICS_FILE = join(LOG_DIR, "spm-metrics.jsonl");

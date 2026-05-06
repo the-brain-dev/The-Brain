@@ -96,7 +96,7 @@ async function main() {
   // Prepare training command
   const sidecarPath = join(import.meta.dir || process.cwd(), "..", "..", "packages", "python-sidecar", "train.py");
   const resolvedSidecar = existsSync(sidecarPath) ? sidecarPath : 
-    "/Users/oskarschachta/Projects/Private/the-brain/packages/python-sidecar/train.py";
+    join(import.meta.dir, "..", "..", "..", "..", "packages", "python-sidecar", "train.py");
 
   console.log("\n=== Training Command ===");
   console.log("cd packages/python-sidecar && uv run python3 " + resolvedSidecar + " \\");

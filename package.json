@@ -27,12 +27,15 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
+    "cac": "^7.0.0",
+    "consola": "^3.4.2",
+    "croner": "^10.0.1",
     "drizzle-orm": "^0.45.2",
     "hookable": "^6.1.1",
-    "croner": "^10.0.1",
-    "zod": "^4.4.2",
-    "cac": "^7.0.0",
-    "consola": "^3.4.2"
+    "zod": "^4.4.2"
+  },
+  "overrides": {
+    "postcss": ">=8.5.10"
   },
   "trustedDependencies": [
     "the-brain"

@@ -14,7 +14,7 @@ import { createSpmCurator, SpmCuratorPlugin } from "../index";
 import type { InteractionContext, Memory, MemoryFragment } from "@the-brain/core";
 import { join } from "node:path";
 
-const DB_PATH = "/Users/oskarschachta/.the-brain/global/brain.db";
+const DB_PATH = process.env.THE_BRAIN_DB_PATH || "";
 const MIN_MEMORIES = 10;
 
 function memoryToInteraction(m: Memory): { prompt: string; response: string } {

@@ -7,10 +7,12 @@ import { describe, test, expect } from "bun:test";
 import { contextCommand } from "../context";
 import type { ContextOutput } from "../context";
 
-const REAL_DB_PATH = "/Users/oskarschachta/.the-brain/global/brain.db";
+// Integration test — requires real DB. Set THE_BRAIN_DB_PATH to run.
+const REAL_DB_PATH = process.env.THE_BRAIN_DB_PATH || "";
 
 describe("context command (cleaned output)", () => {
   test("returns valid JSON with cleaned content", async () => {
+    if (!REAL_DB_PATH) { console.log("Skipping — set THE_BRAIN_DB_PATH to run integration tests"); return; }
     const logs: string[] = [];
     const origLog = console.log;
     console.log = (...args: any[]) => { logs.push(args.join(" ")); };
@@ -56,6 +58,7 @@ describe("context command (cleaned output)", () => {
   });
 
   test("returns compact markdown", async () => {
+    if (!REAL_DB_PATH) return;
     const logs: string[] = [];
     const origLog = console.log;
     console.log = (...args: any[]) => { logs.push(args.join(" ")); };
@@ -85,6 +88,7 @@ describe("context command (cleaned output)", () => {
   });
 
   test("deduplicates similar content", async () => {
+    if (!REAL_DB_PATH) return;
     const logs: string[] = [];
     const origLog = console.log;
     console.log = (...args: any[]) => { logs.push(args.join(" ")); };
@@ -103,6 +107,7 @@ describe("context command (cleaned output)", () => {
   });
 
   test("graph nodes sorted by weight (descending)", async () => {
+    if (!REAL_DB_PATH) return;
     const logs: string[] = [];
     const origLog = console.log;
     console.log = (...args: any[]) => { logs.push(args.join(" ")); };

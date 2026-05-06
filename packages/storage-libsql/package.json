@@ -7,6 +7,6 @@
   "dependencies": {
     "@libsql/client": "^0.14.0",
     "@the-brain/core": "workspace:*",
-    "drizzle-orm": "^0.38.0"
+    "drizzle-orm": "^0.45.2"
   }
 }
