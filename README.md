@@ -2,6 +2,8 @@
 
 **[the-brain.dev](https://the-brain.dev)**
 
+> ⚠️ **Active Development** — This project is under heavy construction. APIs may change, features may be incomplete, and documentation may lag behind. Use at your own risk. Contributions and feedback welcome, but don't expect production stability yet.
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Built with Bun](https://img.shields.io/badge/Built%20with-Bun-orange)](https://bun.sh)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)](https://www.typescriptlang.org/)
