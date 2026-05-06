@@ -12,7 +12,7 @@ import { join } from "node:path";
 const DOCS_DIR = join(import.meta.dir, "..", "..", "apps", "docs");
 
 export async function docsCommand(action: string, options: { port?: number }) {
-  const port = options.port ?? 3001;
+  const port = Math.max(1, Math.min(65535, options.port ?? 3001));
 
   switch (action) {
     case "dev":

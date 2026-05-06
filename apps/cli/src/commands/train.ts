@@ -8,7 +8,7 @@
  *   the-brain train --dry-run        Show what would be trained, don't execute
  */
 import { consola } from "consola";
-import { BrainDB, MemoryLayer } from "@the-brain/core";
+import { BrainDB, MemoryLayer, safeParseConfig } from "@the-brain/core";
 import type { MemoryFragment, ConsolidationContext, TheBrainConfig } from "@the-brain/core";
 import { createMlxTrainer } from "@the-brain/trainer-local-mlx";
 import { join } from "node:path";
@@ -30,23 +30,28 @@ export async function trainCommand(options: {
   if (existsSync(CONFIG_PATH)) {
     try {
       const raw = await readFile(CONFIG_PATH, "utf-8");
-      const config: TheBrainConfig = JSON.parse(raw);
+      const parsed = safeParseConfig(JSON.parse(raw));
+      if (parsed.success) {
+        const config = parsed.data;
 
-      if (options.project) {
-        const ctx = config.contexts?.[options.project];
-        if (!ctx) {
-          consola.error(`Project "${options.project}" not found.`);
-          process.exit(1);
+        if (options.project) {
+          const ctx = config.contexts?.[options.project];
+          if (!ctx) {
+            consola.error(`Project "${options.project}" not found.`);
+            process.exit(1);
+          }
+          dbPath = ctx.dbPath;
+          consola.info(`Targeting project: ${options.project}`);
+        } else if (options.global) {
+          dbPath = config.database.path;
+          consola.info("Targeting global brain");
+        } else if (config.activeContext && config.activeContext !== "global" && config.contexts?.[config.activeContext]) {
+          dbPath = config.contexts[config.activeContext].dbPath;
+        } else {
+          dbPath = config.database.path;
         }
-        dbPath = ctx.dbPath;
-        consola.info(`Targeting project: ${options.project}`);
-      } else if (options.global) {
-        dbPath = config.database.path;
-        consola.info("Targeting global brain");
-      } else if (config.activeContext && config.activeContext !== "global" && config.contexts?.[config.activeContext]) {
-        dbPath = config.contexts[config.activeContext].dbPath;
       } else {
-        dbPath = config.database.path;
+        consola.warn(`Config validation: ${parsed.error}. Using defaults.`);
       }
     } catch {}
   }
@@ -102,7 +107,7 @@ export async function trainCommand(options: {
     // Create trainer with optional iteration override
     const trainerConfig: Record<string, unknown> = {};
     if (options.iterations) {
-      trainerConfig.iterations = options.iterations;
+      trainerConfig.iterations = Math.max(1, options.iterations);
     }
     const trainer = createMlxTrainer(trainerConfig);
 

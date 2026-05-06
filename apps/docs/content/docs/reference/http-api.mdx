@@ -285,3 +285,179 @@ Returns an HTML single-page application showing the interactive memory timeline.
 **Auth:** Required in remote mode
 
 **Response:** `text/html`
+
+---
+
+## User Management (Team Mode)
+
+All user endpoints require **admin authentication** via Bearer token. See [Team Mode](/docs/integrations/team-mode) for setup.
+
+### `POST /api/users`
+
+Create a new team member.
+
+**Auth:** Admin Bearer token
+
+**Body:**
+
+```json
+{
+  "name": "anna",
+  "displayName": "Anna Kowalska",
+  "role": "contributor",
+  "permissions": [
+    { "project": "cpv", "role": "contributor" }
+  ]
+}
+```
+
+**Response:** `201 Created`
+
+```json
+{
+  "status": "ok",
+  "user": {
+    "id": "uuid",
+    "name": "anna",
+    "displayName": "Anna Kowalska",
+    "role": "contributor",
+    "permissions": [{ "project": "cpv", "role": "contributor" }],
+    "createdAt": 1714800000000
+  }
+}
+```
+
+### `GET /api/users`
+
+List all users.
+
+**Auth:** Admin Bearer token
+
+**Response:**
+
+```json
+{
+  "status": "ok",
+  "users": [
+    {
+      "id": "uuid-1",
+      "name": "admin",
+      "role": "admin",
+      "permissions": []
+    },
+    {
+      "id": "uuid-2",
+      "name": "anna",
+      "role": "contributor",
+      "permissions": [{ "project": "cpv", "role": "contributor" }]
+    }
+  ]
+}
+```
+
+### `DELETE /api/users/:id`
+
+Remove a user (cascades to tokens and audit entries).
+
+**Auth:** Admin Bearer token
+
+**Response:**
+
+```json
+{ "status": "ok", "removed": true, "userId": "uuid" }
+```
+
+### `POST /api/users/:id/tokens`
+
+Generate a new API token for a user.
+
+**Auth:** Admin Bearer token
+
+**Body (optional):**
+
+```json
+{ "label": "MacBook Pro" }
+```
+
+**Response:** `201 Created`
+
+```json
+{
+  "status": "ok",
+  "token": {
+    "id": "tok-uuid",
+    "userId": "user-uuid",
+    "token": "mb_a1b2c3d4e5f6...",
+    "label": "MacBook Pro",
+    "createdAt": 1714800000000
+  }
+}
+```
+
+### `GET /api/users/:id/tokens`
+
+List all active tokens for a user.
+
+**Auth:** Admin Bearer token
+
+**Response:**
+
+```json
+{
+  "status": "ok",
+  "tokens": [
+    {
+      "id": "tok-uuid-1",
+      "token": "mb_xxx...",
+      "label": "MacBook Pro",
+      "createdAt": 1714800000000,
+      "lastUsed": 1714900000000
+    }
+  ]
+}
+```
+
+### `DELETE /api/users/:id/tokens/:tid`
+
+Revoke an API token.
+
+**Auth:** Admin Bearer token
+
+**Response:**
+
+```json
+{ "status": "ok", "revoked": true, "tokenId": "tok-uuid", "userId": "user-uuid" }
+```
+
+### `GET /api/audit-log`
+
+Query the audit trail.
+
+**Auth:** Admin Bearer token
+
+**Query Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `userId` | string | Filter by user ID |
+| `project` | string | Filter by project name |
+| `limit` | number | Max entries (default: 100, max: 500) |
+
+**Response:**
+
+```json
+{
+  "status": "ok",
+  "entries": [
+    {
+      "id": "audit-uuid",
+      "userId": "user-uuid",
+      "action": "ingest_interaction",
+      "project": "cpv",
+      "detail": "Pushed 3 interactions from cursor",
+      "timestamp": 1714800000000
+    }
+  ],
+  "count": 1
+}
+```

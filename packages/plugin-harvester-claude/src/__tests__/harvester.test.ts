@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "bun:test";
-import { mkdirSync, writeFileSync, rmSync, existsSync, chmodSync } from "node:fs";
+import { mkdirSync, writeFileSync, rmSync, existsSync, chmodSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -244,7 +244,7 @@ describe("JSONL Interaction Extraction", () => {
     expect(firstDataCalls.length).toBe(1);
 
     // Add more content to the same file (simulating new conversation)
-    const existing = require("node:fs").readFileSync(filePath, "utf-8");
+    const existing = readFileSync(filePath, "utf-8");
     const newUser = makeJsonlLine({
       uuid: "u-new",
       type: "user",
@@ -255,7 +255,7 @@ describe("JSONL Interaction Extraction", () => {
       type: "assistant",
       message: { role: "assistant", content: [{ type: "text", text: "New answer" }] },
     });
-    require("node:fs").writeFileSync(filePath, existing + newUser + "\n" + newAssistant + "\n");
+    writeFileSync(filePath, existing + newUser + "\n" + newAssistant + "\n");
 
     // Second poll — should only get the new interaction
     const { hooks: hooks2, calls: calls2 } = createMockHooks();

@@ -73,9 +73,9 @@ Array of plugin configs.
 
 ```json
 {
-  "mode": "local | remote",
+  "mode": "local | remote | team",
   "bindAddress": "127.0.0.1",
-  "authToken": "mb_xxx",
+  "authToken": "mb_xxx",  // remote mode only — team mode uses per-user tokens in auth.db
   "port": 9420,
   "mcpPort": 9422
 }

@@ -66,7 +66,9 @@ export async function healthCommand(options: {
           }
         }
       }
-    } catch {}
+    } catch (err) {
+      console.error("[Health] Failed to read config or list projects:", err);
+    }
 
     // ── Training status ──
     const loraDir = join(process.env.HOME || "~", ".the-brain", "lora-checkpoints");
@@ -86,7 +88,9 @@ export async function healthCommand(options: {
         const files = await readdir(wikiDir);
         const mdFiles = files.filter((f) => f.endsWith(".md"));
         consola.info(`Wiki: ${mdFiles.length} pages in ${wikiDir}`);
-      } catch {}
+      } catch (err) {
+        console.error("[Health] Failed to read wiki directory:", err);
+      }
     }
   } finally {
     db.close();
@@ -106,7 +110,8 @@ async function resolveDbPath(options: { project?: string; global?: boolean }): P
     const result = safeParseConfig(JSON.parse(raw));
     if (!result.success) return defaults;
     config = result.data;
-  } catch {
+  } catch (err) {
+    console.error("[Health] Failed to load config, using defaults:", err);
     return defaults;
   }
 

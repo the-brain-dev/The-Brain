@@ -3,7 +3,7 @@
  * Multi-project aware: supports --project <name> and --global.
  */
 import { consola } from "consola";
-import { BrainDB, MemoryLayer } from "@the-brain/core";
+import { BrainDB, MemoryLayer, safeParseConfig } from "@the-brain/core";
 import type { TheBrainConfig } from "@the-brain/core";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
@@ -75,7 +75,9 @@ async function resolveDbPath(options: { project?: string; global?: boolean }): P
   try {
     if (existsSync(CONFIG_PATH)) {
       const raw = await readFile(CONFIG_PATH, "utf-8");
-      const config: TheBrainConfig = JSON.parse(raw);
+      const parsed = safeParseConfig(JSON.parse(raw));
+      if (!parsed.success) return join(process.env.HOME || "~", ".the-brain", "brain.db");
+      const config = parsed.data;
 
       if (options.project) {
         const ctx = config.contexts?.[options.project];
@@ -102,7 +104,9 @@ async function resolveDbPath(options: { project?: string; global?: boolean }): P
       consola.info("Inspecting global brain");
       return config.database.path || join(process.env.HOME || "~", ".the-brain", "global", "brain.db");
     }
-  } catch {}
+  } catch (err) {
+    console.error("[Inspect] Failed to read config:", err);
+  }
 
   // Fallback: legacy DB
   return join(process.env.HOME || "~", ".the-brain", "brain.db");

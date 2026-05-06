@@ -180,7 +180,11 @@ export function createLibsqlBackend(options?: {
         await db.insert(graphNodes).values({ ...node, id, connections: JSON.stringify(node.connections) }).run();
       }
       return db.select().from(graphNodes).where(eq(graphNodes.id, id)).get()
-        .then(r => r ? { ...r, connections: JSON.parse(r.connections as string) } : undefined) as Promise<GraphNodeRecord>;
+        .then(r => r ? { ...r, connections: JSON.parse(r.connections as string) } : undefined)
+        .catch((err) => {
+          console.error("[StorageLibSQL] upsertGraphNode: failed to return result:", err);
+          throw err;
+        }) as Promise<GraphNodeRecord>;
     },
     async getGraphNode(id: string) {
       await ensureInit();

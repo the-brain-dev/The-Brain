@@ -30,6 +30,7 @@ import { backendCommand } from "./commands/backend";
 import { mcpCommand } from "./commands/mcp";
 import { agentCommand } from "./commands/agent";
 import { docsCommand } from "./commands/docs";
+import { userCommand } from "./commands/user";
 import { getExtensionCommands } from "@the-brain/core";
 
 const cli = cac("the-brain");
@@ -46,6 +47,7 @@ cli
   .option("--work-dir <path>", "Project root for auto-detection")
   .option("--label <name>", "Human-friendly project name")
   .option("--remote", "Enable remote server mode (generates auth token, binds 0.0.0.0)")
+  .option("--team", "Enable team mode (multi-user auth with per-user tokens)")
   .action(async (options) => {
     await initCommand(options);
   });
@@ -150,6 +152,7 @@ cli
   .option("--project <name>", "Context from specific project")
   .option("--global", "Context from global brain")
   .option("--query <term>", "Filter graph nodes by keyword")
+  .option("--user <name>", "Include user identity anchor data")
   .option("--limit <n>", "Max results per section (default: 10)")
   .action(async (options) => {
     await contextCommand(options);
@@ -213,6 +216,18 @@ cli
   .command("timeline", "Open brain activity timeline in browser")
   .action(async () => {
     await timelineCommand();
+  });
+
+// ── User (team mode) ─────────────────────────────────────────────
+cli
+  .command("user <action>", "Manage users (team mode)")
+  .option("--name <name>", "User name")
+  .option("--project <project>", "Project name for permission")
+  .option("--role <role>", "Role: admin, contributor, observer")
+  .option("--label <label>", "Token label")
+  .option("--revoke <token-id>", "Revoke a token")
+  .action(async (action: string, options) => {
+    await userCommand(action, options);
   });
 
 // Parse

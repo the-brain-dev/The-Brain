@@ -19,7 +19,7 @@
  * beyond the standard library.
  */
 
-import { BrainDB, MemoryLayer } from "@the-brain/core";
+import { BrainDB, MemoryLayer, safeParseConfig } from "@the-brain/core";
 import type { TheBrainConfig } from "@the-brain/core";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
@@ -75,7 +75,8 @@ const PID_FILE = join(process.env.HOME || "~", ".the-brain", "daemon.pid");
 async function checkDaemon(): Promise<boolean> {
   try {
     const raw = await readFile(PID_FILE, "utf-8");
-    const pid = parseInt(raw.trim());
+    const pid = parseInt(raw.trim(), 10);
+    if (Number.isNaN(pid)) return false;
     process.kill(pid, 0);
     return true;
   } catch {
@@ -120,7 +121,10 @@ async function resolveDbPath(options: { project?: string; global?: boolean }): P
   const defaults = join(process.env.HOME || "~", ".the-brain", "global", "brain.db");
   if (!existsSync(CONFIG_PATH)) return defaults;
 
-  const config: TheBrainConfig = JSON.parse(await readFile(CONFIG_PATH, "utf-8"));
+  const raw = await readFile(CONFIG_PATH, "utf-8");
+  const parsed = safeParseConfig(JSON.parse(raw));
+  const config: TheBrainConfig | null = parsed.success ? parsed.data : null;
+  if (!config) return defaults;
   if (options.project) return config.contexts?.[options.project]?.dbPath || defaults;
   if (options.global) return config.database?.path || defaults;
 
@@ -138,14 +142,20 @@ async function fetchState(db: BrainDB): Promise<DashboardState> {
 
   let config: TheBrainConfig | null = null;
   try {
-    config = JSON.parse(await readFile(CONFIG_PATH, "utf-8"));
-  } catch {}
+    const raw = await readFile(CONFIG_PATH, "utf-8");
+    const parsed = safeParseConfig(JSON.parse(raw));
+    if (parsed.success) config = parsed.data;
+  } catch (err) {
+    console.error("[Dashboard] Failed to load config:", err);
+  }
 
   // Recent memories
   let recentMemories: Memory[] = [];
   try {
     recentMemories = await db.getAllMemories(20);
-  } catch {}
+  } catch (err) {
+    console.error("[Dashboard] Failed to load recent memories:", err);
+  }
 
   // Top graph nodes (by weight)
   let topNodes: Array<{ label: string; type: string; weight: number }> = [];
@@ -159,7 +169,9 @@ async function fetchState(db: BrainDB): Promise<DashboardState> {
         type: n.type,
         weight: n.weight,
       }));
-  } catch {}
+  } catch (err) {
+    console.error("[Dashboard] Failed to load graph nodes:", err);
+  }
 
   // LoRA adapter status
   let loraStatus = "not found";
@@ -177,7 +189,9 @@ async function fetchState(db: BrainDB): Promise<DashboardState> {
       const { readdir } = await import("node:fs/promises");
       const files = await readdir(wikiDir);
       wikiPages = files.filter((f) => f.endsWith(".md")).length;
-    } catch {}
+    } catch (err) {
+      console.error("[Dashboard] Failed to read wiki directory:", err);
+    }
   }
 
   return {
@@ -388,7 +402,7 @@ export async function dashboardCommand(options: {
       ? "global"
       : "active";
 
-  const interval = (options.interval ?? 2) * 1000;
+  const interval = Math.max(1, options.interval ?? 2) * 1000;
   const db = new BrainDB(dbPath);
 
   let tab: Tab = "overview";

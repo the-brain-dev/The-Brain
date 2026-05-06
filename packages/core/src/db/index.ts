@@ -163,7 +163,7 @@ export class BrainDB {
                    key === "sessionId" ? "session_id" :
                    key;
       setClauses.push(`${col} = ?`);
-      bindValues.push(value);
+      bindValues.push(typeof value === "object" && value !== null ? JSON.stringify(value) : value);
     }
 
     if (setClauses.length === 0) return;

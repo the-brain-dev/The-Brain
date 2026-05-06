@@ -18,6 +18,7 @@ import { consola } from "consola";
 import { join } from "node:path";
 import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
+import { createHash } from "node:crypto";
 import { Database } from "bun:sqlite";
 import type { Interaction } from "@the-brain/core";
 
@@ -38,7 +39,9 @@ function loadState(): AgentState {
     if (existsSync(STATE_PATH)) {
       return JSON.parse(readFileSync(STATE_PATH, "utf-8"));
     }
-  } catch {}
+  } catch (err) {
+    console.error("[Agent] Failed to load state:", err);
+  }
   return { lastPollTimestamp: 0, processedIds: [], harvesters: {} };
 }
 
@@ -50,7 +53,6 @@ function saveState(state: AgentState): void {
 // ── ID hashing (consistent with dedup logic) ──────────────────
 
 function hashContent(prompt: string, response: string): string {
-  const { createHash } = require("node:crypto") as typeof import("node:crypto");
   return createHash("sha256").update(prompt + "\x00" + response).digest("hex");
 }
 
@@ -104,10 +106,14 @@ function parseCursorLogs(since: number): Interaction[] {
               metadata: { workspace: ws.name },
             });
           }
-        } catch {}
+        } catch (err) {
+          console.error("[Agent] Failed to parse Cursor message:", err);
+        }
       }
       db.close();
-    } catch {}
+    } catch (err) {
+      console.error("[Agent] Failed to harvest Cursor interactions:", err);
+    }
   }
 
   return interactions;
@@ -156,11 +162,15 @@ function parseClaudeLogs(since: number): Interaction[] {
                 });
               }
             }
-          } catch {}
+          } catch (err) {
+            console.error("[Agent] Failed to parse Claude message:", err);
+          }
         }
       }
     }
-  } catch {}
+  } catch (err) {
+    console.error("[Agent] Failed to harvest Claude interactions:", err);
+  }
 
   return interactions;
 }
@@ -208,9 +218,13 @@ function parseWindsurfLogs(since: number): Interaction[] {
             });
           }
         }
-      } catch {}
+      } catch (err) {
+        console.error("[Agent] Failed to parse Windsurf message:", err);
+      }
     }
-  } catch {}
+  } catch (err) {
+    console.error("[Agent] Failed to harvest Windsurf interactions:", err);
+  }
 
   return interactions;
 }
@@ -330,7 +344,7 @@ export async function agentCommand(options: {
   }
 
   // Recurring
-  const intervalMs = (options.interval ?? 60) * 1000;
+  const intervalMs = Math.max(1, (options.interval ?? 60)) * 1000;
   consola.info(`Polling every ${intervalMs / 1000}s. Press Ctrl+C to stop.`);
 
   const timer = setInterval(poll, intervalMs);

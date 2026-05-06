@@ -5,6 +5,7 @@ import { consola } from "consola";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { TheBrainConfig } from "@the-brain/core";
+import { safeParseConfig } from "@the-brain/core";
 
 const CONFIG_DIR = join(process.env.HOME || "~", ".the-brain");
 const CONFIG_PATH = join(CONFIG_DIR, "config.json");
@@ -23,7 +24,12 @@ export async function switchContextCommand(options: {
   try {
     // Load config
     const raw = await readFile(CONFIG_PATH, "utf-8");
-    const config: TheBrainConfig = JSON.parse(raw);
+    const parsed = safeParseConfig(JSON.parse(raw));
+    if (!parsed.success) {
+      consola.error("Config validation failed. Run 'the-brain init' to repair.");
+      process.exit(1);
+    }
+    const config = parsed.data;
 
     // Validate
     if (target !== "global" && !config.contexts?.[target]) {

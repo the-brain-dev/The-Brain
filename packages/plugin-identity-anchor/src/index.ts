@@ -25,6 +25,8 @@ interface IdentityAnchorConfig {
   identityKeywords: string[];
   /** Path to anchor state file (persistence across sessions). Empty = no persistence. */
   statePath: string;
+  /** Multi-user mode: base directory for per-user identity state files */
+  userStatesDir: string;
   /** Drift threshold: if cosine distance > this, trigger identity boost */
   driftThreshold: number;
   /** Boost factor: identity fragments are repeated N times in training */
@@ -38,6 +40,7 @@ const DEFAULT_CONFIG: IdentityAnchorConfig = {
   // keywords, but the primary detection uses embedding similarity to the self-vector.
   identityKeywords: [],
   statePath: "", // No persistence by default — opt-in via config
+  userStatesDir: "", // No multi-user by default
   driftThreshold: 0.35,
   identityBoostFactor: 3,
 };
@@ -61,16 +64,48 @@ export function createIdentityAnchorPlugin(
 ) {
   const cfg = { ...DEFAULT_CONFIG, ...config };
   let anchorFragments: Memory[] = [];
+  /** Per-user anchor fragments: userId → fragments. Populated in multi-user mode. */
+  const userFragments: Map<string, Memory[]> = new Map();
+  /** Currently active user (set via identity-anchor:switchUser hook or interaction metadata) */
+  let currentUserId: string | null = null;
+
+  // ── State path resolution ───────────────────────────────────
+
+  /**
+   * Resolve the state path for a given user.
+   * In multi-user mode: {userStatesDir}/{userId}.json
+   * In single-user mode: cfg.statePath
+   */
+  function resolveStatePath(userId?: string): string {
+    if (cfg.userStatesDir && userId) {
+      return join(cfg.userStatesDir, `${userId}.json`);
+    }
+    return cfg.statePath;
+  }
+
+  // ── User state switching ────────────────────────────────────
+
+  function switchUser(userId: string): void {
+    if (currentUserId === userId) return;
+    saveState(); // Persist current user's state before switching
+    currentUserId = userId;
+    anchorFragments = userFragments.get(userId) || [];
+    loadState(userId);
+  }
 
   // ── Persistence ────────────────────────────────────────────
 
-  function saveState(): void {
-    if (!cfg.statePath) return;
+  function saveState(userId?: string): void {
+    const uid = userId ?? currentUserId;
+    const path = resolveStatePath(uid ?? undefined);
+    if (!path) return;
     try {
-      const dir = join(homedir(), ".the-brain");
+      const dir = uid && cfg.userStatesDir ? cfg.userStatesDir : join(homedir(), ".the-brain");
       mkdirSync(dir, { recursive: true });
 
-      const data: PersistedAnchor[] = anchorFragments.map((f) => ({
+      const fragmentsToSave = uid ? (userFragments.get(uid) || anchorFragments) : anchorFragments;
+
+      const data: PersistedAnchor[] = fragmentsToSave.map((f) => ({
         id: f.id,
         content: f.content,
         surpriseScore: f.surpriseScore,
@@ -80,21 +115,23 @@ export function createIdentityAnchorPlugin(
         metadata: f.metadata,
       }));
 
-      writeFileSync(cfg.statePath, JSON.stringify(data, null, 2));
+      writeFileSync(path, JSON.stringify(data, null, 2));
     } catch (err) {
       console.error("[IdentityAnchor] Failed to save state:", err);
     }
   }
 
-  function loadState(): void {
-    if (!cfg.statePath) return;
+  function loadState(userId?: string): void {
+    const uid = userId ?? currentUserId;
+    const path = resolveStatePath(uid ?? undefined);
+    if (!path) return;
     try {
-      if (!existsSync(cfg.statePath)) return;
+      if (!existsSync(path)) return;
 
-      const raw = readFileSync(cfg.statePath, "utf-8");
+      const raw = readFileSync(path, "utf-8");
       const data: PersistedAnchor[] = JSON.parse(raw);
 
-      anchorFragments = data.map((a) => ({
+      const fragments = data.map((a) => ({
         id: a.id,
         layer: MemoryLayer.DEEP,
         content: a.content,
@@ -109,11 +146,17 @@ export function createIdentityAnchorPlugin(
       }));
 
       // Enforce max size
-      if (anchorFragments.length > cfg.maxAnchorFragments) {
-        anchorFragments.sort((a, b) => b.timestamp - a.timestamp);
-        anchorFragments = anchorFragments.slice(0, cfg.maxAnchorFragments);
+      if (fragments.length > cfg.maxAnchorFragments) {
+        fragments.sort((a, b) => b.timestamp - a.timestamp);
+        fragments.splice(cfg.maxAnchorFragments);
       }
-    } catch {
+
+      if (uid) {
+        userFragments.set(uid, fragments);
+      }
+      anchorFragments = fragments;
+    } catch (err) {
+      console.error("[IdentityAnchor] Failed to load state file:", err);
       // File doesn't exist yet or is corrupt — start fresh
     }
   }
@@ -292,6 +335,9 @@ export function createIdentityAnchorPlugin(
       hooks.hook(HookEvent.SELECTION_PROMOTE, async (ctx: InteractionContext) => {
         let changed = false;
 
+        // Detect user from interaction metadata (set by auth layer in team mode)
+        const userId = (ctx.interaction?.metadata as any)?.userId as string | undefined;
+
         for (const fragment of ctx.fragments) {
           if (
             isIdentityRelevant(fragment) &&
@@ -304,6 +350,7 @@ export function createIdentityAnchorPlugin(
                 ...fragment.metadata,
                 identityAnchor: true,
                 anchoredAt: Date.now(),
+                ...(userId ? { userId } : {}),
               },
             };
 
@@ -317,7 +364,15 @@ export function createIdentityAnchorPlugin(
           }
         }
 
-        if (changed) saveState();
+        if (changed) {
+          // In multi-user mode, persist to the user-specific state file
+          if (userId && cfg.userStatesDir) {
+            userFragments.set(userId, anchorFragments);
+            saveState(userId);
+          } else {
+            saveState();
+          }
+        }
       });
 
       // ── Before consolidation: attach identity data, detect drift ──
@@ -353,13 +408,53 @@ export function createIdentityAnchorPlugin(
 
       // ── Custom hooks for external consumers ────────────────────
 
-      hooks.hook("identity-anchor:getState" as any, async () => ({
-        fragmentCount: anchorFragments.length,
-        maxFragments: cfg.maxAnchorFragments,
-        selfVector: computeSelfVector(),
-        keywords: cfg.identityKeywords,
-        driftThreshold: cfg.driftThreshold,
-      }));
+      hooks.hook("identity-anchor:switchUser" as any, async (userId: string) => {
+        switchUser(userId);
+      });
+
+      hooks.hook("identity-anchor:getState" as any, async (opts?: { userId?: string }) => {
+        // If userId is provided and different from current, temporarily load that user
+        const targetId = opts?.userId ?? currentUserId;
+        if (targetId && targetId !== currentUserId && cfg.userStatesDir) {
+          userFragments.set(currentUserId!, [...anchorFragments]);
+          const saved = userFragments.get(targetId);
+          if (saved) {
+            anchorFragments = saved;
+          } else {
+            // Load from disk
+            const path = resolveStatePath(targetId);
+            if (path && existsSync(path)) {
+              try {
+                const raw = readFileSync(path, "utf-8");
+                const data: PersistedAnchor[] = JSON.parse(raw);
+                anchorFragments = data.map((a) => ({
+                  id: a.id, layer: MemoryLayer.DEEP, content: a.content,
+                  embedding: a.embedding, surpriseScore: a.surpriseScore,
+                  timestamp: a.timestamp, source: a.source,
+                  metadata: { ...a.metadata, identityAnchor: true },
+                }));
+                userFragments.set(targetId, anchorFragments);
+              } catch { /* ignore */ }
+            } else {
+              anchorFragments = [];
+            }
+          }
+        }
+
+        return {
+          fragmentCount: anchorFragments.length,
+          maxFragments: cfg.maxAnchorFragments,
+          selfVector: computeSelfVector(),
+          keywords: cfg.identityKeywords,
+          driftThreshold: cfg.driftThreshold,
+          userId: targetId,
+          fragments: anchorFragments.slice(0, 10).map((f) => ({
+            id: f.id,
+            content: f.content.slice(0, 200),
+            timestamp: f.timestamp,
+          })),
+        };
+      });
 
       hooks.hook("identity-anchor:getBoostedFragments" as any, async () =>
         getIdentityTrainingFragments()

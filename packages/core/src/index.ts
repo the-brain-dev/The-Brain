@@ -2,6 +2,7 @@
 export { createHookSystem } from "./hooks";
 export { PluginManager, definePlugin } from "./plugin";
 export { BrainDB } from "./db/index";
+export { AuthDB } from "./auth-db";
 export { LayerRouter } from "./layers/index";
 export { ProjectManager } from "./context";
 export { TheBrainConfigSchema, ProjectContextSchema, parseConfig, safeParseConfig, generateAuthToken } from "./types";
@@ -14,6 +15,8 @@ export type { BrainAPI, ExtensionContext } from "./extensions";
 export { LocalBrainDir } from "./local-brain";
 export type { LocalBrainState } from "./local-brain";
 export { MemoryLayer, HookEvent } from "./types";
+export { UserRole, UserScope } from "./auth-types";
+export { PermissionResolver } from "./auth-permissions";
 export type {
   HookEventName,
   Interaction,
@@ -48,6 +51,12 @@ export type {
   OutputGenerateContext,
   OutputResult,
 } from "./layers/index";
+export type {
+  User,
+  UserPermission,
+  AuthToken,
+  AuditEntry,
+} from "./auth-types";
 export { createDefaultCleaner } from "./cleaner-default";
 export { createSqliteBackend } from "./storage-sqlite";
 export { createIntervalScheduler } from "./scheduler-interval";

@@ -1,6 +1,6 @@
 {
   "title": "the-brain",
   "root": true,
-  "pages": ["start-here", "core-concepts", "customization", "reference", "integrations", "development", "troubleshooting"],
+  "pages": ["start-here", "packages", "core-concepts", "customization", "reference", "integrations", "development", "troubleshooting", "acknowledgements"],
   "defaultOpen": false
 }

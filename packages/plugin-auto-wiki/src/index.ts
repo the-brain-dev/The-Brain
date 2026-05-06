@@ -136,7 +136,11 @@ async function ensureSchema(baseDir: string, title: string): Promise<void> {
   try {
     await access(schemaPath);
     return; // Already exists
-  } catch {
+  } catch (err: any) {
+    if (err?.code !== "ENOENT") {
+      console.error("[AutoWiki] Failed to check schema path:", err);
+      throw err;
+    }
     // Create it
   }
 
@@ -251,7 +255,10 @@ export function createAutoWikiPlugin(
     // Build wikilinks to connected nodes
     const connectedLabels: string[] = [];
     for (const connId of node.connections) {
-      const conn = await db.getGraphNode(connId).catch(() => undefined);
+      const conn = await db.getGraphNode(connId).catch((err) => {
+        console.error("[AutoWiki] Failed to get graph node:", connId, err);
+        return undefined;
+      });
       if (conn) {
         connectedLabels.push(wikilink(slugify(conn.label), conn.label));
       }
@@ -608,7 +615,10 @@ export function createAutoWikiPlugin(
       try {
         await access(entityPath);
         updatedPages.push(entityPage.path);
-      } catch {
+      } catch (err: any) {
+        if (err?.code !== "ENOENT") {
+          console.error("[AutoWiki] Failed to check entity path:", err);
+        }
         createdPages.push(entityPage.path);
       }
     }
@@ -655,7 +665,10 @@ export function createAutoWikiPlugin(
     let logContent = "# Wiki Log\n\n> Append-only chronological action log.\n\n";
     try {
       logContent = await readFile(logPath, "utf-8");
-    } catch {
+    } catch (err: any) {
+      if (err?.code !== "ENOENT") {
+        console.error("[AutoWiki] Failed to read log file:", err);
+      }
       // First run — write header
     }
     logContent += await generateLogEntry(

@@ -22,7 +22,8 @@ export async function timelineCommand(): Promise<void> {
     } else {
       console.log(`Open this URL in your browser: ${url}`);
     }
-  } catch {
+  } catch (err) {
+    console.error("[Timeline] Failed to open browser:", err);
     console.log(`Could not open browser automatically. Open: ${url}`);
   }
 }

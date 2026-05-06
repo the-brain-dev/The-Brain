@@ -1,0 +1,115 @@
+---
+title: Updating the-brain
+description: How to update to the latest version
+---
+
+## From Source (Git Pull)
+
+The recommended method for developers working from source:
+
+```bash
+cd ~/Projects/Private/the-brain
+git pull origin main
+bun install
+./install.sh
+```
+
+This rebuilds the CLI binary, updates LaunchAgents, rebuilds the menu bar app (macOS), and restarts the daemon.
+
+## From Release Tarball
+
+For non-developer installations:
+
+```bash
+curl -fsSL https://the-brain.dev/install.sh | bash
+```
+
+The installer handles everything: Bun installation, dependencies, database initialization, and daemon setup.
+
+## Verifying the Update
+
+```bash
+# Check version
+the-brain --version
+
+# Verify daemon health
+the-brain health
+
+# Check plugin status
+the-brain plugins list
+```
+
+## Rebuilding After Code Changes
+
+```bash
+# Rebuild CLI + launch daemon
+cd ~/Projects/Private/the-brain && ./install.sh
+
+# Rebuild documentation
+cd apps/docs && bun run build
+
+# Restart daemon (if running)
+the-brain daemon stop
+the-brain daemon start
+```
+
+## Database Migrations
+
+The-brain handles schema changes automatically when the daemon starts. No manual SQL migration steps are required. New tables (such as `users` and `auth_tokens` from team mode) are created on first use via `CREATE TABLE IF NOT EXISTS`.
+
+## macOS-Specific
+
+After updating, reload the LaunchAgents to pick up binary changes:
+
+```bash
+launchctl unload ~/Library/LaunchAgents/com.thebrain.daemon.plist
+launchctl load ~/Library/LaunchAgents/com.thebrain.daemon.plist
+
+launchctl unload ~/Library/LaunchAgents/com.thebrain.bar.plist
+launchctl load ~/Library/LaunchAgents/com.thebrain.bar.plist
+```
+
+Or simply run `./install.sh` which handles this automatically.
+
+## Rolling Back
+
+```bash
+cd ~/Projects/Private/the-brain
+git log --oneline -5              # Find the commit before the update
+git checkout <previous-commit>    # Switch to it
+bun install && ./install.sh
+```
+
+## Common Update Issues
+
+### "missing required module 'SwiftShims'"
+
+The Swift package manager caches module paths. If you renamed the project directory or moved it:
+
+```bash
+cd apps/menu-bar
+swift package clean
+swift build -c release
+```
+
+### "command not found: the-brain"
+
+The binary symlink may be broken. Re-run install.sh:
+
+```bash
+cd ~/Projects/Private/the-brain && ./install.sh
+```
+
+### Daemon won't start after update
+
+Check the logs:
+
+```bash
+tail -50 ~/.the-brain/logs/daemon.log
+```
+
+Most common cause: config validation errors from new required fields. Compare your `~/.the-brain/config.json` with the default config.
+
+## Breaking Changes
+
+Check the [GitHub Releases](https://github.com/the-brain-dev/Brain/releases) page and package changelogs for migration notes. Breaking changes are documented in `### Breaking Changes` sections of each package's CHANGELOG.md.

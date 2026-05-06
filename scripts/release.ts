@@ -17,6 +17,8 @@
  */
 
 import { $ } from "bun";
+import { readFileSync, existsSync, readdirSync, writeFileSync } from "node:fs";
+import { join as pathJoin } from "node:path";
 
 const RELEASE_TARGET = process.argv[2];
 const BUMP_TYPES = new Set(["major", "minor", "patch"]);
@@ -28,22 +30,20 @@ if (!RELEASE_TARGET || (!BUMP_TYPES.has(RELEASE_TARGET) && !SEMVER_RE.test(RELEA
 }
 
 function getVersion(): string {
-  const pkg = JSON.parse(require("fs").readFileSync("package.json", "utf-8"));
+  const pkg = JSON.parse(readFileSync("package.json", "utf-8"));
   return pkg.version;
 }
 
 function getChangelogs(): string[] {
-  const fs = require("fs");
-  const path = require("path");
   const packagesDir = "packages";
   const appsDir = "apps";
   const changelogs: string[] = [];
 
   for (const dir of [packagesDir, appsDir]) {
-    if (!fs.existsSync(dir)) continue;
-    for (const pkg of fs.readdirSync(dir)) {
-      const changelogPath = path.join(dir, pkg, "CHANGELOG.md");
-      if (fs.existsSync(changelogPath)) {
+    if (!existsSync(dir)) continue;
+    for (const pkg of readdirSync(dir)) {
+      const changelogPath = pathJoin(dir, pkg, "CHANGELOG.md");
+      if (existsSync(changelogPath)) {
         changelogs.push(changelogPath);
       }
     }
@@ -52,12 +52,11 @@ function getChangelogs(): string[] {
 }
 
 function updateChangelogsForRelease(version: string) {
-  const fs = require("fs");
   const date = new Date().toISOString().split("T")[0];
   const changelogs = getChangelogs();
 
   for (const changelog of changelogs) {
-    const content = fs.readFileSync(changelog, "utf-8");
+    const content = readFileSync(changelog, "utf-8");
 
     if (!content.includes("## [Unreleased]")) {
       console.log(`  Skipping ${changelog}: no [Unreleased] section`);
@@ -65,20 +64,19 @@ function updateChangelogsForRelease(version: string) {
     }
 
     const updated = content.replace("## [Unreleased]", `## [${version}] - ${date}`);
-    fs.writeFileSync(changelog, updated);
+    writeFileSync(changelog, updated);
     console.log(`  Updated ${changelog}`);
   }
 }
 
 function addUnreleasedSection() {
-  const fs = require("fs");
   const changelogs = getChangelogs();
   const unreleasedSection = "## [Unreleased]\n\n";
 
   for (const changelog of changelogs) {
-    const content = fs.readFileSync(changelog, "utf-8");
+    const content = readFileSync(changelog, "utf-8");
     const updated = content.replace(/^(# Changelog\n\n)/, `$1${unreleasedSection}`);
-    fs.writeFileSync(changelog, updated);
+    writeFileSync(changelog, updated);
     console.log(`  Added [Unreleased] to ${changelog}`);
   }
 }
@@ -124,7 +122,7 @@ async function main() {
 
   // 5. Publish (if configured)
   console.log("Publishing to npm...");
-  const pkg = JSON.parse(require("fs").readFileSync("package.json", "utf-8"));
+  const pkg = JSON.parse(readFileSync("package.json", "utf-8"));
   if (!pkg.private) {
     await $`npm publish --workspaces --access public`;
     console.log("  Published to npm");

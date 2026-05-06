@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Generate LoRA training fragments as JSON file."""
 import json
+import os
+import sys
+
 
 fragments = [
     {
@@ -65,7 +68,21 @@ fragments = [
     },
 ]
 
-output_path = "/Users/oskarschachta/.the-brain/lora-checkpoints/lora_fragments.json"
-with open(output_path, "w") as f:
-    json.dump(fragments, f)
+output_path = os.path.expanduser("~/.the-brain/lora-checkpoints/lora_fragments.json")
+if len(sys.argv) > 1:
+    output_path = sys.argv[1]
+
+try:
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
+except OSError as e:
+    print(f"ERROR: Cannot create output directory: {e}", file=sys.stderr)
+    sys.exit(1)
+
+try:
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(fragments, f)
+except (OSError, json.JSONEncodeError) as e:
+    print(f"ERROR: Failed to write fragments: {e}", file=sys.stderr)
+    sys.exit(1)
+
 print(f"Written {len(fragments)} fragments to {output_path}")

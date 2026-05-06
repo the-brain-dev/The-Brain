@@ -1,0 +1,68 @@
+---
+title: Acknowledgements
+description: Inspirations, research references, and projects that shaped the-brain
+---
+
+The-brain stands on the shoulders of brilliant research and inspiring open-source projects.
+
+## Inspirations
+
+### [pi.dev](https://pi.dev)
+
+Pi's [package catalog](https://pi.dev/packages) directly inspired the-brain's plugin ecosystem design. Their approach to filtering packages by type (extension, skill, theme, prompt), sorting by downloads, and providing one-line install commands set the standard for how AI agent ecosystems should work.
+
+### [Karpathy's LLM Wiki](https://github.com/karpathy/llm-wiki)
+
+Andrej Karpathy's concept of an interlinked, markdown-based knowledge base for LLM research inspired the-brain's Auto-Wiki plugin. The idea that knowledge should be structured, linked, and human-readable — not buried in vector databases — shaped how we think about memory consolidation.
+
+## Research Foundations
+
+The-brain's 3-layer cognitive architecture draws from several research areas:
+
+### Self-Predictive Memory (SPM)
+
+The Selection Layer's Surprise-Gated Prediction Error filter is grounded in predictive coding theory and self-supervised learning research:
+
+- **Predictive Coding** — Rao & Ballard (1999). Hierarchical predictive coding in the visual cortex. The idea that the brain constantly predicts sensory input and only processes prediction errors.
+- **World Models** — Ha & Schmidhuber (2018). Learning compressed spatial and temporal representations to predict future states. The "surprise" signal in world models directly inspired SPM's scoring mechanism.
+- **Self-Predictive Representations** — Grill et al. (2020), BYOL. Learning representations by predicting one's own latent states. The concept that self-prediction creates robust, generalizable features inspired the Identity Anchor plugin.
+
+### Graph Memory
+
+- **Knowledge Graphs** — The Instant Layer's graph-based memory builds on decades of knowledge graph research, from early semantic networks (Quillian, 1968) to modern graph neural networks (Kipf & Welling, 2017).
+- **Memory Augmented Neural Networks** — Graves et al. (2014), Neural Turing Machines. The concept of external memory with read/write operations.
+
+### Local Training & Privacy
+
+- **LoRA (Low-Rank Adaptation)** — Hu et al. (2021). Efficient fine-tuning via low-rank matrices. The-brain's Deep Layer uses LoRA to consolidate memories without full model retraining.
+- **Federated Learning** — McMahan et al. (2017). The principle that data should stay on-device inspired the-brain's local-first philosophy.
+- **MLX** — Apple's machine learning framework for Apple Silicon. The `trainer-local-mlx` plugin makes on-device training practical by leveraging Apple's unified memory architecture.
+
+### Agent Memory Systems
+
+- **MemGPT** — Packer et al. (2023). OS-inspired memory management for LLMs with virtual context. The concept of tiered memory (core vs. archival) parallels the-brain's layer system.
+- **Reflexion** — Shinn et al. (2023). Verbal reinforcement learning where agents reflect on past failures. The pattern of "correction detection" in the-brain's Graph Memory mirrors Reflexion's self-evaluation loop.
+- **Generative Agents** — Park et al. (2023). Simulacra of human behavior with memory streams. The concept of retrieving relevant memories for context-aware behavior.
+
+### Cognitive Architecture
+
+- **ACT-R** — Anderson et al. (2004). An integrated theory of the mind with declarative and procedural memory. The-brain's separation of declarative memory (graph, wiki) from procedural memory (LoRA adapters) mirrors ACT-R's architecture.
+- **Global Workspace Theory** — Baars (1988). Consciousness as a global workspace broadcasting to specialized processors. The-brain's hook system (`BEFORE_PROMPT`, `AFTER_RESPONSE`) is a simplified implementation of this broadcasting pattern.
+- **Surprise & Learning** — Itti & Baldi (2009). Bayesian surprise attracts human attention. The SPM curator's surprise-gating directly operationalizes this finding.
+
+## Open Source Dependencies
+
+The-brain is built with:
+
+- **[Bun](https://bun.sh)** — JavaScript runtime and package manager
+- **[Drizzle ORM](https://orm.drizzle.team)** — TypeScript SQL ORM
+- **[Fumadocs](https://fumadocs.vercel.app)** — Documentation framework
+- **[MLX](https://github.com/ml-explore/mlx)** — Apple machine learning framework
+- **[cac](https://github.com/unjs/cac)** — Command and Conquer CLI framework
+- **[Biome](https://biomejs.dev)** — Linter and formatter
+
+## Community
+
+Thank you to everyone who has contributed ideas, bug reports, and pull requests. The-brain is what it is because of the community around it.
+
+See [CONTRIBUTING.md](https://github.com/the-brain-dev/Brain/blob/main/CONTRIBUTING.md) for how to get involved.

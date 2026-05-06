@@ -111,8 +111,9 @@ async function loadConfig(): Promise<TheBrainConfig> {
     const result = safeParseConfig(JSON.parse(raw));
     if (!result.success) throw new Error(`Config validation failed: ${result.error}`);
     return result.data;
-  } catch {
-    console.error("Config not found. Run 'the-brain init' first.");
+  } catch (err) {
+    console.error("Config not found or invalid:", err);
+    console.error("Run 'the-brain init' first.");
     process.exit(1);
   }
 }

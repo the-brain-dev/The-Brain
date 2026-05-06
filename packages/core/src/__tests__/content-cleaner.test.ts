@@ -42,7 +42,7 @@ describe("ContentCleaner", () => {
       const raw = `Prompt: <observed_from_primary_session>
   <what_happened>Bash</what_happened>
   <occurred_at>2026-04-22T14:23:32.515Z</occurred_at>
-  <working_directory>/Users/oskarschachta/gbrain</working_directory>
+  <working_directory>/home/user/gbrain</working_directory>
   <parameters>"{"command":"~/.bun/bin/bun gbrain doctor"}"</parameters>
 </observed_from_primary_session>`;
 
@@ -59,8 +59,8 @@ describe("ContentCleaner", () => {
       const raw = `Prompt: <observed_from_primary_session>
   <what_happened>Edit</what_happened>
   <occurred_at>2026-04-21T12:55:59.935Z</occurred_at>
-  <working_directory>/Users/oskarschachta/.hermes</working_directory>
-  <parameters>"{"file_path":"/Users/oskarschachta/.hermes/skills/the-brain/SKILL.md"}"</parameters>
+  <working_directory>/home/user/.hermes</working_directory>
+  <parameters>"{"file_path":"/home/user/.hermes/skills/the-brain/SKILL.md"}"</parameters>
 </observed_from_primary_session>`;
 
       const result = cleanMemoryContent(raw);
@@ -74,8 +74,8 @@ describe("ContentCleaner", () => {
     test("extracts project name from working directory", () => {
       const raw = `Prompt: <observed_from_primary_session>
   <what_happened>Read</what_happened>
-  <working_directory>/Users/oskarschachta/Projects/Private/heycoco</working_directory>
-  <parameters>"{"file_path":"/Users/oskarschachta/Projects/Private/heycoco/src/app.ts"}"</parameters>
+  <working_directory>/home/user/Projects/Private/heycoco</working_directory>
+  <parameters>"{"file_path":"/home/user/Projects/Private/heycoco/src/app.ts"}"</parameters>
 </observed_from_primary_session>`;
 
       const result = cleanMemoryContent(raw);
@@ -87,7 +87,7 @@ describe("ContentCleaner", () => {
     test("handles hidden directory project names", () => {
       const raw = `Prompt: <observed_from_primary_session>
   <what_happened>Edit</what_happened>
-  <working_directory>/Users/oskarschachta/.hermes</working_directory>
+  <working_directory>/home/user/.hermes</working_directory>
 </observed_from_primary_session>`;
 
       const result = cleanMemoryContent(raw);
@@ -99,7 +99,7 @@ describe("ContentCleaner", () => {
     test("extracts MCP tool calls", () => {
       const raw = `Prompt: <observed_from_primary_session>
   <what_happened>mcp__serena__find_file</what_happened>
-  <working_directory>/Users/oskarschachta/Projects/Private/heycoco</working_directory>
+  <working_directory>/home/user/Projects/Private/heycoco</working_directory>
 </observed_from_primary_session>`;
 
       const result = cleanMemoryContent(raw);
@@ -112,7 +112,7 @@ describe("ContentCleaner", () => {
     test("extracts Grep with pattern", () => {
       const raw = `Prompt: <observed_from_primary_session>
   <what_happened>Grep</what_happened>
-  <working_directory>/Users/oskarschachta/Projects/Private/heycoco</working_directory>
+  <working_directory>/home/user/Projects/Private/heycoco</working_directory>
   <parameters>"{"pattern":"useState"}"</parameters>
 </observed_from_primary_session>`;
 
@@ -239,7 +239,7 @@ Actually, change of plans — let's use pnpm instead.`;
     test("extracts params from escaped JSON (Case B — literal backslash-quotes)", () => {
       const raw = `<observed_from_primary_session>
   <what_happened>Write</what_happened>
-  <working_directory>/Users/oskarschachta/Projects/my-app</working_directory>
+  <working_directory>/home/user/Projects/my-app</working_directory>
   <parameters>"{\\"file_path\\":\\"/src/utils.ts\\",\\"command\\":\\"write\\"}"</parameters>
 </observed_from_primary_session>`;
 
@@ -251,7 +251,7 @@ Actually, change of plans — let's use pnpm instead.`;
     test("extracts params via regex fallback for malformed JSON (Case C)", () => {
       const raw = `<observed_from_primary_session>
   <what_happened>Bash</what_happened>
-  <working_directory>/Users/oskarschachta/Projects/my-app</working_directory>
+  <working_directory>/home/user/Projects/my-app</working_directory>
   <parameters>"{\\"command\\": \\"npm run build && test\\" --verbose}"</parameters>
 </observed_from_primary_session>`;
 

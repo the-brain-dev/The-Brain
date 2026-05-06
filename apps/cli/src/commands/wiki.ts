@@ -11,6 +11,7 @@ import { join } from "node:path";
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import type { TheBrainConfig } from "@the-brain/core";
+import { safeParseConfig } from "@the-brain/core";
 
 const CONFIG_PATH = join(process.env.HOME || "~", ".the-brain", "config.json");
 
@@ -20,7 +21,10 @@ async function getWikiDir(options: { project?: string; global?: boolean }): Prom
   if (!existsSync(CONFIG_PATH)) return defaults;
 
   try {
-    const config: TheBrainConfig = JSON.parse(await readFile(CONFIG_PATH, "utf-8"));
+    const raw = await readFile(CONFIG_PATH, "utf-8");
+    const parsed = safeParseConfig(JSON.parse(raw));
+    const config: TheBrainConfig | null = parsed.success ? parsed.data : null;
+    if (!config) return defaults;
 
     if (options.project) {
       return config.contexts?.[options.project]?.wikiDir || defaults;
@@ -124,6 +128,11 @@ async function serveWiki(wikiDir: string, port: number) {
       const url = new URL(req.url);
       let filePath = join(wikiDir, url.pathname === "/" ? "index.md" : url.pathname);
 
+      // Prevent path traversal: disallow paths that escape wikiDir
+      if (filePath.includes("..")) {
+        return new Response("Forbidden", { status: 403 });
+      }
+
       // Auto-add .md extension for wikilinks
       if (!filePath.includes(".") && existsSync(filePath + ".md")) {
         filePath += ".md";
@@ -215,12 +224,16 @@ async function generateWikiFromBrain(options: { project?: string; global?: boole
   let dbPath = DB_PATH;
   if (existsSync(CONFIG_PATH)) {
     try {
-      const config = JSON.parse(await readFile(CONFIG_PATH, "utf-8"));
-      if (options.project) {
-        const ctx = config.contexts?.[options.project];
-        if (ctx) dbPath = ctx.dbPath;
-      } else if (!options.global && config.database?.path) {
-        dbPath = config.database.path;
+      const raw = await readFile(CONFIG_PATH, "utf-8");
+      const parsed = safeParseConfig(JSON.parse(raw));
+      if (parsed.success) {
+        const config = parsed.data;
+        if (options.project) {
+          const ctx = config.contexts?.[options.project];
+          if (ctx) dbPath = ctx.dbPath;
+        } else if (!options.global && config.database?.path) {
+          dbPath = config.database.path;
+        }
       }
     } catch {}
   }

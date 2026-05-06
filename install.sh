@@ -140,6 +140,8 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
         info "macOS detected — building menu bar app..."
         cd "$MENU_BAR_DIR"
 
+        # Clean stale caches (fixes module path errors after renames)
+        swift package clean 2>/dev/null
         if swift build -c release 2>&1 | tail -1; then
             BAR_BIN="$MENU_BAR_DIR/.build/arm64-apple-macosx/release/TheBrainBar"
             BAR_DEST="$THE_BRAIN_DIR/TheBrainBar"

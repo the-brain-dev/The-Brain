@@ -9,9 +9,11 @@
  *   POST /api/train       → trigger LoRA training
  */
 import type { DaemonEngine } from "./engine";
-import { MemoryLayer, HookEvent } from "@the-brain/core";
+import { MemoryLayer, HookEvent, AuthDB } from "@the-brain/core";
+import { registerUserRoutes } from "./api-users";
 import { readFileSync, existsSync } from "node:fs";
-import { basename, join as pathJoin } from "node:path";
+import { basename, join as pathJoin, join } from "node:path";
+import { homedir } from "node:os";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 
@@ -26,7 +28,7 @@ export interface APIState {
 }
 
 export interface ServerConfig {
-  mode: "local" | "remote";
+  mode: "local" | "remote" | "team";
   bindAddress: string;
   authToken?: string;
   port?: number;
@@ -35,7 +37,20 @@ export interface ServerConfig {
 export function startAPIServer(engine: DaemonEngine, state: APIState, serverCfg?: ServerConfig) {
   const cfg: ServerConfig = serverCfg ?? { mode: "local", bindAddress: "127.0.0.1" };
   const isRemote = cfg.mode === "remote";
+  const isTeamMode = cfg.mode === "team";
   const actualPort = cfg.port ?? 9420;
+
+  // ── Team mode: initialize auth database ──────────
+  let authDB: AuthDB | null = null;
+  if (isTeamMode) {
+    const authDbPath = join(homedir(), ".the-brain", "auth.db");
+    if (existsSync(authDbPath)) {
+      authDB = new AuthDB(authDbPath);
+      console.log("Auth: team mode — per-user token validation enabled");
+    } else {
+      console.warn("Auth: team mode enabled but auth.db not found — run 'the-brain init --team'");
+    }
+  }
 
   const ingestedHashes = new Set<string>();
   const ingestedHashesOrder: string[] = []; // LRU tracking
@@ -49,9 +64,11 @@ export function startAPIServer(engine: DaemonEngine, state: APIState, serverCfg?
       const path = url.pathname;
       const method = req.method;
 
-      // ── Auth check (remote mode) ──
+      // ── Auth check ─────────────────────────────────
+      let resolvedUserId: string | null = null;
+
       if (isRemote && cfg.authToken) {
-        // /api/health is public — no auth needed
+        // Remote mode: single shared token
         if (path !== "/api/health") {
           const auth = req.headers.get("authorization");
           const expected = `Bearer ${cfg.authToken}`;
@@ -61,6 +78,26 @@ export function startAPIServer(engine: DaemonEngine, state: APIState, serverCfg?
               { status: 401, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
             );
           }
+        }
+      } else if (isTeamMode && authDB) {
+        // Team mode: per-user tokens
+        if (path !== "/api/health") {
+          const auth = req.headers.get("authorization");
+          if (!auth || !auth.startsWith("Bearer ")) {
+            return new Response(
+              JSON.stringify({ error: "Unauthorized", hint: "Pass Authorization: Bearer <user-token>" }),
+              { status: 401, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
+            );
+          }
+          const token = auth.slice(7);
+          const result = await authDB.validateToken(token);
+          if (!result) {
+            return new Response(
+              JSON.stringify({ error: "Unauthorized — invalid or revoked token" }),
+              { status: 401, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
+            );
+          }
+          resolvedUserId = result.user.id;
         }
       }
 
@@ -369,7 +406,10 @@ export function startAPIServer(engine: DaemonEngine, state: APIState, serverCfg?
                 prompt: interaction.prompt,
                 response: interaction.response ?? "",
                 source: interaction.source,
-                metadata: interaction.metadata,
+                metadata: {
+                  ...interaction.metadata,
+                  ...(resolvedUserId ? { userId: resolvedUserId } : {}),
+                },
               },
               fragments: [{
                 id: `frag-${interaction.id ?? crypto.randomUUID()}`,
@@ -448,6 +488,12 @@ export function startAPIServer(engine: DaemonEngine, state: APIState, serverCfg?
       }
     },
   });
+
+  // ── Team mode: register user management API routes ──────────
+  if (authDB) {
+    registerUserRoutes(server, authDB);
+    console.log("Auth: team mode — user management API enabled");
+  }
 
   return server;
 }

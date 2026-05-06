@@ -16,16 +16,18 @@ struct TheBrainBarApp: App {
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
-    private var statusItem: NSStatusItem!
-    private var daemon: DaemonClient!
+    private var statusItem: NSStatusItem?
+    private var daemon: DaemonClient?
     private var timer: Timer?
     private var host: NSHostingView<MenuBarView>?
     private var connected = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        daemon = DaemonClient()
+        let client = DaemonClient()
+        daemon = client
 
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        statusItem = item
 
         // Create custom view with drag & drop support
         let dropView = DropStatusView(frame: NSRect(x: 0, y: 0, width: 40, height: 24))
@@ -33,25 +35,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
         dropView.onDrop = { [weak self] urls in
             await self?.handleDroppedFiles(urls)
         }
-        statusItem.view = dropView
+        item.view = dropView
 
         // SwiftUI menu
-        let menuView = MenuBarView(daemon: daemon)
+        let menuView = MenuBarView(daemon: client)
         let hostingView = NSHostingView(rootView: menuView)
         hostingView.frame = NSRect(x: 0, y: 0, width: 300, height: 360)
         self.host = hostingView
 
         let menu = NSMenu()
-        let item = NSMenuItem()
-        item.view = hostingView
-        menu.addItem(item)
+        let menuItem = NSMenuItem()
+        menuItem.view = hostingView
+        menu.addItem(menuItem)
 
         // Attach menu to status item (via the custom view's mouse handling)
         dropView.onClick = { [weak self] in
             guard let self else { return }
-            self.statusItem.menu = menu
-            self.statusItem.button?.performClick(nil)
-            self.statusItem.menu = nil  // Reset so next click still works
+            self.statusItem?.menu = menu
+            self.statusItem?.button?.performClick(nil)
+            self.statusItem?.menu = nil  // Reset so next click still works
         }
 
         // Poll health every 5 seconds
@@ -70,11 +72,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
     }
 
     private func pollHealth() async {
+        guard let daemon else { return }
         let health = await daemon.fetchHealth()
         let wasConnected = connected
         connected = health != nil
 
-        if let dropView = statusItem.view as? DropStatusView {
+        if let dropView = statusItem?.view as? DropStatusView {
             dropView.connected = connected
         }
 
@@ -85,10 +88,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
     }
 
     private func handleDroppedFiles(_ urls: [URL]) async {
+        guard let daemon else { return }
         let filePaths = urls.map { $0.path }
 
         // Visual feedback: briefly change icon
-        if let dropView = statusItem.view as? DropStatusView {
+        if let dropView = statusItem?.view as? DropStatusView {
             dropView.showIngestFeedback()
         }
 
@@ -107,7 +111,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
             content: content,
             trigger: nil
         )
-        UNUserNotificationCenter.current().add(request)
+        try? await UNUserNotificationCenter.current().add(request)
     }
 }
 

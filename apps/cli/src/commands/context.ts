@@ -10,7 +10,7 @@
  * Uses ContentCleaner to extract signal from raw XML-wrapped Claude Code memories.
  * Deduplicates across layers (instant/selection/deep).
  */
-import { BrainDB, MemoryLayer } from "@the-brain/core";
+import { BrainDB, MemoryLayer, AuthDB, safeParseConfig } from "@the-brain/core";
 import {
   cleanMemoryContent,
   cleanGraphNodeLabel,
@@ -66,6 +66,13 @@ export interface ContextOutput {
     surpriseScore: number;
     source: string;
   }>;
+  identity?: {
+    userId: string;
+    userName: string;
+    fragmentCount: number;
+    maxFragments: number;
+    topPreferences: string[];
+  };
 }
 
 export async function contextCommand(options: {
@@ -75,6 +82,7 @@ export async function contextCommand(options: {
   global?: boolean;
   query?: string;
   limit?: number;
+  user?: string;
   dbPath?: string;  // Override DB path (for testing)
 }) {
   const dbPath = options.dbPath || await resolveDbPath(options);
@@ -213,6 +221,18 @@ export async function contextCommand(options: {
         source: c.source,
       }));
 
+    // ── User Identity (if --user specified) ──────────────
+    if (options.user) {
+      try {
+        const identity = await loadUserIdentity(options.user);
+        if (identity) {
+          output.identity = identity;
+        }
+      } catch {
+        // Identity not available — skip gracefully
+      }
+    }
+
     // ── Output Format ──────────────────────────────────────
     if (options.markdown) {
       console.log(formatMarkdown(output));
@@ -288,7 +308,9 @@ async function resolveDbPath(options: {
   try {
     if (existsSync(CONFIG_PATH)) {
       const raw = await readFile(CONFIG_PATH, "utf-8");
-      const config: TheBrainConfig = JSON.parse(raw);
+      const parsed = safeParseConfig(JSON.parse(raw));
+      if (!parsed.success) return join(process.env.HOME || "~", ".the-brain", "brain.db");
+      const config = parsed.data;
 
       if (options.project) {
         const ctx = config.contexts?.[options.project];
@@ -306,7 +328,9 @@ async function resolveDbPath(options: {
       }
       return config.database.path || join(process.env.HOME || "~", ".the-brain", "global", "brain.db");
     }
-  } catch {}
+  } catch (err) {
+    console.error("[Context] Failed to resolve DB path:", err);
+  }
 
   return join(process.env.HOME || "~", ".the-brain", "brain.db");
 }
@@ -314,8 +338,62 @@ async function resolveDbPath(options: {
 async function loadConfig(): Promise<TheBrainConfig | null> {
   try {
     if (existsSync(CONFIG_PATH)) {
-      return JSON.parse(await readFile(CONFIG_PATH, "utf-8"));
+      const raw = await readFile(CONFIG_PATH, "utf-8");
+      const parsed = safeParseConfig(JSON.parse(raw));
+      if (parsed.success) return parsed.data;
     }
-  } catch {}
+  } catch (err) {
+    console.error("[Context] Failed to resolve DB path:", err);
+  }
+  return null;
+}
+
+/**
+ * Load a user's identity anchor state from disk.
+ * Team mode: reads ~/.the-brain/identity/{userId}.json via AuthDB
+ * Single-user: reads ~/.the-brain/identity-anchor.json
+ */
+async function loadUserIdentity(
+  userName: string,
+): Promise<ContextOutput["identity"] | null> {
+  const authDbPath = join(process.env.HOME || "~", ".the-brain", "auth.db");
+  const identityDir = join(process.env.HOME || "~", ".the-brain", "identity");
+
+  if (existsSync(authDbPath)) {
+    const authDB = new AuthDB(authDbPath);
+    const user = await authDB.getUserByName(userName);
+    if (user) {
+      const statePath = join(identityDir, user.id + ".json");
+      if (existsSync(statePath)) {
+        const raw = await readFile(statePath, "utf-8");
+        const fragments: Array<{ content: string }> = JSON.parse(raw);
+        const topPrefs = fragments.slice(0, 5).map((f) => f.content.slice(0, 120));
+        authDB.close();
+        return {
+          userId: user.id,
+          userName: user.name,
+          fragmentCount: fragments.length,
+          maxFragments: 50,
+          topPreferences: topPrefs,
+        };
+      }
+    }
+    authDB.close();
+    return null;
+  }
+
+  const singlePath = join(process.env.HOME || "~", ".the-brain", "identity-anchor.json");
+  if (existsSync(singlePath)) {
+    const raw = await readFile(singlePath, "utf-8");
+    const fragments: Array<{ content: string }> = JSON.parse(raw);
+    return {
+      userId: "default",
+      userName: userName,
+      fragmentCount: fragments.length,
+      maxFragments: 50,
+      topPreferences: fragments.slice(0, 5).map((f) => f.content.slice(0, 120)),
+    };
+  }
+
   return null;
 }

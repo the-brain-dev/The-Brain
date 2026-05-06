@@ -1,6 +1,6 @@
 {
   "title": "Integrations",
   "root": false,
-  "pages": ["mcp-server", "remote-mode", "ide-setup", "menu-bar"],
+  "pages": ["mcp-server", "remote-mode", "team-mode", "ide-setup", "menu-bar"],
   "defaultOpen": false
 }

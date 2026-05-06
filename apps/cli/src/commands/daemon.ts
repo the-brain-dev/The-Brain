@@ -19,7 +19,8 @@ export async function daemonCommand(
   switch (action) {
     case "start": {
       consola.start("Starting the-brain daemon...");
-      const pollInterval = options.pollInterval ? parseInt(String(options.pollInterval)) : 30000;
+      const parsed = options.pollInterval ? parseInt(String(options.pollInterval), 10) : 30000;
+      const pollInterval = Number.isNaN(parsed) || parsed <= 0 ? 30000 : parsed;
       await startDaemon({ pollIntervalMs: pollInterval });
       break;
     }
@@ -62,7 +63,7 @@ export async function daemonCommand(
 async function installLaunchdService(pollIntervalMs: number) {
   // Resolve the bun binary and script paths
   const bunPath = process.execPath;
-  const scriptDir = typeof import.meta.dir !== "undefined" ? import.meta.dir : __dirname;
+  const scriptDir = import.meta.dir!;
   const scriptPath = join(scriptDir, "..", "index.ts");
 
   const plistContent = `<?xml version="1.0" encoding="UTF-8"?>
@@ -160,7 +161,8 @@ async function checkDaemonRunning(): Promise<boolean> {
   try {
     const pidPath = join(process.env.HOME || "~", ".the-brain", "daemon.pid");
     const pidStr = await readFile(pidPath, "utf-8");
-    const pid = parseInt(pidStr.trim());
+    const pid = parseInt(pidStr.trim(), 10);
+    if (Number.isNaN(pid)) return false;
 
     try {
       process.kill(pid, 0);

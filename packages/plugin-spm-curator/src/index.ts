@@ -496,22 +496,34 @@ export class SpmCuratorPlugin implements SelectionLayerPlugin {
     parts.push(`novelty=${noveltyScore.toFixed(3)}`);
     const reason = `surprise=${score.toFixed(3)} (${parts.join(", ")}) | threshold=${this.config.threshold}`;
 
-    return {
+    const result: SurpriseGateResult = {
       isSurprising,
       score,
       predictionError: score, // in this model, prediction error ≡ surprise score
       reason,
     };
+    // Cache for promote() to avoid double-evaluation
+    this.lastEvaluation = { ctx, result };
+    return result;
   }
+
+  /** Cache to prevent double-evaluation when promote() follows evaluate() */
+  private lastEvaluation?: { ctx: InteractionContext; result: SurpriseGateResult };
 
   /**
    * Promote worthy fragments to Deep Layer.
-   * Tags fragments with their surprise score and returns them
-   * so the LayerRouter can hand them to Deep consolidation plugins.
+   * Uses cached evaluation result if available (from a preceding evaluate() call),
+   * otherwise re-evaluates fresh.
    */
   async promote(ctx: InteractionContext): Promise<MemoryFragment[]> {
-    // Re‑evaluate if we haven't already (promote should be called after evaluate)
-    const result = await this.evaluate(ctx);
+    // Use cached evaluation if the same context was just evaluated
+    let result: SurpriseGateResult;
+    if (this.lastEvaluation && this.lastEvaluation.ctx === ctx) {
+      result = this.lastEvaluation.result;
+      this.lastEvaluation = undefined; // consume cache
+    } else {
+      result = await this.evaluate(ctx);
+    }
 
     if (!result.isSurprising) return [];
 

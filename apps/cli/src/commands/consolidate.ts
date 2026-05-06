@@ -56,7 +56,9 @@ export async function consolidateCommand(options: {
           dbPath = config.database.path;
         }
       }
-    } catch {}
+    } catch (err) {
+      console.error("[Consolidate] Failed to load config, using default DB path:", err);
+    }
   }
 
   const db = new BrainDB(dbPath);
@@ -205,8 +207,9 @@ async function reprocessMemoriesWithSPM(db: BrainDB) {
           },
         });
         scored++;
-      } catch {
+      } catch (err) {
         // Already exists from previous reprocess — update instead
+        console.error("[Consolidate] Insert failed (expected if duplicate), updating:", err);
         await db.updateMemory(selId, {
           surpriseScore: result.score,
           metadata: JSON.stringify({

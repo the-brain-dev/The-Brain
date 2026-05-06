@@ -13,6 +13,7 @@ the-brain init --force                  # Overwrite existing config
 the-brain init --project <name>         # Create project context
 the-brain init --project <name> --work-dir <path> --label "My Project"
 the-brain init --remote                 # Remote mode (generates auth token, binds 0.0.0.0)
+the-brain init --team                   # Team mode (multi-user auth with per-user tokens)
 the-brain init --db-path <path>         # Custom DB path
 ```
 
@@ -181,4 +182,37 @@ the-brain dashboard                    # Live TUI (2s refresh)
 the-brain dashboard --project <name>   # Per project
 the-brain dashboard --global           # Global brain
 the-brain dashboard --interval 5       # Custom refresh interval (seconds)
+```
+
+## User Management (Team Mode)
+
+### `the-brain user`
+
+```bash
+# Create a team member
+the-brain user add --name <name> --project <project> [--role admin|contributor|observer]
+
+# List all users (optionally filter by project)
+the-brain user list [--project <project>]
+
+# Remove a user
+the-brain user remove --name <name>
+
+# Generate an API token for a user
+the-brain user token --name <name> [--label "My Laptop"]
+
+# Revoke a token
+the-brain user token --revoke <token-id>
+
+# Update a user's role on a project
+the-brain user set-role --name <name> --project <project> --role <role>
+```
+
+### `the-brain audit`
+
+```bash
+the-brain audit                         # Show recent audit log entries
+the-brain audit --userId <id>           # Filter by user
+the-brain audit --project <project>     # Filter by project
+the-brain audit --limit 50              # Max entries (default: 100)
 ```
