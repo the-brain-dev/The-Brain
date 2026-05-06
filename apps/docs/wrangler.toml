@@ -1,13 +1,8 @@
 # Cloudflare Pages configuration for the-brain.dev
-# Deploy: connect GitHub repo → Cloudflare Pages
-# Build command: cd apps/docs && bun run build
-# Output directory: apps/docs/out
-
-name = "the-brain"
+# This project uses GitHub integration — Cloudflare Pages auto-deploys from out/
+# Build settings in Cloudflare dashboard:
+#   Build command:   bun run build
+#   Output directory: out
+#   Deploy command:   (leave empty — Pages handles deployment)
+name = "the-brain-docs"
 compatibility_date = "2026-05-06"
-
-[site]
-bucket = "out"
-
-[env.production]
-name = "the-brain.dev"
