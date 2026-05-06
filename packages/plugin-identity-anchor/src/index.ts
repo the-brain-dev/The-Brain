@@ -34,13 +34,9 @@ interface IdentityAnchorConfig {
 const DEFAULT_CONFIG: IdentityAnchorConfig = {
   minIdentityScore: 0.7,
   maxAnchorFragments: 50,
-  identityKeywords: [
-    "prefer", "always", "never", "my style", "I use", "I like",
-    "convention", "pattern", "naming", "boilerplate", "template",
-    "my setup", "workflow", "personally", "in my projects",
-    "go-to", "default", "standard", "my approach", "I don't",
-    "instead of", "rather than", "use", "using", "I write",
-  ],
+  // Language-agnostic: empty default. Users can still configure language-specific
+  // keywords, but the primary detection uses embedding similarity to the self-vector.
+  identityKeywords: [],
   statePath: "", // No persistence by default — opt-in via config
   driftThreshold: 0.35,
   identityBoostFactor: 3,
@@ -124,9 +120,56 @@ export function createIdentityAnchorPlugin(
 
   // ── Identity detection ──────────────────────────────────────
 
-  function isIdentityRelevant(content: string): boolean {
+  /**
+   * Detect whether content is identity-relevant.
+   *
+   * Primary: embedding similarity to the running self-vector (language-agnostic).
+   * Fallback: configured keywords (if any) + structural heuristics:
+   *   - Short, declarative statements (20-200 chars)
+   *   - High surprise score (already gated by caller)
+   */
+  function isIdentityRelevant(fragment: MemoryFragment): boolean {
+    // ── Primary: embedding similarity to self-vector ─────
+    // Only use when we have enough anchors (≥3) for a stable self-vector
+    const selfVector = computeSelfVector();
+    const minAnchorsForEmbedding = 3;
+    const anchorsWithEmbeddings = anchorFragments.filter(
+      (f) => f.embedding && f.embedding.length > 0
+    ).length;
+
+    if (
+      selfVector &&
+      anchorsWithEmbeddings >= minAnchorsForEmbedding &&
+      fragment.embedding &&
+      fragment.embedding.length > 0
+    ) {
+      const similarity = cosineSimilarity(selfVector, fragment.embedding);
+      // High similarity to the self-vector → identity-relevant
+      if (similarity > 0.6) return true;
+      // Low similarity → not identity-relevant, don't fall through
+      return false;
+    }
+
+    // ── Fallback: configured keywords (language-specific) ──
+    const { content } = fragment;
     const lower = content.toLowerCase();
-    return cfg.identityKeywords.some((kw) => lower.includes(kw.toLowerCase()));
+    if (cfg.identityKeywords.some((kw) => lower.includes(kw.toLowerCase()))) {
+      return true;
+    }
+
+    // ── Structural heuristic: short declarative statements ─
+    // Identity-relevant content tends to be concise
+    if (cfg.identityKeywords.length === 0) {
+      const trimmed = content.trim();
+      // Short declarative fragments (20-200 chars) with high surprise
+      // are more likely to be identity-relevant than long technical logs
+      if (trimmed.length >= 20 && trimmed.length <= 200) {
+        const surpriseScore = fragment.surpriseScore ?? 0;
+        return surpriseScore >= cfg.minIdentityScore;
+      }
+    }
+
+    return false;
   }
 
   // ── Cosine similarity ───────────────────────────────────────
@@ -251,7 +294,7 @@ export function createIdentityAnchorPlugin(
 
         for (const fragment of ctx.fragments) {
           if (
-            isIdentityRelevant(fragment.content) &&
+            isIdentityRelevant(fragment) &&
             (fragment.surpriseScore ?? 0) >= cfg.minIdentityScore
           ) {
             const identityFragment: Memory = {

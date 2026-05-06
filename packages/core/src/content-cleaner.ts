@@ -132,8 +132,8 @@ export function cleanGraphNodeLabel(label: string, type: string): string {
   if (type === "correction" && label.length > 60) {
     // Try to extract the "lesson" — usually the key phrase
     const short = label.replace(/\\\\n/g, " ").replace(/\s+/g, " ").trim();
-    // Take first sentence-like chunk
-    const sentence = short.split(/[.;]\s+/)[0];
+    // Take first sentence-like chunk (Unicode-aware punctuation)
+    const sentence = short.split(/[.;。！？]\s+/)[0];
     if (sentence && sentence.length > 10 && sentence.length < 120) {
       return sentence;
     }

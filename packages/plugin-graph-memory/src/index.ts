@@ -45,45 +45,137 @@ const DEFAULTS: Required<GraphMemoryOptions> = {
 };
 
 // ── Stop words for keyword extraction ───────────────────────────
+// Removed English stop-words. Tokenizer now uses Unicode-aware
+// word boundary detection — works for any language.
+// TF-IDF naturally suppresses high-frequency tokens.
 
-const STOP_WORDS = new Set([
-  "the", "and", "for", "that", "this", "with", "from", "have", "are",
-  "was", "not", "but", "you", "all", "can", "had", "her", "was", "one",
-  "our", "out", "has", "his", "they", "its", "been", "some", "them",
-  "who", "will", "would", "what", "when", "where", "which", "how",
-  "then", "than", "just", "also", "very", "too", "into", "over",
-  "such", "only", "other", "more", "new", "should", "could", "these",
-  "those", "after", "about", "each", "both", "most", "make", "like",
-  "being", "your", "does", "did", "done", "using", "now", "get", "got",
-  "see", "use", "used", "way", "may", "need", "well", "back", "any",
-  "still", "much", "really", "here", "there", "say", "said", "know",
-  "think", "even", "because", "through", "before", "between", "same",
-]);
+// ── Language-agnostic correction detection ─────────────────────
+// Replaces English regex patterns with structural heuristics
+// that work across all languages.
 
-// ── Correction / pattern detection keywords ─────────────────────
+interface CorrectionSignal {
+  snippet: string;
+  weight: number;
+}
 
-const CORRECTION_PATTERNS: Array<{ regex: RegExp; weight: number }> = [
-  { regex: /\bno[,.\s]+actually\b/i, weight: 0.9 },
-  { regex: /\bthat'?s\s+wrong\b/i, weight: 0.85 },
-  { regex: /\bi\s+meant\b/i, weight: 0.8 },
-  { regex: /\bcorrection\s*:/i, weight: 0.9 },
-  { regex: /\bfix\s*(it|this)\s*:/i, weight: 0.75 },
-  { regex: /\binstead\s*(,|of|use|try|do|go\s+with)\b/i, weight: 0.7 },
-  { regex: /\bdon'?t\s+do\s+that\b/i, weight: 0.7 },
-  { regex: /\b(change|replace|swap)\s+(it|that|this)\s+(to|with)\b/i, weight: 0.75 },
-  { regex: /\bnot\s+like\s+that\b/i, weight: 0.7 },
-  { regex: /\bprefer\b/i, weight: 0.65 },
-  { regex: /\b(always|never)\s+(use|do|put|write)\b/i, weight: 0.7 },
-];
+/**
+ * Detect corrections using language-agnostic structural heuristics.
+ *
+ * Heuristics (no regex, no English assumptions):
+ *   1. Short prompt + long explanatory response (ratio > 2.5:1)
+ *      → "fix this" → detailed explanation → correction
+ *   2. Very short prompt (< 50 chars) + substantial response (> 100 chars)
+ *      → terse correction command → correction
+ *   3. Response contains significantly more unique tokens than prompt
+ *      → introduces new concepts/terminology → likely correction or new info
+ *   4. Prompt is mostly unknown tokens (novelty spike)
+ *      → user suddenly using different vocabulary → potential correction
+ */
+function detectCorrections(
+  prompt: string,
+  response: string,
+): CorrectionSignal[] {
+  const results: CorrectionSignal[] = [];
+  const promptLen = prompt.trim().length;
+  const responseLen = response.trim().length;
 
-const PREFERENCE_PATTERNS: Array<{ regex: RegExp; prefType: string }> = [
-  { regex: /\b(i\s+)?prefer\s+(?!not\b)/i, prefType: "explicit" },
-  { regex: /\bi\s+(like|love|enjoy)\s+(using|when|it\s+when)\b/i, prefType: "explicit" },
-  { regex: /\b(use|using)\s+(double|single)\s+quotes\b/i, prefType: "style" },
-  { regex: /\b(tabs|spaces)\s*(over|instead\s+of|not)\b/i, prefType: "style" },
-  { regex: /\b(prefer|favor)\s+(functional|oop|declarative|imperative)\b/i, prefType: "paradigm" },
-  { regex: /\b(always|never)\s+(use|do|put|write|add|include)\b/i, prefType: "rule" },
-];
+  if (promptLen === 0 || responseLen === 0) return results;
+
+  const ratio = responseLen / promptLen;
+
+  // Heuristic 1: Response significantly longer than prompt
+  if (ratio > 2.5) {
+    const firstSentence = extractFirstSentence(response);
+    results.push({
+      snippet: firstSentence,
+      weight: clamp(0.55 + ratio * 0.03, 0.6, 0.85),
+    });
+  }
+  // Heuristic 2: Very short prompt + substantial response
+  else if (promptLen < 50 && responseLen > 100) {
+    results.push({
+      snippet: response.slice(0, 120).trim(),
+      weight: 0.65,
+    });
+  }
+
+  // Heuristic 3: Lexical novelty — response has many tokens not in prompt
+  const promptTokens = tokenize(prompt);
+  const responseTokens = tokenize(response);
+  const promptTokenSet = new Set(promptTokens.map((t) => t.toLowerCase()));
+  const novelTokens = responseTokens.filter(
+    (t) => t.length >= 3 && !promptTokenSet.has(t.toLowerCase()),
+  );
+
+  if (promptTokens.length > 0 && novelTokens.length / responseTokens.length > 0.5) {
+    const snippet = extractFirstSentence(response);
+    results.push({
+      snippet,
+      weight: clamp(0.4 + (novelTokens.length / responseTokens.length) * 0.3, 0.5, 0.75),
+    });
+  }
+
+  return results;
+}
+
+/**
+ * Detect preferences by tracking repeated content clusters across interactions.
+ *
+ * Instead of English regex patterns (e.g., /i prefer/i), we detect:
+ *   1. Repeated short declarative statements across interactions
+ *      → if user says similar things in 2+ interactions → potential preference
+ *   2. Lexical overlap with previously detected preferences
+ *      → content that shares vocabulary with known preference nodes
+ */
+function detectPreferences(
+  prompt: string,
+  response: string,
+  recentInteractions: RecentInteraction[],
+  knownPreferenceContent: Set<string>,
+): Array<{ snippet: string; prefType: string }> {
+  const results: Array<{ snippet: string; prefType: string }> = [];
+  const combined = `${prompt} ${response}`;
+  const tokens = tokenize(combined).map((t) => t.toLowerCase());
+
+  // ── 1. Short declarative statements (likely preferences) ───
+  const sentences = splitSentences(combined);
+  for (const sentence of sentences) {
+    const sLen = sentence.trim().length;
+    // Short sentence (20-150 chars) — could be a preference statement
+    if (sLen > 15 && sLen < 150) {
+      // Check if this sentence's tokens appear in known preferences
+      const sentenceTokens = tokenize(sentence).map((t) => t.toLowerCase());
+      const overlap = sentenceTokens.filter((t) =>
+        t.length >= 3 && knownPreferenceContent.has(t),
+      );
+
+      if (overlap.length >= 2 || knownPreferenceContent.size === 0) {
+        results.push({
+          snippet: sentence.trim(),
+          prefType: knownPreferenceContent.size > 0 ? "reinforced" : "candidate",
+        });
+      }
+    }
+  }
+
+  // ── 2. Repeated themes across recent interactions ──────────
+  if (recentInteractions.length >= 2) {
+    const recentContent = recentInteractions
+      .map((ri) => tokenize(`${ri.prompt} ${ri.response}`).map((t) => t.toLowerCase()))
+      .flat();
+
+    const repeatedTokens = tokens.filter(
+      (t) => t.length >= 3 && recentContent.filter((rc) => rc === t).length >= 2,
+    );
+
+    if (repeatedTokens.length >= 3) {
+      const snippet = combined.slice(0, 150).trim();
+      results.push({ snippet, prefType: "repeated" });
+    }
+  }
+
+  return results;
+}
 
 // ── In-memory interaction ring buffer ────────────────────────────
 
@@ -97,19 +189,68 @@ interface RecentInteraction {
 
 // ── Helpers ──────────────────────────────────────────────────────
 
+/**
+ * Unicode-aware tokenizer — splits on non-letter characters (works for
+ * all languages: Polish, Chinese, Japanese, Arabic, etc.)
+ */
+function tokenize(text: string): string[] {
+  const tokens: string[] = [];
+  let current = "";
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    // Match letters (any script), numbers, and underscores
+    if (
+      (ch >= "a" && ch <= "z") || (ch >= "A" && ch <= "Z") ||
+      (ch >= "0" && ch <= "9") || ch === "_" ||
+      ch >= "\u00C0" // Latin-1 Supplement + all higher Unicode letters
+    ) {
+      current += ch;
+    } else {
+      if (current.length >= 2) tokens.push(current);
+      current = "";
+    }
+  }
+  if (current.length >= 2) tokens.push(current);
+
+  return tokens;
+}
+
+/**
+ * Extract the first sentence from text using Unicode-aware punctuation.
+ * Works with ., !, ?, 。(CJK), etc.
+ */
+function extractFirstSentence(text: string): string {
+  const trimmed = text.trim();
+  // Try Unicode-aware sentence boundary: .!? followed by space or end
+  const match = trimmed.match(/^(.+?[.!?。！？](?=\s|$))/);
+  if (match) return match[1].trim();
+
+  // If no sentence-ending punctuation found, take first 120 chars
+  return trimmed.slice(0, 120).trim();
+}
+
+/**
+ * Split text into sentences using Unicode-aware punctuation.
+ */
+function splitSentences(text: string): string[] {
+  return text
+    .split(/(?<=[.!?。！？])\s+/)
+    .filter((s) => s.trim().length > 0);
+}
+
 function extractKeywords(text: string, minLength: number): string[] {
-  const words = text
-    .toLowerCase()
-    .split(/[^a-zA-Z0-9_]+/)
-    .filter((w) => w.length >= minLength && !STOP_WORDS.has(w));
+  const tokens = tokenize(text)
+    .filter((t) => t.length >= minLength);
 
   // Deduplicate while preserving order
   const seen = new Set<string>();
   const unique: string[] = [];
-  for (const w of words) {
-    if (!seen.has(w)) {
-      seen.add(w);
-      unique.push(w);
+  for (const t of tokens) {
+    const lower = t.toLowerCase();
+    if (!seen.has(lower)) {
+      seen.add(lower);
+      unique.push(lower);
     }
   }
   return unique;
@@ -144,75 +285,6 @@ function clamp(value: number, min: number, max: number): number {
 
 function generateId(): string {
   return crypto.randomUUID();
-}
-
-function extractCorrectionSnippet(
-  prompt: string,
-  response: string,
-): string | null {
-  // Try to isolate the correction from the response
-  const sentences = response
-    .split(/(?<=[.!?])\s+/)
-    .filter((s) => s.length > 10);
-
-  for (const sentence of sentences) {
-    for (const { regex } of CORRECTION_PATTERNS) {
-      if (regex.test(sentence)) {
-        return sentence.trim();
-      }
-    }
-  }
-
-  // Fallback: if prompt was short and response is correcting, use entire prompt
-  if (prompt.length < 300) {
-    return null; // The prompt itself may serve as the content
-  }
-
-  return null;
-}
-
-function detectCorrections(
-  prompt: string,
-  response: string,
-): Array<{ snippet: string; weight: number }> {
-  const results: Array<{ snippet: string; weight: number }> = [];
-
-  // Check both prompt and response for correction signals
-  const combined = `${prompt} ${response}`;
-  const sentences = combined.split(/(?<=[.!?])\s+/);
-
-  for (const sentence of sentences) {
-    for (const { regex, weight } of CORRECTION_PATTERNS) {
-      if (regex.test(sentence)) {
-        results.push({ snippet: sentence.trim(), weight });
-        break; // One match per sentence
-      }
-    }
-  }
-
-  return results;
-}
-
-function detectPreferences(
-  prompt: string,
-  response: string,
-): Array<{ snippet: string; prefType: string }> {
-  const results: Array<{ snippet: string; prefType: string }> = [];
-  const combined = `${prompt} ${response}`;
-
-  for (const { regex, prefType } of PREFERENCE_PATTERNS) {
-    const match = combined.match(regex);
-    if (match) {
-      // Extract a reasonable snippet around the match
-      const idx = match.index!;
-      const start = Math.max(0, idx - 30);
-      const end = Math.min(combined.length, idx + match[0].length + 80);
-      const snippet = combined.slice(start, end).trim();
-      results.push({ snippet, prefType });
-    }
-  }
-
-  return results;
 }
 
 function detectPatterns(
@@ -306,7 +378,7 @@ function buildWeightedLabel(
   maxLen = 80,
 ): string {
   // Create a concise label from content + keywords
-  const firstSentence = content.split(/[.!?]/)[0]?.trim() ?? content;
+  const firstSentence = content.split(/[.!?。！？]/)[0]?.trim() ?? content;
   if (firstSentence.length <= maxLen) return firstSentence;
 
   // Truncate intelligently
@@ -325,6 +397,9 @@ export function createGraphMemoryPlugin(
 
   // In-memory interaction buffer for pattern detection
   const recentInteractions: RecentInteraction[] = [];
+
+  // Track tokens from detected preferences (language-agnostic)
+  const knownPreferenceContent = new Set<string>();
 
   function addRecentInteraction(ri: RecentInteraction): void {
     recentInteractions.push(ri);
@@ -471,34 +546,11 @@ export function createGraphMemoryPlugin(
             createdNodeIds.push(node.id);
           }
 
-          // If no explicit correction detected but the prompt was short and
-          // likely a correction (starts with "no", "fix", etc.), create one anyway
-          if (corrections.length === 0) {
-            const promptLower = prompt.trim().toLowerCase();
-            const correctionStarters = [
-              "no ", "fix ", "correct ", "actually ", "i meant",
-              "change ", "instead", "don't ", "stop ",
-            ];
-            if (
-              correctionStarters.some((s) => promptLower.startsWith(s))
-            ) {
-              const label = buildWeightedLabel("correction", prompt, promptKeywords, 80);
-              const node = await db.upsertGraphNode({
-                label,
-                type: "correction",
-                content: prompt,
-                connections: matchedNodeIds.slice(0, 5),
-                weight: 0.7,
-                timestamp: now,
-                source,
-              });
-              createdNodeIds.push(node.id);
-            }
-          }
-
           // ── 2. Detect and store preferences ──────────────────
 
-          const preferences = detectPreferences(prompt, response);
+          const preferences = detectPreferences(
+            prompt, response, recentInteractions, knownPreferenceContent
+          );
           for (const pref of preferences) {
             const label = buildWeightedLabel("preference", pref.snippet, promptKeywords);
             const node = await db.upsertGraphNode({
@@ -511,6 +563,12 @@ export function createGraphMemoryPlugin(
               source,
             });
             createdNodeIds.push(node.id);
+
+            // Track preference tokens for future detection
+            const prefTokens = tokenize(pref.snippet)
+              .map((t) => t.toLowerCase())
+              .filter((t) => t.length >= 3);
+            for (const t of prefTokens) knownPreferenceContent.add(t);
           }
 
           // ── 3. Detect patterns from recent interactions ──────
@@ -647,8 +705,9 @@ export function createGraphMemoryPlugin(
     },
 
     teardown(): void {
-      // Clear the in-memory buffer
+      // Clear the in-memory buffer and preference cache
       recentInteractions.length = 0;
+      knownPreferenceContent.clear();
     },
   }) as PluginDefinition & { readonly layer: typeof MemoryLayer.INSTANT };
 }

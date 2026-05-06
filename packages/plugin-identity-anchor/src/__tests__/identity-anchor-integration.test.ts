@@ -145,7 +145,7 @@ describe("createIdentityAnchorPlugin integration", () => {
 
   // ── Test 3: SELECTION_PROMOTE captures identity-relevant fragments ──
 
-  test("SELECTION_PROMOTE captures fragments with identity keywords and high surpriseScore", async () => {
+  test("SELECTION_PROMOTE captures short declarative fragments with high surpriseScore", async () => {
     const hooks = createMockHooks();
     await plugin.setup(hooks as any);
 
@@ -165,13 +165,14 @@ describe("createIdentityAnchorPlugin integration", () => {
     const getStateHandler = hooks.handlers.get("identity-anchor:getState")?.[0];
     expect(getStateHandler).toBeDefined();
     const state = await getStateHandler!();
+    // Both fragments are short declarative statements (20-200 chars) with score >= 0.8
     expect(state.fragmentCount).toBe(2);
     expect(state.maxFragments).toBe(50);
   });
 
-  // ── Test 4: SELECTION_PROMOTE ignores non-identity fragments ──
+  // ── Test 4: SELECTION_PROMOTE captures all short declarative high-score fragments ──
 
-  test("SELECTION_PROMOTE ignores fragments without identity keywords", async () => {
+  test("SELECTION_PROMOTE captures all short declarative fragments with high surpriseScore", async () => {
     const hooks = createMockHooks();
     await plugin.setup(hooks as any);
 
@@ -187,15 +188,16 @@ describe("createIdentityAnchorPlugin integration", () => {
 
     await handler!(ctx);
 
-    // Only f3 should be captured (contains "I prefer")
+    // All three are short declarative (20-200 chars) with score >= 0.8
+    // Language-agnostic: no English keyword filter, structural heuristic only
     const getStateHandler = hooks.handlers.get("identity-anchor:getState")?.[0];
     const state = await getStateHandler!();
-    expect(state.fragmentCount).toBe(1);
+    expect(state.fragmentCount).toBe(3);
   });
 
   // ── Test 5: SELECTION_PROMOTE respects minIdentityScore threshold ──
 
-  test("SELECTION_PROMOTE ignores identity-keyword fragments below surpriseScore threshold", async () => {
+  test("SELECTION_PROMOTE ignores fragments below surpriseScore threshold", async () => {
     const hooks = createMockHooks();
     await plugin.setup(hooks as any);
 
@@ -203,10 +205,10 @@ describe("createIdentityAnchorPlugin integration", () => {
 
     const ctx = makeInteractionContext({
       fragments: [
-        makeFragment({ id: "f1", content: "My approach to testing is thorough", surpriseScore: 0.95 }), // above 0.7
-        makeFragment({ id: "f2", content: "I always eat breakfast", surpriseScore: 0.65 }), // below 0.7
-        makeFragment({ id: "f3", content: "My style is minimal", surpriseScore: 0.5 }), // below 0.7, keyword match but low score
-        makeFragment({ id: "f4", content: "I never skip writing docs", surpriseScore: 0.71 }), // just above 0.7
+        makeFragment({ id: "f1", content: "My approach to testing is thorough", surpriseScore: 0.95 }), // above 0.8
+        makeFragment({ id: "f2", content: "I always eat breakfast in the morning", surpriseScore: 0.65 }), // below 0.8
+        makeFragment({ id: "f3", content: "My style is minimal and clean", surpriseScore: 0.5 }), // below 0.8
+        makeFragment({ id: "f4", content: "I never skip writing documentation", surpriseScore: 0.69 }), // below 0.7
       ],
     });
 
@@ -214,10 +216,9 @@ describe("createIdentityAnchorPlugin integration", () => {
 
     const getStateHandler = hooks.handlers.get("identity-anchor:getState")?.[0];
     const state = await getStateHandler!();
-    // f1 and f4 should be captured (both above 0.7)
-    // f2: "I always" matches keyword but score 0.65 < 0.7
-    // f3: "My style" matches keyword but score 0.5 < 0.7
-    expect(state.fragmentCount).toBe(2);
+    // Only f1 captured (score 0.95 >= 0.8). f2-f4 below structural threshold.
+    // Language-agnostic: no English keyword bypass
+    expect(state.fragmentCount).toBe(1);
   });
 
   // ── Test 6: DEEP_CONSOLIDATE attaches self-vector ──────────
@@ -410,14 +411,14 @@ describe("createIdentityAnchorPlugin integration", () => {
       fragments: [
         makeFragment({
           id: "fs1",
-          content: "My go-to framework is React with TypeScript",
+          content: "My go-to framework is React with TypeScript for all new projects",
           surpriseScore: 0.82,
           embedding: [1.0, 0.0],
         }),
         makeFragment({
           id: "fs2",
-          content: "I always use zod for runtime validation",
-          surpriseScore: 0.78,
+          content: "I always use zod for runtime validation in every API route",
+          surpriseScore: 0.81,
           embedding: [0.0, 1.0],
         }),
       ],
@@ -428,10 +429,9 @@ describe("createIdentityAnchorPlugin integration", () => {
 
     expect(state.fragmentCount).toBe(2);
     expect(state.maxFragments).toBe(50);
+    // Language-agnostic: default keyword list is empty
     expect(state.keywords).toBeArray();
-    expect(state.keywords).toContain("prefer");
-    expect(state.keywords).toContain("always");
-    expect(state.keywords).toContain("my approach");
+    expect(state.keywords).toHaveLength(0);
 
     // Self-vector: average of [1,0] and [0,1] = [0.5, 0.5]
     expect(state.selfVector).toBeDefined();
@@ -565,18 +565,25 @@ describe("createIdentityAnchorPlugin integration", () => {
     const hooks = createMockHooks();
     await p.setup(hooks as any);
 
-    // Set identity with cluster A
+    // Promote enough fragments to establish a stable self-vector
     const promoteHandler = hooks.handlers.get(HookEvent.SELECTION_PROMOTE)?.[0];
     await promoteHandler!(makeInteractionContext({
       fragments: [
-        makeFragment({ id: "dr1", content: "I prefer TypeScript", surpriseScore: 0.9, embedding: [1.0, 0.1, 0.1] }),
+        makeFragment({ id: "dr1", content: "I prefer TypeScript strongly", surpriseScore: 0.9, embedding: [1.0, 0.1, 0.1] }),
+        makeFragment({ id: "dr2", content: "TypeScript is my default now", surpriseScore: 0.85, embedding: [0.9, 0.0, 0.2] }),
+        makeFragment({ id: "dr3", content: "Always use strict mode in ts", surpriseScore: 0.82, embedding: [0.8, 0.2, 0.1] }),
       ],
     }));
+
+    // Verify anchors exist
+    const getState = hooks.handlers.get("identity-anchor:getState")?.[0];
+    const stateBefore = await getState!();
+    expect(stateBefore.fragmentCount).toBe(3);
 
     // Compute drift against very different embeddings
     const driftHandler = hooks.handlers.get("identity-anchor:computeDrift")?.[0];
     const result = await driftHandler!([
-      makeFragment({ id: "n1", content: "new stuff", embedding: [-0.9, 0.8, 0.7] }),
+      makeFragment({ id: "n1", content: "completely different topic", embedding: [-0.9, 0.8, 0.7] }),
     ]);
 
     expect(result.drift).toBeGreaterThan(0.5);
@@ -592,7 +599,9 @@ describe("createIdentityAnchorPlugin integration", () => {
     const promoteHandler = hooks.handlers.get(HookEvent.SELECTION_PROMOTE)?.[0];
     await promoteHandler!(makeInteractionContext({
       fragments: [
-        makeFragment({ id: "s1", content: "I like FP", surpriseScore: 0.9, embedding: [1.0, 0.0, 0.0] }),
+        makeFragment({ id: "s1", content: "I like functional programming", surpriseScore: 0.9, embedding: [1.0, 0.0, 0.0] }),
+        makeFragment({ id: "s2", content: "FP is my preferred paradigm", surpriseScore: 0.85, embedding: [0.9, 0.0, 0.1] }),
+        makeFragment({ id: "s3", content: "Always use pure functions", surpriseScore: 0.82, embedding: [0.8, 0.1, 0.0] }),
       ],
     }));
 
@@ -616,8 +625,8 @@ describe("createIdentityAnchorPlugin integration", () => {
     const promoteHandler = hooks.handlers.get(HookEvent.SELECTION_PROMOTE)?.[0];
     await promoteHandler!(makeInteractionContext({
       fragments: [
-        makeFragment({ id: "b1", content: "I prefer tabs", surpriseScore: 0.9 }),
-        makeFragment({ id: "b2", content: "My approach is TDD", surpriseScore: 0.85 }),
+        makeFragment({ id: "b1", content: "I prefer using tabs for indentation", surpriseScore: 0.9 }),
+        makeFragment({ id: "b2", content: "My approach to development is TDD first", surpriseScore: 0.85 }),
       ],
     }));
 
@@ -625,7 +634,7 @@ describe("createIdentityAnchorPlugin integration", () => {
     const boosted = await boostHandler!();
 
     expect(boosted).toHaveLength(4); // 2 anchors × 2 boost
-    expect(boosted[0].text).toBe("I prefer tabs");
+    expect(boosted[0].text).toBe("I prefer using tabs for indentation");
     expect(boosted[0].metadata.identityBoosted).toBe(true);
   });
 });
