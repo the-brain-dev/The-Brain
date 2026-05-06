@@ -1,0 +1,74 @@
+---
+title: MCP Tools
+description: Model Context Protocol tools reference
+---
+
+the-brain exposes these tools via MCP for use with Claude Desktop, Cursor, Zed, and other MCP clients.
+
+## Memory Tools
+
+| Tool | Description |
+|------|-------------|
+| `memory_search` | Search memories by query |
+| `memory_store` | Store new memory |
+| `memory_context` | Get context for a prompt |
+| `memory_list` | List paginated memories |
+
+## Graph Tools
+
+| Tool | Description |
+|------|-------------|
+| `graph_search` | Search graph nodes |
+| `graph_add_node` | Create graph node |
+| `graph_connect` | Connect two nodes |
+
+## Brain Management
+
+| Tool | Description |
+|------|-------------|
+| `brain_stats` | Get comprehensive statistics |
+| `brain_config get` | Read a config value |
+| `brain_config set` | Set a config value |
+| `identity_get` | Get identity anchor data |
+| `identity_update` | Update identity traits |
+
+## Project Tools
+
+| Tool | Description |
+|------|-------------|
+| `project_list` | List known projects |
+| `project_switch` | Switch active project |
+
+## Training Tools
+
+| Tool | Description |
+|------|-------------|
+| `training_status` | Check training state |
+| `training_consolidate` | Run consolidation |
+
+## Pipeline Tools
+
+| Tool | Description |
+|------|-------------|
+| `pipeline_ingest` | Ingest raw content |
+| `pipeline_status` | Pipeline queue status |
+
+## Scheduler Tools
+
+| Tool | Description |
+|------|-------------|
+| `scheduler_list` | List scheduled tasks |
+| `scheduler_schedule` | Create task |
+| `scheduler_cancel` | Remove task |
+
+## Resources
+
+| URI | Description |
+|-----|-------------|
+| `brain://stats` | Brain statistics |
+| `brain://memories/recent` | Recent memories |
+| `brain://graph/high-weight` | High-weight nodes |
+| `brain://identity` | Identity anchor |
+| `brain://projects` | Project list |
+| `brain://training/status` | Training state |
+| `brain://config` | Current config |

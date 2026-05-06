@@ -1,7 +1,7 @@
 import { Database } from "bun:sqlite";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
-import { eq, desc, and, gte, like, or, sql } from "drizzle-orm";
+import { eq, desc, and, gte, lte, like, or, sql } from "drizzle-orm";
 import type { Session, Memory, GraphNodeRecord, Interaction, MemoryFragment } from "../types";
 import { MemoryLayer } from "../types";
 
@@ -128,9 +128,9 @@ export class BrainDB {
   }
 
   async insertMemories(memoryList: Memory[]): Promise<void> {
-    for (const m of memoryList) {
-      await this.db.insert(memories).values(m).run();
-    }
+    if (memoryList.length === 0) return;
+    // Batch insert for performance — single VALUES clause with multiple rows
+    await this.db.insert(memories).values(memoryList).run();
   }
 
   async getMemoriesByLayer(layer: MemoryLayer, limit = 100): Promise<Memory[]> {
@@ -144,23 +144,19 @@ export class BrainDB {
   }
 
   async getSurprisingMemories(threshold = 0.5): Promise<Memory[]> {
-    return this.db
-      .select()
-      .from(memories)
-      .where(
-        and(
-          eq(memories.layer, MemoryLayer.SELECTION),
-          gte(memories.surpriseScore!, threshold)
-        )
+    // Use raw SQL to safely handle nullable surprise_score column
+    const rows = this.sqlite
+      .query(
+        `SELECT * FROM memories WHERE layer = ? AND surprise_score IS NOT NULL AND surprise_score >= ? ORDER BY surprise_score DESC`
       )
-      .orderBy(desc(memories.surpriseScore!))
-      .all() as Memory[];
+      .all(MemoryLayer.SELECTION, threshold) as Memory[];
+    return rows;
   }
 
   async updateMemory(id: string, updates: Partial<Omit<Memory, "id">>): Promise<void> {
     // Use raw SQLite for updates since Drizzle doesn't support dynamic column sets easily
     const setClauses: string[] = [];
-    const bindValues: any[] = [];
+    const bindValues: unknown[] = [];
 
     for (const [key, value] of Object.entries(updates)) {
       const col = key === "surpriseScore" ? "surprise_score" :
@@ -181,6 +177,14 @@ export class BrainDB {
 
   async deleteMemory(id: string): Promise<void> {
     this.sqlite.run("DELETE FROM memories WHERE id = ?", id);
+  }
+
+  async getMemoryById(id: string): Promise<Memory | undefined> {
+    return this.db
+      .select()
+      .from(memories)
+      .where(eq(memories.id, id))
+      .get() as Memory | undefined;
   }
 
   async getAllMemories(maxResults = 1000): Promise<Memory[]> {
@@ -288,7 +292,11 @@ export class BrainDB {
 
   async searchGraphNodes(query: string): Promise<GraphNodeRecord[]> {
     // SQL LIKE with server-side filtering — O(n) but fine for <10k nodes.
-    const escaped = query.replace(/%/g, "\\%").replace(/_/g, "\\_");
+    // Escape LIKE special chars: %, _, and the escape char itself
+    const escaped = query
+      .replace(/\\/g, "\\\\")
+      .replace(/%/g, "\\%")
+      .replace(/_/g, "\\_");
     const pattern = `%${escaped}%`;
 
     const nodes = await this.db
@@ -351,7 +359,7 @@ export class BrainDB {
     const cutoff = Date.now() - olderThanDays * 86400 * 1000;
     const result = await this.db
       .delete(memories)
-      .where(gte(memories.timestamp, cutoff)) // changed to lte
+      .where(lte(memories.timestamp, cutoff))
       .run();
     return result.changes;
   }

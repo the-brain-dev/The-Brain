@@ -1,8 +1,8 @@
 /**
- * Faux Test Harness for my-brain pipeline testing.
+ * Faux Test Harness for the-brain pipeline testing.
  *
  * Inspired by pi-mono's test/suite/harness.ts FauxProvider pattern.
- * Wraps the full my-brain pipeline (hooks, plugins, DB, SPM, consolidation)
+ * Wraps the full the-brain pipeline (hooks, plugins, DB, SPM, consolidation)
  * in a single injectable harness for end-to-end testing without real harvesters
  * or external state.
  *
@@ -55,7 +55,7 @@ export interface HarnessState {
 }
 
 /**
- * Self-contained test harness for my-brain pipeline.
+ * Self-contained test harness for the-brain pipeline.
  *
  * Creates isolated temp directory for DB and wiki output.
  * All state is cleaned up on stop().
@@ -73,7 +73,7 @@ export class TestHarness {
   private _started = false;
 
   constructor(options: HarnessOptions = {}) {
-    this._tempDir = mkdtempSync(join(tmpdir(), "my-brain-test-"));
+    this._tempDir = mkdtempSync(join(tmpdir(), "the-brain-test-"));
     this._spmThreshold = options.spmThreshold ?? 0.3;
     this._wikiEnabled = options.wikiEnabled ?? false;
 

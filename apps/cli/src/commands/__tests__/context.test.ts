@@ -7,7 +7,7 @@ import { describe, test, expect } from "bun:test";
 import { contextCommand } from "../context";
 import type { ContextOutput } from "../context";
 
-const REAL_DB_PATH = "/Users/oskarschachta/.my-brain/global/brain.db";
+const REAL_DB_PATH = "/Users/oskarschachta/.the-brain/global/brain.db";
 
 describe("context command (cleaned output)", () => {
   test("returns valid JSON with cleaned content", async () => {
@@ -67,7 +67,7 @@ describe("context command (cleaned output)", () => {
       const md = logs[0];
 
       // Markdown structure
-      expect(md).toContain("## 🧠 my-brain Context");
+      expect(md).toContain("## 🧠 the-brain Context");
       expect(md).toContain("**Stats:**");
 
       // Should NOT contain raw XML

@@ -1,0 +1,6 @@
+{
+  "title": "Development",
+  "root": false,
+  "pages": ["contributing", "project-structure", "testing"],
+  "defaultOpen": false
+}

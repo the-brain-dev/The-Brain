@@ -2,7 +2,7 @@
 /**
  * SPM Data Collector — logs daily SPM metrics for calibration.
  *
- * Runs as a cron job. Appends one line per day to ~/.my-brain/logs/spm-metrics.jsonl
+ * Runs as a cron job. Appends one line per day to ~/.the-brain/logs/spm-metrics.jsonl
  *
  * Metrics logged:
  *   - date, total memories, deep memories
@@ -16,8 +16,8 @@ import { join } from "node:path";
 import { appendFileSync, mkdirSync, existsSync } from "node:fs";
 
 const HOME = process.env.HOME || "/Users/oskarschachta";
-const DB_PATH = join(HOME, ".my-brain", "global", "brain.db");
-const LOG_DIR = join(HOME, ".my-brain", "logs");
+const DB_PATH = join(HOME, ".the-brain", "global", "brain.db");
+const LOG_DIR = join(HOME, ".the-brain", "logs");
 const METRICS_FILE = join(LOG_DIR, "spm-metrics.jsonl");
 
 if (!existsSync(DB_PATH)) {

@@ -6,7 +6,7 @@
 
 - Training pipeline: `run_lora.py` runner, `gen_fragments.py` and `generate_lora_data.py` data generators.
 - LoRA adapter optimization: base model frozen before training, only `lora_a`/`lora_b` parameters trained (56 params, 2.5 MB vs 259 MB).
-- Initial release of my-brain -- pluggable cognitive OS for AI agents.
+- Initial release of the-brain -- pluggable cognitive OS for AI agents.
 
 ### Fixed
 

@@ -1,18 +1,18 @@
 // Full pipeline test: harvest, curate, MLX train
 // bun run apps/cli/src/full-pipeline.ts
-import { BrainDB, createHookSystem, PluginManager, HookEvent, MemoryLayer } from "@my-brain/core";
-import { createGraphMemoryPlugin } from "@my-brain/plugin-graph-memory";
-import { createSpmCurator } from "@my-brain/plugin-spm-curator";
+import { BrainDB, createHookSystem, PluginManager, HookEvent, MemoryLayer } from "@the-brain/core";
+import { createGraphMemoryPlugin } from "@the-brain/plugin-graph-memory";
+import { createSpmCurator } from "@the-brain/plugin-spm-curator";
 import { existsSync, writeFileSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 async function main() {
-  const home = process.env.HOME || "/Users/oskarschachta";
-  const dbPath = home + "/.my-brain/brain.db";
-  const loraDir = home + "/.my-brain/lora-checkpoints";
+  const home = process.env.HOME || "/tmp";
+  const dbPath = home + "/.the-brain/brain.db";
+  const loraDir = home + "/.the-brain/lora-checkpoints";
 
   // Ensure directories exist
-  mkdirSync(home + "/.my-brain", { recursive: true });
+  mkdirSync(home + "/.the-brain", { recursive: true });
   mkdirSync(loraDir, { recursive: true });
 
   // Init DB and pipeline
@@ -49,7 +49,7 @@ async function main() {
   });
 
   // Load Claude Harvester
-  const claudeMod = await import("@my-brain/plugin-harvester-claude");
+  const claudeMod = await import("@the-brain/plugin-harvester-claude");
   await pm.load(claudeMod.default || claudeMod);
 
   // Harvest
@@ -68,6 +68,7 @@ async function main() {
   const { Database } = await import("bun:sqlite");
   const d = new Database(dbPath);
 
+  try {
   // Get all memories for training  
   const memories = d.query(
     "SELECT content, source, layer FROM memories ORDER BY timestamp DESC LIMIT 50"
@@ -95,7 +96,7 @@ async function main() {
   // Prepare training command
   const sidecarPath = join(import.meta.dir || process.cwd(), "..", "..", "packages", "python-sidecar", "train.py");
   const resolvedSidecar = existsSync(sidecarPath) ? sidecarPath : 
-    "/Users/oskarschachta/Projects/Private/my-brain/packages/python-sidecar/train.py";
+    "/Users/oskarschachta/Projects/Private/the-brain/packages/python-sidecar/train.py";
 
   console.log("\n=== Training Command ===");
   console.log("cd packages/python-sidecar && uv run python3 " + resolvedSidecar + " \\");
@@ -110,24 +111,64 @@ async function main() {
   const modelReady = existsSync(modelCache);
   console.log("\nModel cached:", modelReady ? "YES" : "NO (download in progress)");
 
-  if (modelReady) {
-    console.log("\nModel ready! Running training...");
-    // TODO: run the training
-    console.log("Training would start now with", trainingSamples.length, "samples");
-  } else {
+  if (modelReady && trainingSamples.length > 0) {
+    console.log("\nModel ready! Running MLX LoRA training...");
+    console.log(`Training on ${trainingSamples.length} samples`);
+
+    // Spawn MLX training via Python sidecar
+    const { spawnSync } = await import("node:child_process");
+    const startTime = Date.now();
+
+    const child = spawnSync("uv", [
+      "run", "python3", resolvedSidecar,
+      "--model-path", "mlx-community/SmolLM2-360M-Instruct",
+      "--lora-output-dir", loraDir,
+      "--learning-rate", "1e-4",
+      "--lora-rank", "16",
+      "--lora-alpha", "32",
+      "--batch-size", "1",
+      "--max-seq-length", "512",
+      "--iterations", "50",
+      "--data", dataPath,
+    ], {
+      cwd: resolvedSidecar.replace(/\/[^/]+$/, ""),
+      encoding: "utf-8",
+      timeout: 600_000, // 10 min timeout
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+
+    const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+    if (child.stdout) process.stdout.write(child.stdout);
+    if (child.stderr) process.stderr.write(child.stderr);
+
+    if (child.error) {
+      console.error(`\n❌ Training failed: ${child.error.message}`);
+      process.exit(1);
+    }
+    if (child.status !== 0) {
+      console.error(`\n❌ Training exited with code ${child.status}`);
+      process.exit(1);
+    }
+    console.log(`\n✅ LoRA training complete in ${duration}s`);
+    console.log(`   Checkpoint: ${loraDir}/adapter.safetensors`);
+  } else if (!modelReady) {
     console.log("\nWaiting for model download to complete...");
     console.log("Run training manually when ready:");
-    console.log("  cd ~/Projects/Private/my-brain/packages/python-sidecar");
+    console.log("  cd ~/Projects/Private/the-brain/packages/python-sidecar");
     console.log("  uv run python3 " + resolvedSidecar + " \\");
     console.log("    --model-path mlx-community/SmolLM2-360M-Instruct \\");
     console.log("    --lora-output-dir " + loraDir + " \\");
     console.log("    --learning-rate 1e-4 --lora-rank 16 --lora-alpha 32 \\");
     console.log("    --batch-size 1 --max-seq-length 512 --iterations 50 \\");
     console.log("    --data-path " + dataPath);
+  } else {
+    console.log("\nNo training samples — skipping training.");
   }
 
-  d.close();
-  db.close();
+  } finally {
+    d.close();
+    db.close();
+  }
   console.log("\nDone.");
 }
 

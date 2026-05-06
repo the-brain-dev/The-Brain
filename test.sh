@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-# my-brain test runner
+# the-brain test runner
 # Unsets all API keys to prevent accidental external API calls during tests.
 
 echo "Running tests without API keys..."

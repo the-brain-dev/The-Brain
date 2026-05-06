@@ -1,0 +1,72 @@
+---
+title: MLX Training
+description: Local LoRA fine-tuning on Apple Silicon
+---
+
+the-brain's Deep Layer uses Apple MLX for zero-cost, fully private LoRA training.
+
+## Prerequisites
+
+- macOS with Apple Silicon (M1/M2/M3/M4)
+- Python 3.11+ and `uv`
+- `uv run --with mlx-lm python3 -c "import mlx.core; print('MLX ready')"`
+
+## Configuration
+
+```json
+{
+  "mlx": {
+    "enabled": true,
+    "modelPath": "mlx-community/SmolLM2-360M-Instruct",
+    "loraOutputDir": "~/.the-brain/lora-checkpoints",
+    "schedule": "0 2 * * *"
+  }
+}
+```
+
+## Training Flow
+
+1. **Day**: Harvest interactions → SPM evaluates → promote to DEEP
+2. **Night (2 AM)**: Load DEEP memories → filter noise → MLX LoRA training
+
+## Manual Training
+
+```bash
+the-brain train              # Train on DEEP memories
+the-brain train --dry-run    # Preview
+the-brain train --iterations 200
+```
+
+## Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `learningRate` | 1e-4 | Learning rate |
+| `loraRank` | 16 | LoRA rank |
+| `loraAlpha` | 32 | Scaling factor |
+| `batchSize` | 2 | Batch size |
+| `iterations` | 50 | Steps per run |
+| `minFragments` | 3 | Min memories to trigger |
+
+## Output
+
+```
+~/.the-brain/lora-checkpoints/
+├── adapter.safetensors    # LoRA weights (~2-5 MB)
+├── training_config.json   # Run metadata
+└── training_data.jsonl    # Input data
+```
+
+## Using the Adapter
+
+```bash
+# LM Studio: add adapter path in model settings
+
+# CLI inference
+uv run --with mlx-lm python3 -c "
+from mlx_lm import load, generate
+model, tokenizer = load('mlx-community/SmolLM2-360M-Instruct',
+                         adapter_path='~/.the-brain/lora-checkpoints')
+print(generate(model, tokenizer, prompt='Write a React component'))
+"
+```

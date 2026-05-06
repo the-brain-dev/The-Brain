@@ -1,0 +1,44 @@
+---
+title: Architecture
+description: The 3-layer cognitive architecture of the-brain
+---
+
+the-brain implements a 3-layer cognitive architecture inspired by human memory.
+
+## Data Flow
+
+```
+Harvesters (Cursor IDE, Claude Code, Windsurf)
+  ↓
+⚡ INSTANT — Graph Memory (immediate corrections)
+  ↓
+⚖️ SELECTION — SPM Curator (filters noise)
+  ↓
+🌌 DEEP — MLX LoRA Training (overnight consolidation)
+```
+
+## Design Principles
+
+**Local-First**: Data never leaves your machine. Local SQLite, local MLX training.
+
+**Pluggable Architecture**: Core is an empty data bus. Everything — harvesters, memory modules, trainers — is a swappable plugin via `definePlugin()`.
+
+**Selection over Accumulation**: The system actively rejects redundant information. SPM (Surprise-Gated Prediction Error) learns only from what surprises you.
+
+**Ambient UX**: Zero-effort background daemon. No manual input required.
+
+## Database
+
+Three core tables via Drizzle ORM + `bun:sqlite`:
+
+- `memories` — harvested interactions with metadata
+- `graph_nodes` — relational memory nodes (Layer 1)
+- `sessions` — session tracking across IDE instances
+
+## Plugin Lifecycle
+
+1. Plugin defined via `definePlugin({ name, setup })`
+2. `setup(hooks)` registers on hook events
+3. PluginManager loads from config
+4. Hooks fire in registration order
+5. Hot-swappable without restart

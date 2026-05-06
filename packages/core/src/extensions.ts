@@ -1,7 +1,7 @@
 /**
  * Extension Auto-Loader.
  *
- * Scans ~/.my-brain/extensions/ for .ts files and loads them
+ * Scans ~/.the-brain/extensions/ for .ts files and loads them
  * as lightweight plugins. No package.json required.
  *
  * Inspired by pi-mono's .pi/extensions/ system — single-file,
@@ -10,40 +10,55 @@
  * Extension format:
  *   export default function(brain: BrainAPI) {
  *     brain.hook("selection:evaluate", (ctx) => { ... });
- *     brain.registerCommand("my-cmd", { ... });
+ *     brain.registerCommand("my-cmd", handler);
+ *     // Full engine access: brain.storage, brain.scheduler, brain.config
  *   }
  *
  * Usage:
- *   const loader = new ExtensionLoader(hooks, db);
+ *   const loader = new ExtensionLoader(hooks, db, storage, scheduler, config);
  *   await loader.loadAll();
  */
 
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 import type {
   PluginHooks,
   HookEventName,
-  MemoryFragment,
-  ConsolidationResult,
 } from "./types";
 import type { BrainDB } from "./db/index";
+import type { StorageBackend, SchedulerPlugin } from "./layers/index";
+import type { TheBrainConfig } from "./types";
 
 /**
  * API surface exposed to extension scripts.
+ * Extensions get full read access to the engine state
+ * and can register hooks, commands, and their own servers.
  */
 export interface BrainAPI {
-  /** Register a hook for any event */
-  hook(event: HookEventName, handler: (...args: any[]) => Promise<void> | void): void;
+  /** Register a hook for any lifecycle event */
+  hook(event: HookEventName | string, handler: (...args: unknown[]) => Promise<void> | void): void;
 
   /** Fire a hook event */
-  emit(event: HookEventName, ...args: any[]): Promise<void>;
+  emit(event: HookEventName | string, ...args: unknown[]): Promise<void>;
 
-  /** Access the database for queries (read-only in extensions) */
+  /** Access the database for queries */
   readonly db: BrainDB;
+
+  /** Pluggable storage backend (full CRUD) */
+  readonly storage: StorageBackend;
+
+  /** Pluggable task scheduler */
+  readonly scheduler: SchedulerPlugin;
+
+  /** Current the-brain configuration */
+  readonly config: TheBrainConfig;
 
   /** Get the extension's own name */
   readonly extensionName: string;
+
+  /** Register a CLI command that extensions can invoke */
+  registerCommand(name: string, handler: (args: string[]) => Promise<void> | void): void;
 }
 
 export interface ExtensionContext {
@@ -52,34 +67,49 @@ export interface ExtensionContext {
   error?: string;
 }
 
+/** Registered CLI commands from extensions */
+const extensionCommands = new Map<string, (args: string[]) => Promise<void> | void>();
+
+/** Get all commands registered by extensions */
+export function getExtensionCommands(): Map<string, (args: string[]) => Promise<void> | void> {
+  return extensionCommands;
+}
+
 /**
  * Manages auto-loading of lightweight extensions from
- * ~/.my-brain/extensions/ directory.
+ * ~/.the-brain/extensions/ directory.
  */
 export class ExtensionLoader {
   private extensionsDir: string;
   private hooks: PluginHooks;
   private db: BrainDB;
+  private storage: StorageBackend;
+  private scheduler: SchedulerPlugin;
+  private config: TheBrainConfig;
   private loaded: Map<string, ExtensionContext> = new Map();
 
   constructor(
     hooks: PluginHooks,
     db: BrainDB,
+    storage: StorageBackend,
+    scheduler: SchedulerPlugin,
+    config: TheBrainConfig,
     extensionsDir?: string
   ) {
     this.hooks = hooks;
     this.db = db;
-    this.extensionsDir = extensionsDir ?? join(homedir(), ".my-brain", "extensions");
+    this.storage = storage;
+    this.scheduler = scheduler;
+    this.config = config;
+    this.extensionsDir = extensionsDir ?? join(homedir(), ".the-brain", "extensions");
   }
 
   /**
-   * Load all .ts files from ~/.my-brain/extensions/.
+   * Load all .ts files from ~/.the-brain/extensions/.
    * Creates the directory if it doesn't exist.
    */
   async loadAll(): Promise<ExtensionContext[]> {
-    if (!existsSync(this.extensionsDir)) {
-      return [];
-    }
+    ExtensionLoader.ensureExtensionsDir(this.extensionsDir);
 
     const results: ExtensionContext[] = [];
     const files = readdirSync(this.extensionsDir).filter((f) => f.endsWith(".ts"));
@@ -87,6 +117,9 @@ export class ExtensionLoader {
     for (const file of files) {
       const fullPath = join(this.extensionsDir, file);
       const name = file.replace(/\.ts$/, "");
+
+      // Skip sample.ts
+      if (name === "sample") continue;
 
       try {
         const ctx = await this.loadExtension(name, fullPath);
@@ -116,29 +149,30 @@ export class ExtensionLoader {
     // Create BrainAPI for this extension
     const brain: BrainAPI = {
       hook: (event, handler) => {
-        this.hooks.hook(event, handler);
+        this.hooks.hook(event as HookEventName, handler);
       },
       emit: async (event, ...args) => {
-        await this.hooks.callHook(event, ...args);
+        await this.hooks.callHook(event as HookEventName, ...args);
       },
-      get db() {
-        // Direct DB access for read queries
-        return this._db;
-      },
+      get db() { return this._db; },
       _db: this.db,
+      get storage() { return this._storage; },
+      _storage: this.storage,
+      get scheduler() { return this._scheduler; },
+      _scheduler: this.scheduler,
+      get config() { return this._config; },
+      _config: this.config,
       extensionName: name,
+      registerCommand(cmdName: string, handler: (args: string[]) => Promise<void> | void) {
+        extensionCommands.set(cmdName, handler);
+        console.log(`[ExtensionLoader] Registered command: "${cmdName}" (from ${name})`);
+      },
     };
 
     // Execute the extension module using a simple eval-based approach.
-    // This works for TypeScript-like syntax (top-level export default, arrow functions,
-    // async/await) that Bun's runtime supports natively.
     let extensionFn: (brain: BrainAPI) => void | Promise<void>;
 
     try {
-      // Wrap source to extract the default export.
-      // Supports: export default function(...) { ... }
-      //           export default async function(...) { ... }
-      //           export default (brain) => { ... }
       const exportMatch = source.match(
         /export\s+default\s+(?:async\s+)?function\s*\(([^)]*)\)\s*\{([\s\S]*)\}/m
       );
@@ -152,7 +186,6 @@ export class ExtensionLoader {
           : `return (function(${params}) { ${body} })`;
         extensionFn = new Function(fnBody)();
       } else {
-        // Try arrow function: export default (brain) => { ... }
         const arrowMatch = source.match(
           /export\s+default\s+(?:async\s+)?\(([^)]*)\)\s*=>\s*\{([\s\S]*)\}/m
         );
@@ -166,7 +199,6 @@ export class ExtensionLoader {
             : `return (${params}) => { ${body} }`;
           extensionFn = new Function(fnBody)();
         } else {
-          // No recognizable export pattern — this is an error
           throw new Error(
             `Extension "${name}" does not export a default function. ` +
             `Use: export default function(brain) { ... } or export default (brain) => { ... }`
@@ -183,78 +215,67 @@ export class ExtensionLoader {
       throw new Error(`Extension "${name}" does not export a default function`);
     }
 
-    // Call the extension
     await extensionFn(brain);
 
     console.log(`[ExtensionLoader] Loaded extension: ${name}`);
     return ctx;
   }
 
-  /**
-   * Reload a specific extension by name.
-   */
+  /** Reload a specific extension by name. */
   async reload(name: string): Promise<ExtensionContext> {
-    // Unload first (remove hooks — extensions are stateless, so just reload)
     const existing = this.loaded.get(name);
     if (!existing) {
       throw new Error(`Extension "${name}" not found`);
     }
-
-    // Reload the file
     return this.loadExtension(name, existing.path);
   }
 
-  /**
-   * Get list of all loaded extensions.
-   */
+  /** Get list of all loaded extensions. */
   list(): ExtensionContext[] {
     return Array.from(this.loaded.values());
   }
 
-  /**
-   * Get a specific extension context.
-   */
+  /** Get a specific extension context. */
   get(name: string): ExtensionContext | undefined {
     return this.loaded.get(name);
   }
 
-  /**
-   * Ensure the extensions directory exists with a sample extension.
-   */
+  /** Ensure the extensions directory exists with a sample extension. */
   static ensureExtensionsDir(dir?: string): string {
-    const extDir = dir ?? join(homedir(), ".my-brain", "extensions");
+    const extDir = dir ?? join(homedir(), ".the-brain", "extensions");
 
     if (!existsSync(extDir)) {
-      const { mkdirSync } = require("node:fs");
       mkdirSync(extDir, { recursive: true });
 
-      // Create a sample extension as starting template
       const sample = `/**
- * Sample my-brain extension.
+ * Sample the-brain extension.
  *
- * Extensions are auto-loaded from ~/.my-brain/extensions/.
+ * Extensions are auto-loaded from ~/.the-brain/extensions/.
  * Export a default function that receives the BrainAPI.
  *
  * Available BrainAPI:
- *   - brain.hook(event, handler)  — subscribe to lifecycle events
- *   - brain.emit(event, ...args)  — fire hook events
- *   - brain.db                    — read-only database access
+ *   - brain.hook(event, handler)    — subscribe to lifecycle events
+ *   - brain.emit(event, ...args)    — fire hook events
+ *   - brain.db                      — database queries
+ *   - brain.storage                 — full CRUD access
+ *   - brain.scheduler               — schedule recurring tasks
+ *   - brain.config                  — read the-brain config
+ *   - brain.registerCommand(name, fn) — add CLI commands
  */
 
 export default function(brain) {
-  // Example: log every time a new memory interaction is detected
+  // Example: log every new interaction
   brain.hook("onInteraction", async (ctx) => {
     console.log(\`[sample] New interaction: \${ctx.interaction.prompt.slice(0, 80)}...\`);
   });
 
-  // Example: track consolidation stats
-  brain.hook("consolidate:complete", async (ctx) => {
-    const { fragmentsPromoted, fragmentsDiscarded } = ctx.results;
-    console.log(\`[sample] Consolidation: +\${fragmentsPromoted} -\${fragmentsDiscarded}\`);
+  // Example: scheduled cleanup every hour
+  brain.scheduler.schedule("sample-cleanup", 3600000, async () => {
+    const stats = await brain.storage.getStats();
+    console.log(\`[sample] Hourly stats: \${stats.memories} memories\`);
   });
 }
 `;
-      const { writeFileSync } = require("node:fs");
       writeFileSync(join(extDir, "sample.ts"), sample);
     }
 

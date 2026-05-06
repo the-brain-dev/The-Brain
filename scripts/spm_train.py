@@ -33,7 +33,7 @@ EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"  # 384D, fast, local
 EMBEDDING_DIM = 384
 NGRAM_N = 4
 ALPHA = 0.05  # EMA decay factor (same as SPM default)
-OUTPUT_PATH = Path.home() / ".my-brain" / "spm-calibrated.json"
+OUTPUT_PATH = Path.home() / ".the-brain" / "spm-calibrated.json"
 
 # Scalar features extracted per interaction:
 #   [0] prompt_length (chars)

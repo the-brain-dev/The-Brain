@@ -1,14 +1,15 @@
-# 🧠 My-Brain — Pluggable Cognitive Operating System for AI Agents
+# 🧠 the-brain — Pluggable Cognitive OS for AI Agents
+
+**[the-brain.dev](https://the-brain.dev)**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Built with Bun](https://img.shields.io/badge/Built%20with-Bun-orange)](https://bun.sh)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)](https://www.typescriptlang.org/)
-[![CI](https://github.com/oskarschachta/my-brain/actions/workflows/ci.yml/badge.svg)](https://github.com/oskarschachta/my-brain/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-81%25-green)](https://github.com/oskarschachta/my-brain)
+[![Coverage](https://img.shields.io/badge/coverage-86%25-green)](https://github.com/oskarschachta/the-brain)
 
-**my-brain** is an extensible, background orchestrator that observes your interactions with AI coding assistants and builds a persistent memory tailored specifically to **you**.
+**the-brain** is an extensible, background orchestrator that observes your interactions with AI coding assistants and builds a persistent memory tailored specifically to **you**.
 
-We don't force a single memory type. Instead, my-brain acts as a **central nervous system**, connecting various memory modules (Graph, Vector, LoRA) into one cohesive pipeline.
+We don't force a single memory type. Instead, the-brain acts as a **central nervous system**, connecting various memory modules (Graph, Vector, LoRA) into one cohesive pipeline.
 
 ## Table of Contents
 
@@ -25,9 +26,9 @@ We don't force a single memory type. Instead, my-brain acts as a **central nervo
 
 ## 💡 The Concept: A Modular 3-Layer Cognitive Architecture
 
-Standard RAG is rigid and forgets context over time. my-brain implements an advanced, pluggable cognitive architecture inspired by human memory.
+Standard RAG is rigid and forgets context over time. the-brain implements an advanced, pluggable cognitive architecture inspired by human memory.
 
-You can use our default built-in modules, swap them out for community plugins, or stack multiple memory types in the same layer. my-brain simply orchestrates the flow of data between them across three distinct time horizons:
+You can use our default built-in modules, swap them out for community plugins, or stack multiple memory types in the same layer. the-brain simply orchestrates the flow of data between them across three distinct time horizons:
 
 | Layer | Purpose | Default Plugin | Alternative |
 |-------|---------|---------------|-------------|
@@ -46,11 +47,11 @@ You can use our default built-in modules, swap them out for community plugins, o
 
 ```bash
 # One-liner install
-curl -fsSL https://my-brain.dev/install.sh | bash
+curl -fsSL https://the-brain.dev/install.sh | bash
 
 # Or install from source
-git clone https://github.com/oskarschachta/my-brain.git
-cd my-brain
+git clone https://github.com/oskarschachta/the-brain.git
+cd the-brain
 bun install
 bun run apps/cli/src/index.ts init
 ```
@@ -59,22 +60,22 @@ bun run apps/cli/src/index.ts init
 
 ```bash
 # Initialize database and config
-my-brain init
+the-brain init
 
 # Start the background daemon
-my-brain daemon start
+the-brain daemon start
 
 # Check what your brain learned
-my-brain inspect --stats
+the-brain inspect --stats
 
 # Force a memory consolidation (Layer 2 → Layer 3)
-my-brain consolidate --now
+the-brain consolidate --now
 
 # List loaded plugins
-my-brain plugins list
+the-brain plugins list
 
 # Switch active context/project
-my-brain switch-context --project my-app
+the-brain switch-context --project my-app
 ```
 
 ### Development
@@ -92,7 +93,7 @@ bun run daemon       # Run daemon from source
 ## 🧩 Project Structure
 
 ```
-my-brain/
+the-brain/
 ├── apps/
 │   └── cli/                    # CLI application (cac-based, 6 commands)
 │       └── src/
@@ -100,7 +101,7 @@ my-brain/
 │           ├── daemon.ts       # Background daemon runtime
 │           └── commands/       # CLI subcommands
 ├── packages/
-│   ├── core/                   # @my-brain/core — types, hooks, plugin manager, db
+│   ├── core/                   # @the-brain/core — types, hooks, plugin manager, db
 │   ├── plugin-graph-memory/    # ⚡ Instant Layer
 │   ├── plugin-spm-curator/     # ⚖️ Selection Layer
 │   ├── plugin-harvester-cursor/ # 📥 Cursor IDE harvester
@@ -138,19 +139,19 @@ my-brain/
 
 | Package | Description |
 |---------|-------------|
-| **@my-brain/core** | Types, hooks, plugin manager, database layer |
-| **@my-brain/plugin-graph-memory** | Instant memory layer with relation graphs |
-| **@my-brain/plugin-spm-curator** | Surprise-gated prediction error filtering |
-| **@my-brain/plugin-harvester-cursor** | Cursor IDE log reader |
-| **@my-brain/plugin-harvester-claude** | Claude Code log reader |
-| **@my-brain/plugin-identity-anchor** | Stable self-vector across retrains |
-| **@my-brain/plugin-auto-wiki** | Weekly static wiki from learned knowledge |
-| **@my-brain/trainer-local-mlx** | Local LoRA training on Apple Silicon |
+| **@the-brain/core** | Types, hooks, plugin manager, database layer |
+| **@the-brain/plugin-graph-memory** | Instant memory layer with relation graphs |
+| **@the-brain/plugin-spm-curator** | Surprise-gated prediction error filtering |
+| **@the-brain/plugin-harvester-cursor** | Cursor IDE log reader |
+| **@the-brain/plugin-harvester-claude** | Claude Code log reader |
+| **@the-brain/plugin-identity-anchor** | Stable self-vector across retrains |
+| **@the-brain/plugin-auto-wiki** | Weekly static wiki from learned knowledge |
+| **@the-brain/trainer-local-mlx** | Local LoRA training on Apple Silicon |
 
 ## 🔌 Building Your Own Plugin
 
 ```typescript
-import { definePlugin } from '@my-brain/core';
+import { definePlugin } from '@the-brain/core';
 
 export default definePlugin({
   name: 'my-custom-memory',

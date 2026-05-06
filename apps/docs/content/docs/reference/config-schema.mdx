@@ -1,0 +1,156 @@
+---
+title: Configuration Schema
+description: JSON schema reference for ~/.the-brain/config.json
+---
+
+## Top-Level Fields
+
+```json
+{
+  "plugins": [],
+  "daemon": {},
+  "database": {},
+  "mlx": {},
+  "wiki": {},
+  "server": {},
+  "backends": {},
+  "activeContext": "global",
+  "contexts": {}
+}
+```
+
+### `plugins`
+
+Array of plugin configs.
+
+```json
+{
+  "name": "@the-brain/plugin-graph-memory",
+  "enabled": true,
+  "config": {}
+}
+```
+
+### `daemon`
+
+```json
+{
+  "pollIntervalMs": 30000,
+  "logDir": "~/.the-brain/logs"
+}
+```
+
+### `database`
+
+```json
+{
+  "path": "~/.the-brain/global/brain.db"
+}
+```
+
+### `mlx`
+
+```json
+{
+  "enabled": true,
+  "modelPath": "mlx-community/SmolLM2-360M-Instruct",
+  "loraOutputDir": "~/.the-brain/lora-checkpoints",
+  "schedule": "0 2 * * *"
+}
+```
+
+### `wiki`
+
+```json
+{
+  "enabled": true,
+  "outputDir": "~/.the-brain/wiki",
+  "schedule": "0 9 * * 0"
+}
+```
+
+### `server`
+
+```json
+{
+  "mode": "local | remote",
+  "bindAddress": "127.0.0.1",
+  "authToken": "mb_xxx",
+  "port": 9420,
+  "mcpPort": 9422
+}
+```
+
+### `backends`
+
+```json
+{
+  "storage": "sqlite | libsql",
+  "cleaner": "default",
+  "scheduler": "interval | cron",
+  "outputs": ["@the-brain/plugin-auto-wiki"]
+}
+```
+
+Module paths support three formats:
+- npm packages: `"libsql"` → resolves `@the-brain/storage-libsql`
+- local paths: `"./my-custom-cleaner.ts"`
+- absolute paths: `"/Users/me/my-backend.ts"`
+
+### Plugin Configs
+
+#### Graph Memory (`plugin-graph-memory`)
+
+```json
+{
+  "name": "@the-brain/plugin-graph-memory",
+  "enabled": true,
+  "config": {
+    "maxInjectNodes": 8,
+    "minWeight": 0.3,
+    "includeConnected": true,
+    "maxConnectedPerNode": 3,
+    "maxConnectedInject": 4,
+    "recentInteractionLimit": 20,
+    "weightBoostOnMatch": 0.05,
+    "weightDecayFactor": 0.98,
+    "minKeywordLength": 3
+  }
+}
+```
+
+#### SPM Curator (`plugin-spm-curator`)
+
+```json
+{
+  "name": "@the-brain/plugin-spm-curator",
+  "enabled": true,
+  "config": {
+    "threshold": 0.30,
+    "alpha": 0.05,
+    "scalarWeight": 0.35,
+    "embeddingWeight": 0.40,
+    "noveltyWeight": 0.25,
+    "ngramN": 4,
+    "ngramCacheSize": 50000,
+    "useTfidf": true
+  }
+}
+```
+
+### `contexts`
+
+```json
+{
+  "my-project": {
+    "name": "my-project",
+    "label": "My Project",
+    "dbPath": "~/.the-brain/projects/my-project/brain.db",
+    "wikiDir": "~/.the-brain/projects/my-project/wiki",
+    "loraDir": "~/.the-brain/projects/my-project/lora-checkpoints",
+    "workDir": "~/code/my-project",
+    "createdAt": 1714800000000,
+    "lastActive": 1714800000000
+  }
+}
+```

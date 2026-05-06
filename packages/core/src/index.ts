@@ -1,14 +1,15 @@
-// @my-brain/core — Main entry point
+// @the-brain/core — Main entry point
 export { createHookSystem } from "./hooks";
 export { PluginManager, definePlugin } from "./plugin";
 export { BrainDB } from "./db/index";
 export { LayerRouter } from "./layers/index";
 export { ProjectManager } from "./context";
+export { TheBrainConfigSchema, ProjectContextSchema, parseConfig, safeParseConfig, generateAuthToken } from "./types";
 export { TestHarness } from "./test-harness";
 export type { HarnessOptions, HarnessState } from "./test-harness";
 export { loadPrompt, listPrompts, renderPrompt } from "./prompts";
 export type { PromptFrontmatter, LoadedPrompt } from "./prompts";
-export { ExtensionLoader } from "./extensions";
+export { ExtensionLoader, getExtensionCommands } from "./extensions";
 export type { BrainAPI, ExtensionContext } from "./extensions";
 export { LocalBrainDir } from "./local-brain";
 export type { LocalBrainState } from "./local-brain";
@@ -27,16 +28,31 @@ export type {
   PluginDefinition,
   PluginManifest,
   PluginConfig,
-  MyBrainConfig,
-  ProjectContext,
+  TheBrainConfig,
   Session,
   Memory,
   GraphNodeRecord,
+  ProjectContext,
+} from "./types";
+export type {
   InstantLayerPlugin,
   SelectionLayerPlugin,
   DeepLayerPlugin,
   HarvesterPlugin,
-} from "./types";
+  ContentCleanerPlugin,
+  CleanedContent,
+  StorageBackend,
+  SchedulerPlugin,
+  SchedulerHandle,
+  OutputPlugin,
+  OutputGenerateContext,
+  OutputResult,
+} from "./layers/index";
+export { createDefaultCleaner } from "./cleaner-default";
+export { createSqliteBackend } from "./storage-sqlite";
+export { createIntervalScheduler } from "./scheduler-interval";
+export { resolveBackends } from "./backend-resolver";
+export type { BackendConfig } from "./backend-resolver";
 export type { DBMap } from "./context";
 export { cleanMemoryContent, cleanGraphNodeLabel, deduplicateContents } from "./content-cleaner";
-export type { CleanedContent } from "./content-cleaner";
+export type { CleanedContent as ContentCleanerLegacy } from "./content-cleaner";

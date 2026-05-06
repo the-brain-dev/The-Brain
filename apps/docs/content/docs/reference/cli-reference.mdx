@@ -1,0 +1,184 @@
+---
+title: CLI Reference
+description: Complete command-line interface reference
+---
+
+## Core Commands
+
+### `the-brain init`
+
+```bash
+the-brain init                          # Basic init
+the-brain init --force                  # Overwrite existing config
+the-brain init --project <name>         # Create project context
+the-brain init --project <name> --work-dir <path> --label "My Project"
+the-brain init --remote                 # Remote mode (generates auth token, binds 0.0.0.0)
+the-brain init --db-path <path>         # Custom DB path
+```
+
+### `the-brain daemon`
+
+```bash
+the-brain daemon start                  # Start background daemon
+the-brain daemon stop                   # Stop daemon
+the-brain daemon status                 # Check if running
+the-brain daemon enable                 # Auto-launch via LaunchAgent (macOS)
+the-brain daemon disable                # Disable auto-launch
+the-brain daemon start --poll-interval 60000   # Custom poll interval (ms)
+```
+
+### `the-brain inspect`
+
+```bash
+the-brain inspect --stats               # Memory counts, graph nodes
+the-brain inspect --recent              # Latest interactions
+the-brain inspect --graph               # High-weight graph nodes
+the-brain inspect --search <query>      # Search graph nodes
+the-brain inspect --memories            # All memories
+the-brain inspect --memories deep       # Filter by layer (optional arg)
+the-brain inspect --top correction      # Top nodes by type (concept|correction|preference|pattern|all)
+the-brain inspect --sources             # Data source breakdown
+the-brain inspect --project <name>      # Per project
+the-brain inspect --global              # Global brain
+```
+
+### `the-brain consolidate`
+
+```bash
+the-brain consolidate --now             # Immediate consolidation
+the-brain consolidate --reprocess       # Re-run all INSTANT through SPM first
+the-brain consolidate --layer selection # Target specific layer (selection|deep)
+the-brain consolidate --project <name>  # Per project
+the-brain consolidate --global          # Global brain
+```
+
+## Training Commands
+
+### `the-brain train`
+
+```bash
+the-brain train                         # Train on all DEEP memories
+the-brain train --dry-run               # Preview what would be trained
+the-brain train --iterations 200        # Override training iterations
+the-brain train --project <name>        # Per project
+the-brain train --global                # Global brain
+```
+
+### Full Pipeline (manual)
+
+```bash
+bun run apps/cli/src/full-pipeline.ts  # Harvest → curate → train (standalone)
+```
+
+## Context & Wiki
+
+### `the-brain context`
+
+```bash
+the-brain context --prompt "fix auth bug"           # JSON output (default)
+the-brain context --prompt "..." --format markdown   # Human-readable
+the-brain context --project <name> --prompt "..."    # Per project
+the-brain context --global --prompt "..."            # Global brain
+the-brain context --query "React" --limit 20         # Filter + limit
+```
+
+### `the-brain wiki`
+
+```bash
+the-brain wiki generate                 # Generate static wiki
+the-brain wiki serve                    # Serve on http://localhost:3333
+the-brain wiki open                     # Open in browser
+the-brain wiki path                     # Show wiki directory path
+the-brain wiki serve --port 4000        # Custom port
+the-brain wiki generate --project <name>
+```
+
+### `the-brain docs`
+
+```bash
+the-brain docs dev                      # Dev server (http://localhost:3001)
+the-brain docs build                    # Static build → apps/docs/.next/
+the-brain docs serve                    # Production server
+the-brain docs dev --port 4000          # Custom port
+```
+
+## Plugins & Backends
+
+### `the-brain plugins`
+
+```bash
+the-brain plugins list                  # List all loaded plugins
+the-brain plugins list --status         # Show active/inactive/error status
+```
+
+### `the-brain backend`
+
+```bash
+the-brain backend list                  # Show current backends
+the-brain backend set --slot storage --backend libsql    # Switch storage
+the-brain backend set --slot scheduler --backend cron    # Switch scheduler
+the-brain backend unset --slot storage  # Revert to default
+```
+
+## Extensions
+
+### `the-brain ext`
+
+```bash
+the-brain ext <command> [args...]       # Run registered extension command
+the-brain ext                           # List available commands (empty = list)
+```
+
+```typescript
+// Extensions live in ~/.the-brain/extensions/*.ts
+export default function (brain) {
+  brain.registerCommand("hello", async () => console.log("Hello!"));
+}
+```
+
+## Network
+
+### `the-brain health`
+
+```bash
+the-brain health                        # Quick status
+the-brain health --json                 # JSON output (machine-readable)
+the-brain health --project <name>       # Per project
+the-brain health --global               # Global brain
+```
+
+### `the-brain agent`
+
+```bash
+the-brain agent                         # Push agent (polls IDE logs → server)
+the-brain agent --once                  # Single poll cycle, then exit
+the-brain agent --interval 30           # Custom poll interval (seconds)
+```
+
+### `the-brain mcp`
+
+```bash
+the-brain mcp serve                     # stdio transport (for Claude Desktop)
+the-brain mcp serve --sse               # SSE transport (for network clients)
+the-brain mcp serve --sse --port 9422   # Custom SSE port
+the-brain mcp serve --project <name>    # Target specific project
+the-brain mcp serve --global            # Target global brain
+```
+
+## Context Switching
+
+### `the-brain switch-context`
+
+```bash
+the-brain switch-context --project <name>   # Switch to project
+the-brain switch-context --global           # Switch to global brain
+```
+
+### `the-brain dashboard`
+
+```bash
+the-brain dashboard                    # Live TUI (2s refresh)
+the-brain dashboard --project <name>   # Per project
+the-brain dashboard --global           # Global brain
+the-brain dashboard --interval 5       # Custom refresh interval (seconds)
+```

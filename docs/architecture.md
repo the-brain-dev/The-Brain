@@ -1,6 +1,6 @@
 # Architecture
 
-my-brain implements a 3-layer cognitive architecture inspired by human memory.
+the-brain implements a 3-layer cognitive architecture inspired by human memory.
 
 ## Data Flow
 
@@ -47,7 +47,7 @@ my-brain implements a 3-layer cognitive architecture inspired by human memory.
 
 ## Hook System
 
-All plugins register on hooks defined in `@my-brain/core`:
+All plugins register on hooks defined in `@the-brain/core`:
 
 | Hook | When | Used By |
 |------|------|---------|

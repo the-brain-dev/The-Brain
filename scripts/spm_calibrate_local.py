@@ -16,7 +16,7 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 HOME = Path.home()
-DB = HOME / ".my-brain" / "global" / "brain.db"
+DB = HOME / ".the-brain" / "global" / "brain.db"
 
 conn = sqlite3.connect(str(DB))
 
@@ -149,7 +149,7 @@ output = {
     },
     "calibrated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
 }
-out_path = HOME / ".my-brain" / "spm-self.json"
+out_path = HOME / ".the-brain" / "spm-self.json"
 os.makedirs(out_path.parent, exist_ok=True)
 with open(out_path, "w") as f:
     json.dump(output, f, indent=2)

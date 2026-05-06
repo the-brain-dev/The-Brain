@@ -1,4 +1,4 @@
-# Contributing to my-brain
+# Contributing to the-brain
 
 This guide exists to save both sides time.
 
@@ -9,7 +9,7 @@ interact with the rest of the system, your PR will be closed.
 
 Using AI to write code is fine. Submitting AI-generated code without understanding it is not.
 
-If you use an agent, run it from the `my-brain` root directory so it picks up `AGENTS.md`
+If you use an agent, run it from the `the-brain` root directory so it picks up `AGENTS.md`
 automatically. Your agent must follow the rules and guidelines in that file.
 
 ## Contribution Gate
@@ -58,18 +58,18 @@ Do not edit `CHANGELOG.md`. Changelog entries are added by maintainers during re
 
 ## Philosophy
 
-my-brain's core is minimal. If your feature does not belong in the core, it should be a plugin.
+the-brain's core is minimal. If your feature does not belong in the core, it should be a plugin.
 PRs that bloat the core will likely be rejected.
 
 ## Questions?
 
-Open a discussion on [GitHub Discussions](https://github.com/oskarschachta/my-brain/discussions).
+Open a discussion on [GitHub Discussions](https://github.com/oskarschachta/the-brain/discussions).
 
 ## FAQ
 
 ### Why are new issues and PRs auto-closed?
 
-my-brain receives more contributions than maintainers can responsibly review in real time.
+the-brain receives more contributions than maintainers can responsibly review in real time.
 Auto-closing creates a buffer so maintainers can review the tracker on their own schedule
 and reopen the issues that meet the quality bar.
 

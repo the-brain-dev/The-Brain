@@ -5,15 +5,16 @@
  * Actual uv/mlx training is verified manually (requires Apple Silicon + mlx-lm).
  */
 import { describe, test, expect } from "bun:test";
-import { BrainDB, MemoryLayer, createHookSystem } from "@my-brain/core";
-import type { ConsolidationContext, MemoryFragment } from "@my-brain/core";
+import { BrainDB, MemoryLayer, createHookSystem } from "@the-brain/core";
+import { existsSync, statSync } from "node:fs";
+import type { ConsolidationContext, MemoryFragment } from "@the-brain/core";
 
 describe("MLX Trainer — end-to-end pipeline", () => {
   test("creates plugin and registers DEEP_CONSOLIDATE hook", async () => {
     const { createMlxTrainer } = await import("../index");
     const plugin = await Promise.resolve(createMlxTrainer());
 
-    expect(plugin.name).toBe("@my-brain/trainer-local-mlx");
+    expect(plugin.name).toBe("@the-brain/trainer-local-mlx");
     expect(typeof plugin.setup).toBe("function");
 
     // Verify hook registration
@@ -89,11 +90,11 @@ describe("MLX Trainer — end-to-end pipeline", () => {
       maxSeqLength: 512,
     });
 
-    expect(plugin.name).toBe("@my-brain/trainer-local-mlx");
+    expect(plugin.name).toBe("@the-brain/trainer-local-mlx");
   });
 
   test("real deep memories exist after consolidation", async () => {
-    const dbPath = "/Users/oskarschachta/.my-brain/global/brain.db";
+    const dbPath = "/Users/oskarschachta/.the-brain/global/brain.db";
     const db = new BrainDB(dbPath);
 
     const deepMemories = await db.getMemoriesByLayer(MemoryLayer.DEEP);
@@ -112,16 +113,14 @@ describe("MLX Trainer — end-to-end pipeline", () => {
   });
 
   test("adapter file exists from previous training run", () => {
-    const { existsSync } = require("node:fs");
-    const adapterPath = "/Users/oskarschachta/.my-brain/lora-checkpoints/adapter.safetensors";
+    const adapterPath = "/Users/oskarschachta/.the-brain/lora-checkpoints/adapter.safetensors";
 
     if (existsSync(adapterPath)) {
-      const { statSync } = require("node:fs");
       const stat = statSync(adapterPath);
       console.log(`  Adapter: ${(stat.size / 1024).toFixed(0)} KB`);
       expect(stat.size).toBeGreaterThan(0);
     } else {
-      console.log("  No adapter found — run `my-brain consolidate --reprocess` first");
+      console.log("  No adapter found — run `the-brain consolidate --reprocess` first");
     }
   });
 });

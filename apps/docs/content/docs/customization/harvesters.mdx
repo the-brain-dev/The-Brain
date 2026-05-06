@@ -1,0 +1,112 @@
+---
+title: Harvesters
+description: Adding support for new AI coding assistants — formats, deduplication, state management
+---
+
+Harvesters read IDE logs and emit interactions. Each follows a standard pattern with format-specific parsing.
+
+## Cursor Harvester
+
+Reads from `~/.cursor/` and `~/Library/Application Support/Cursor/`.
+
+### Supported Source Formats
+
+| Source | Format | Source ID | Details |
+|--------|--------|-----------|---------|
+| `state.vscdb` | SQLite `ItemTable` | `cursor` | Keys: `aiChat.%`, `chat.%`, `composer.%` |
+| `state.vscdb` | SQLite `cursorDiskKV` | `cursor` | Keys: `chat::%`, `composer::%`, `conversation::%` |
+| `logs/` | JSONL / JSON / .log | `cursor` | Incremental read via file offsets |
+| `agent-transcripts/` | JSONL | `cursor` (id: `cursor-ag-...`) | Cursor v3+ |
+| `ai-tracking/ai-code-tracking.db` | SQLite | `cursor` (id: `cursor-tr-...`) | `conversation_summaries` + `ai_code_hashes` |
+
+### Deduplication
+
+- SHA-256 of `messages + request + response + sessionId + timestamp`, truncated to 16 hex
+- Two-level: file offsets + `processedIds` Set (capped at 10,000)
+
+### State File
+
+`~/.the-brain/cursor-harvester-state.json`
+
+```json
+{
+  "lastPollTimestamp": 1714800000000,
+  "processedIds": ["cursora1b2c3d4e5f6g7h8"],
+  "fileOffsets": { "/path/to/log.jsonl": 12345 }
+}
+```
+
+## Claude Harvester
+
+Reads from `~/.claude/projects/` and `~/.claude/history.jsonl`.
+
+### Supported Source Formats
+
+| Source | Format | Source ID | Details |
+|--------|--------|-----------|---------|
+| `projects/<slug>/` | JSONL sessions + .json sub-dirs | `claude-code` | Full user→assistant pairs |
+| `history.jsonl` | JSONL | `claude-code-history` | Prompt-only, supplementary |
+
+**Filters**: Excludes `isMeta` and `isSidechain` messages.
+
+### Deduplication
+
+- SHA-256 of `prompt + "\n" + response`, truncated to 16 hex
+- Three-level: file offsets + `processedIds` Set + in-batch `seen` Set
+
+### State File
+
+`~/.the-brain/claude-harvester-state.json`
+
+## Creating a Custom Harvester
+
+### Required Behaviors
+
+1. **Deduplication**: SHA-256 hash of prompt + response
+2. **State persistence**: Save `lastOffset`/`processedIds` to `~/.the-brain/<name>-state.json`
+3. **Project detection**: Match `workDir` against registered contexts
+4. **Incremental reading**: Track file offsets — never re-read
+
+### Template
+
+```typescript
+import { definePlugin, HookEvent } from "@the-brain/core";
+import { createHash } from "node:crypto";
+
+const STATE_PATH = join(process.env.HOME!, ".the-brain",
+  "my-harvester-state.json");
+
+export default definePlugin({
+  name: "harvester-my-ide",
+  async setup(hooks) {
+    let state = { lastOffset: 0, processedIds: [] as string[] };
+
+    hooks.hook(HookEvent.HARVESTER_POLL, async () => {
+      const lines = await readNewLines(state.lastOffset);
+
+      for (const line of lines) {
+        const hash = createHash("sha256")
+          .update(line.prompt + "\x00" + line.response)
+          .digest("hex");
+
+        if (state.processedIds.includes(hash)) continue;
+        state.processedIds.push(hash);
+        if (state.processedIds.length > 10000)
+          state.processedIds = state.processedIds.slice(-5000);
+
+        await hooks.callHook(HookEvent.HARVESTER_NEW_DATA, {
+          interaction: {
+            id: hash.slice(0, 16),
+            timestamp: line.timestamp,
+            prompt: line.prompt,
+            response: line.response,
+            source: "my-ide",
+          },
+          fragments: [],
+          promoteToDeep() {},
+        });
+      }
+    });
+  },
+});
+```

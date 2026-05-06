@@ -16,6 +16,7 @@ __pycache__/
 .venv/
 mlx_data/
 lora_checkpoints/
+*.safetensors
 
 # Test coverage
 coverage/
@@ -33,3 +34,7 @@ coverage/
 .npm/
 .nyc_output/
 *.tsbuildinfo
+.build/
+apps/docs/.next/
+apps/docs/.source/
+.hermes/

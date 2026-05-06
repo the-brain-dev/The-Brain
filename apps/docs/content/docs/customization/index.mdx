@@ -1,0 +1,37 @@
+---
+title: Plugins
+description: Extend the-brain with custom plugins
+---
+
+the-brain's entire functionality is built on plugins. The core is an empty data bus — everything else is swappable.
+
+## Built-in Plugins
+
+| Plugin | Layer | Description |
+|--------|-------|-------------|
+| `plugin-graph-memory` | ⚡ Instant | Graph-based correction memory |
+| `plugin-spm-curator` | ⚖️ Selection | Surprise-gated filtering |
+| `plugin-identity-anchor` | 🌌 Deep | Stable self-vector |
+| `plugin-auto-wiki` | Output | Weekly Markdown wiki |
+| `plugin-harvester-cursor` | Input | Cursor IDE logs |
+| `plugin-harvester-claude` | Input | Claude Code logs |
+| `trainer-local-mlx` | Training | Apple Silicon LoRA |
+| `storage-libsql` | Storage | Turso/LibSQL remote |
+
+## Plugin Interface
+
+```typescript
+interface PluginDefinition {
+  name: string;
+  version?: string;
+  description?: string;
+  setup(hooks: PluginHooks): void | Promise<void>;
+  teardown?(): void | Promise<void>;
+}
+```
+
+## See Also
+
+- [Writing Plugins](/docs/customization/writing-plugins) — Step-by-step guide
+- [Harvesters](/docs/customization/harvesters) — Adding IDE support
+- [Storage Backends](/docs/customization/storage-backends) — SQLite vs LibSQL

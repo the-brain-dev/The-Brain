@@ -1,6 +1,6 @@
 # 🏗 My-Brain: Tech Stack & Architecture
 
-This document describes the technical stack for the my-brain project — a local, extensible background agent that analyzes IDE logs and trains personalized LoRA adapters.
+This document describes the technical stack for the the-brain project — a local, extensible background agent that analyzes IDE logs and trains personalized LoRA adapters.
 
 ## 🏗 Main Environment
 
@@ -27,7 +27,7 @@ This document describes the technical stack for the my-brain project — a local
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                   my-brain Pipeline                      │
+│                   the-brain Pipeline                      │
 ├──────────────────────────────────────────────────────────┤
 │                                                          │
 │  📥 HARVESTER LAYER                                      │

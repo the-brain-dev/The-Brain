@@ -1,15 +1,15 @@
 /**
- * inspect command — Show my-brain state, stats, and memory health.
+ * inspect command — Show the-brain state, stats, and memory health.
  * Multi-project aware: supports --project <name> and --global.
  */
 import { consola } from "consola";
-import { BrainDB, MemoryLayer } from "@my-brain/core";
-import type { MyBrainConfig } from "@my-brain/core";
+import { BrainDB, MemoryLayer } from "@the-brain/core";
+import type { TheBrainConfig } from "@the-brain/core";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 
-const CONFIG_PATH = join(process.env.HOME || "~", ".my-brain", "config.json");
+const CONFIG_PATH = join(process.env.HOME || "~", ".the-brain", "config.json");
 
 export async function inspectCommand(options: {
   stats?: boolean;
@@ -29,7 +29,7 @@ export async function inspectCommand(options: {
   // Check if DB exists
   if (!existsSync(dbPath)) {
     consola.warn("No brain database found at: " + dbPath);
-    consola.info("Run 'my-brain daemon start' to begin collecting data.");
+    consola.info("Run 'the-brain daemon start' to begin collecting data.");
     return;
   }
 
@@ -75,7 +75,7 @@ async function resolveDbPath(options: { project?: string; global?: boolean }): P
   try {
     if (existsSync(CONFIG_PATH)) {
       const raw = await readFile(CONFIG_PATH, "utf-8");
-      const config: MyBrainConfig = JSON.parse(raw);
+      const config: TheBrainConfig = JSON.parse(raw);
 
       if (options.project) {
         const ctx = config.contexts?.[options.project];
@@ -90,7 +90,7 @@ async function resolveDbPath(options: { project?: string; global?: boolean }): P
 
       if (options.global) {
         consola.info("Inspecting global brain");
-        return config.database.path || join(process.env.HOME || "~", ".my-brain", "global", "brain.db");
+        return config.database.path || join(process.env.HOME || "~", ".the-brain", "global", "brain.db");
       }
 
       // Use active context
@@ -100,17 +100,17 @@ async function resolveDbPath(options: { project?: string; global?: boolean }): P
         return config.contexts[active].dbPath;
       }
       consola.info("Inspecting global brain");
-      return config.database.path || join(process.env.HOME || "~", ".my-brain", "global", "brain.db");
+      return config.database.path || join(process.env.HOME || "~", ".the-brain", "global", "brain.db");
     }
   } catch {}
 
   // Fallback: legacy DB
-  return join(process.env.HOME || "~", ".my-brain", "brain.db");
+  return join(process.env.HOME || "~", ".the-brain", "brain.db");
 }
 
 async function showStats(db: BrainDB, project?: string, isGlobal?: boolean) {
   const stats = await db.getStats();
-  const label = project ? `Project: ${project}` : isGlobal ? "Global Brain" : "my-brain";
+  const label = project ? `Project: ${project}` : isGlobal ? "Global Brain" : "the-brain";
 
   const typeBar = stats.perGraphType?.length
     ? stats.perGraphType.map((t: any) =>

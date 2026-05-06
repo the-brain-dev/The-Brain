@@ -1,6 +1,6 @@
 # MLX Local Training
 
-my-brain supports local LoRA fine-tuning on Apple Silicon Macs using MLX.
+the-brain supports local LoRA fine-tuning on Apple Silicon Macs using MLX.
 Training runs as a scheduled background job, typically while you sleep.
 
 ## Prerequisites
@@ -32,7 +32,7 @@ uv run python -c "import mlx.core; print(mlx.core.metal.is_available())"
 ## Training Output
 
 ```
-~/.my-brain/
+~/.the-brain/
 ├── lora-adapters/
 │   ├── adapter_2026-05-03.safetensors    # Weekly snapshot
 │   ├── adapter_latest.safetensors        # Latest adapter
@@ -52,21 +52,21 @@ deep:
   numEpochs: 3
   batchSize: 4
   learningRate: 1e-4
-  outputDir: ~/.my-brain/lora-adapters
+  outputDir: ~/.the-brain/lora-adapters
 ```
 
 ## Manual Training
 
 ```bash
 # Force training immediately
-my-brain consolidate --now
+the-brain consolidate --now
 
 # Or run the Python script directly
 cd packages/python-sidecar
 uv run python train_lora.py \
-  --data ~/.my-brain/datasets/curated_latest.jsonl \
+  --data ~/.the-brain/datasets/curated_latest.jsonl \
   --model mlx-community/Llama-3.2-3B-Instruct-4bit \
-  --output ~/.my-brain/lora-adapters \
+  --output ~/.the-brain/lora-adapters \
   --rank 16 \
   --epochs 3
 
@@ -77,7 +77,7 @@ Load the trained adapter with any MLX-compatible inference server:
 ```bash
 # With llama.cpp server
 mlx_lm.server --model mlx-community/Llama-3.2-3B-Instruct-4bit \
-  --adapter-path ~/.my-brain/lora-adapters/adapter_latest.safetensors
+  --adapter-path ~/.the-brain/lora-adapters/adapter_latest.safetensors
 ```
 
 ## Disabling Training
@@ -85,7 +85,7 @@ mlx_lm.server --model mlx-community/Llama-3.2-3B-Instruct-4bit \
 If you prefer using cloud API models without local training:
 
 ```yaml
-# In ~/.my-brain/config.yaml
+# In ~/.the-brain/config.yaml
 deep:
   plugin: none  # Disable Layer 3 entirely
 ```

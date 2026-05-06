@@ -1,9 +1,9 @@
 /**
- * @my-brain/plugin-harvester-claude
+ * @the-brain/plugin-harvester-claude
  *
  * Data harvester that polls Claude Code's local conversation transcripts
  * (~/.claude/projects/<project>/<sessionId>.jsonl) and feeds new
- * interactions into the my-brain pipeline.
+ * interactions into the the-brain pipeline.
  *
  * Claude Code stores conversation data in:
  *   - ~/.claude/projects/<encoded-path>/<sessionId>.jsonl — full transcripts
@@ -34,8 +34,8 @@ import type {
   Interaction,
   InteractionContext,
   PluginHooks,
-} from "@my-brain/core";
-import { HookEvent, MemoryLayer, definePlugin } from "@my-brain/core";
+} from "@the-brain/core";
+import { HookEvent, MemoryLayer, definePlugin } from "@the-brain/core";
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -100,7 +100,7 @@ function getClaudeBasePath(config: ClaudeHarvesterConfig): string {
 }
 
 function getStatePath(): string {
-  return join(getHomeDir(), ".my-brain", "claude-harvester-state.json");
+  return join(getHomeDir(), ".the-brain", "claude-harvester-state.json");
 }
 
 function getProjectsPath(basePath: string): string {
@@ -109,7 +109,7 @@ function getProjectsPath(basePath: string): string {
 
 function loadState(basePath?: string): ClaudeState {
   const path = basePath 
-    ? join(basePath, "..", ".my-brain", "claude-harvester-state.json")
+    ? join(basePath, "..", ".the-brain", "claude-harvester-state.json")
     : getStatePath();
   try {
     const raw = readFileSync(path, "utf-8");
@@ -130,7 +130,7 @@ function loadState(basePath?: string): ClaudeState {
 
 function saveState(state: ClaudeState, basePath?: string): void {
   const homeDir = basePath ? join(basePath, "..") : getHomeDir();
-  const dir = join(homeDir, ".my-brain");
+  const dir = join(homeDir, ".the-brain");
   try { mkdirSync(dir, { recursive: true }); } catch {}
   const path = basePath 
     ? join(dir, "claude-harvester-state.json")
@@ -205,11 +205,16 @@ function extractText(content: any[]): string {
 
 /**
  * Filter out system-generated messages.
+ * @param includeMeta - If true, allow meta messages (system commands). Default false.
+ * @param includeSidechains - If true, allow sidechain/sub-agent messages. Default false.
  */
-function isRealUserMessage(msg: RawClaudeMessage): boolean {
+function isRealUserMessage(
+  msg: RawClaudeMessage,
+  options?: { includeMeta?: boolean; includeSidechains?: boolean },
+): boolean {
   if (msg.type !== "user") return false;
-  if (msg.isMeta === "True" || msg.isMeta === true) return false;
-  if (msg.isSidechain === "True" || msg.isSidechain === true) return false;
+  if (!options?.includeMeta && (msg.isMeta === "True" || msg.isMeta === true)) return false;
+  if (!options?.includeSidechains && (msg.isSidechain === "True" || msg.isSidechain === true)) return false;
 
   const parsed = parseMessage(msg.message);
   if (!parsed) return false;
@@ -257,7 +262,7 @@ function hashInteraction(prompt: string, response: string): string {
 function matchProjectFromCwd(cwd: string | undefined): string | null {
   if (!cwd) return null;
   try {
-    const configPath = join(homedir(), ".my-brain", "config.json");
+    const configPath = join(process.env.HOME || homedir(), ".the-brain", "config.json");
     if (!existsSync(configPath)) return null;
     const raw = readFileSync(configPath, "utf-8");
     const config = JSON.parse(raw);
@@ -311,7 +316,7 @@ function extractFromJSONL(
   let currentUser: RawClaudeMessage | null = null;
 
   for (const msg of parsedMessages) {
-    if (isRealUserMessage(msg)) {
+    if (isRealUserMessage(msg, { includeMeta: config.includeMeta, includeSidechains: config.includeSidechains })) {
       currentUser = msg;
     } else if (isRealAssistantMessage(msg) && currentUser) {
       const promptParsed = parseMessage(currentUser.message)!;
@@ -513,7 +518,9 @@ export function createClaudeHarvester(
               metadata: interaction.metadata,
             },
           ],
-          promoteToDeep: () => {},
+          promoteToDeep: async (frag: MemoryFragment) => {
+            await hooks.callHook(HookEvent.SELECTION_PROMOTE, frag);
+          },
         };
 
         contexts.push(ctx);
@@ -560,10 +567,10 @@ export function createClaudeHarvester(
 // ── Plugin Definition ────────────────────────────────────────────
 
 export default definePlugin({
-  name: "@my-brain/plugin-harvester-claude",
+  name: "@the-brain/plugin-harvester-claude",
   version: "0.1.0",
   description:
-    "Polls Claude Code's ~/.claude/projects/ transcripts and feeds interactions into the my-brain pipeline",
+    "Polls Claude Code's ~/.claude/projects/ transcripts and feeds interactions into the the-brain pipeline",
 
   setup(hooks: PluginHooks) {
     const harvester = createClaudeHarvester(hooks);

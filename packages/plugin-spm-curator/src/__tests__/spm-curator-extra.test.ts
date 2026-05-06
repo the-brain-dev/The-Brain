@@ -3,8 +3,8 @@
  */
 import { describe, test, expect } from "bun:test";
 import { createSpmCurator } from "../index";
-import { MemoryLayer } from "@my-brain/core";
-import type { InteractionContext, MemoryFragment } from "@my-brain/core";
+import { MemoryLayer } from "@the-brain/core";
+import type { InteractionContext, MemoryFragment } from "@the-brain/core";
 
 function ctx(prompt: string, response: string): InteractionContext {
   return {

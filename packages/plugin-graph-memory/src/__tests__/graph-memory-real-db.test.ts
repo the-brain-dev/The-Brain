@@ -11,7 +11,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
 
-const TEST_DIR = join(tmpdir(), "my-brain-graph-integration-" + Date.now());
+const TEST_DIR = join(tmpdir(), "the-brain-graph-integration-" + Date.now());
 
 describe("Graph Memory — real SQLite integration", () => {
   let BrainDB: any;
@@ -25,18 +25,18 @@ describe("Graph Memory — real SQLite integration", () => {
   let graphPlugin: any;
 
   beforeAll(async () => {
-    await mkdir(join(TEST_DIR, ".my-brain"), { recursive: true });
+    await mkdir(join(TEST_DIR, ".the-brain"), { recursive: true });
 
-    const core = await import("@my-brain/core");
+    const core = await import("@the-brain/core");
     BrainDB = core.BrainDB;
     MemoryLayer = core.MemoryLayer;
     HookEvent = core.HookEvent;
     createHookSystem = core.createHookSystem;
     PluginManager = core.PluginManager;
 
-    db = new BrainDB(join(TEST_DIR, ".my-brain", "brain.db"));
+    db = new BrainDB(join(TEST_DIR, ".the-brain", "brain.db"));
 
-    const graphMod = await import("@my-brain/plugin-graph-memory");
+    const graphMod = await import("@the-brain/plugin-graph-memory");
     createGraphMemoryPlugin = graphMod.createGraphMemoryPlugin;
 
     graphPlugin = createGraphMemoryPlugin(db, {

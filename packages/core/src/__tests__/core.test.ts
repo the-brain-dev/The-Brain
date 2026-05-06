@@ -6,12 +6,12 @@ import {
   LayerRouter,
   MemoryLayer,
   HookEvent,
-} from "@my-brain/core";
+} from "@the-brain/core";
 import type {
   PluginDefinition,
   PluginManifest,
   PluginHooks,
-  MyBrainConfig,
+  TheBrainConfig,
   PromptContext,
   InteractionContext,
   ConsolidationContext,
@@ -20,7 +20,7 @@ import type {
   InstantLayerPlugin,
   SelectionLayerPlugin,
   DeepLayerPlugin,
-} from "@my-brain/core";
+} from "@the-brain/core";
 
 // ── Helpers ─────────────────────────────────────────────────────
 
@@ -75,7 +75,7 @@ function makeConsolidationContext(
   };
 }
 
-function defaultConfig(overrides: Partial<MyBrainConfig> = {}): MyBrainConfig {
+function defaultConfig(overrides: Partial<TheBrainConfig> = {}): TheBrainConfig {
   return {
     plugins: [],
     daemon: { pollIntervalMs: 5000, logDir: "/tmp" },

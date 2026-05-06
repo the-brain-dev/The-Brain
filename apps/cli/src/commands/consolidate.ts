@@ -9,15 +9,15 @@
  *   --global     Target global brain
  */
 import { consola } from "consola";
-import { BrainDB, LayerRouter, MemoryLayer, HookEvent } from "@my-brain/core";
-import type { ConsolidationContext, MemoryFragment, Memory, InteractionContext } from "@my-brain/core";
+import { BrainDB, LayerRouter, MemoryLayer, HookEvent, safeParseConfig } from "@the-brain/core";
+import type { ConsolidationContext, MemoryFragment, Memory, InteractionContext } from "@the-brain/core";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import type { MyBrainConfig } from "@my-brain/core";
+import type { TheBrainConfig } from "@the-brain/core";
 
-const CONFIG_PATH = join(process.env.HOME || "~", ".my-brain", "config.json");
-const DEFAULT_DB_PATH = join(process.env.HOME || "~", ".my-brain", "brain.db");
+const CONFIG_PATH = join(process.env.HOME || "~", ".the-brain", "config.json");
+const DEFAULT_DB_PATH = join(process.env.HOME || "~", ".the-brain", "brain.db");
 
 export async function consolidateCommand(options: {
   now?: boolean;
@@ -32,23 +32,29 @@ export async function consolidateCommand(options: {
   if (existsSync(CONFIG_PATH)) {
     try {
       const raw = await readFile(CONFIG_PATH, "utf-8");
-      const config: MyBrainConfig = JSON.parse(raw);
-
-      if (options.project) {
-        const ctx = config.contexts?.[options.project];
-        if (!ctx) {
-          consola.error(`Project "${options.project}" not found.`);
-          process.exit(1);
-        }
-        dbPath = ctx.dbPath;
-        consola.info(`Targeting project: ${options.project}`);
-      } else if (options.global) {
-        dbPath = config.database.path;
-        consola.info("Targeting global brain");
-      } else if (config.activeContext && config.activeContext !== "global" && config.contexts?.[config.activeContext]) {
-        dbPath = config.contexts[config.activeContext].dbPath;
+      const result = safeParseConfig(JSON.parse(raw));
+      if (!result.success) {
+        consola.warn(`Config validation: ${result.error}. Using defaults.`);
+        dbPath = DEFAULT_DB_PATH;
       } else {
-        dbPath = config.database.path;
+        const config = result.data;
+
+        if (options.project) {
+          const ctx = config.contexts?.[options.project];
+          if (!ctx) {
+            consola.error(`Project "${options.project}" not found.`);
+            process.exit(1);
+          }
+          dbPath = ctx.dbPath;
+          consola.info(`Targeting project: ${options.project}`);
+        } else if (options.global) {
+          dbPath = config.database.path;
+          consola.info("Targeting global brain");
+        } else if (config.activeContext && config.activeContext !== "global" && config.contexts?.[config.activeContext]) {
+          dbPath = config.contexts[config.activeContext].dbPath;
+        } else {
+          dbPath = config.database.path;
+        }
       }
     } catch {}
   }
@@ -87,16 +93,20 @@ export async function consolidateCommand(options: {
           },
         });
         promotedCount++;
-      } catch {
-        // Already promoted in previous consolidation — update metadata
-        await db.updateMemory(deepId, {
-          metadata: JSON.stringify({
-            ...mem.metadata,
-            consolidatedAt: Date.now(),
-            originalLayer: MemoryLayer.SELECTION,
-            reconsolidated: true,
-          }),
-        } as any);
+      } catch (err) {
+        // If duplicate ID, update metadata instead of failing
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes("UNIQUE") || msg.includes("duplicate")) {
+          await db.updateMemory(deepId, {
+            metadata: JSON.stringify({
+              ...mem.metadata,
+              consolidatedAt: Date.now(),
+              originalLayer: MemoryLayer.SELECTION,
+              reconsolidated: true,
+            }),
+          });
+        }
+        // Other errors (disk full, etc.) — skip this memory, continue with others
       }
     }
 
@@ -148,7 +158,7 @@ async function reprocessMemoriesWithSPM(db: BrainDB) {
     return;
   }
 
-  const { createSpmCurator } = await import("@my-brain/plugin-spm-curator");
+  const { createSpmCurator } = await import("@the-brain/plugin-spm-curator");
   const spm = createSpmCurator({ threshold: 0.3 }).instance;
 
   let processed = 0;
@@ -172,7 +182,7 @@ async function reprocessMemoriesWithSPM(db: BrainDB) {
         timestamp: mem.timestamp,
         source: mem.source,
       }],
-      promoteToDeep: () => {},
+      promoteToDeep(frag: MemoryFragment) { /* handled below via insertMemory */ },
     };
 
     const result = await spm.evaluate(ctx);
@@ -207,7 +217,7 @@ async function reprocessMemoriesWithSPM(db: BrainDB) {
             spmIsSurprising: result.isSurprising,
             updatedAt: Date.now(),
           }),
-        } as any);
+        });
         scored++;
       }
     }

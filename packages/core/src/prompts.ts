@@ -9,7 +9,7 @@
  *   const { frontmatter, body } = loadPrompt("consolidate");
  */
 
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 export interface PromptFrontmatter {
@@ -104,7 +104,6 @@ export function listPrompts(projectRoot?: string): Array<{ name: string; frontma
     if (!existsSync(dir)) continue;
 
     try {
-      const { readdirSync } = require("node:fs");
       for (const file of readdirSync(dir)) {
         if (!file.endsWith(".md")) continue;
         const name = file.replace(/\.md$/, "");

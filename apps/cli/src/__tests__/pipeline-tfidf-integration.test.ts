@@ -13,7 +13,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
 
-const TEST_HOME = join(tmpdir(), "my-brain-tfidf-pipeline-" + Date.now());
+const TEST_HOME = join(tmpdir(), "the-brain-tfidf-pipeline-" + Date.now());
 
 // ── Seed interactions (build TF-IDF vocab + centroid from these) ────────────
 
@@ -136,9 +136,9 @@ describe("Pipeline: ContentCleaner → SPM/TF-IDF → Graph Memory → Context",
 
   beforeAll(async () => {
     process.env.HOME = TEST_HOME;
-    await mkdir(join(TEST_HOME, ".my-brain"), { recursive: true });
+    await mkdir(join(TEST_HOME, ".the-brain"), { recursive: true });
 
-    const core = await import("@my-brain/core");
+    const core = await import("@the-brain/core");
     BrainDB = core.BrainDB;
     MemoryLayer = core.MemoryLayer;
     HookEvent = core.HookEvent;
@@ -146,12 +146,12 @@ describe("Pipeline: ContentCleaner → SPM/TF-IDF → Graph Memory → Context",
     createHookSystem = core.createHookSystem;
     cleanMemoryContent = core.cleanMemoryContent;
 
-    db = new BrainDB(join(TEST_HOME, ".my-brain", "brain.db"));
+    db = new BrainDB(join(TEST_HOME, ".the-brain", "brain.db"));
 
-    const spmMod = await import("@my-brain/plugin-spm-curator");
+    const spmMod = await import("@the-brain/plugin-spm-curator");
     spmInstance = spmMod.createSpmCurator({ useTfidf: true }).instance; // default threshold is now 0.82
 
-    const graphMod = await import("@my-brain/plugin-graph-memory");
+    const graphMod = await import("@the-brain/plugin-graph-memory");
     graphPlugin = graphMod.createGraphMemoryPlugin(db);
 
     hooks = createHookSystem();
@@ -253,7 +253,7 @@ describe("Pipeline: ContentCleaner → SPM/TF-IDF → Graph Memory → Context",
     // wrapper falls through as plain text — that's expected behavior.
     const claudeXml = `<observed_from_primary_session>
 <what_happened>Edit</what_happened>
-<working_directory>/Users/dev/my-brain</working_directory>
+<working_directory>/Users/dev/the-brain</working_directory>
 <parameters>{"file_path":"src/index.ts"}</parameters>
 </observed_from_primary_session>
 Actually, let me refactor this to use dependency injection instead.`;
@@ -291,7 +291,7 @@ Actually, let me refactor this to use dependency injection instead.`;
   test("Step 3c: Content cleaner formats Claude observations", async () => {
     const observationXml = `Prompt: <observed_from_primary_session>
 <what_happened>Bash</what_happened>
-<working_directory>/Users/dev/my-brain</working_directory>
+<working_directory>/Users/dev/the-brain</working_directory>
 <parameters>{"command":"bun test"}</parameters>
 </observed_from_primary_session>`;
 
@@ -384,7 +384,7 @@ Actually, let me refactor this to use dependency injection instead.`;
     // Simulate a real interaction arriving from a Claude harvester
     const claudeXml = `<observed_from_primary_session>
 <user_request>change of plans — let's use pnpm instead of npm for this project. I prefer pnpm workspaces over npm.</user_request>
-<working_directory>/Users/dev/my-brain</working_directory>
+<working_directory>/Users/dev/the-brain</working_directory>
 </observed_from_primary_session>`;
 
     // 1. Clean — extracts user request from Claude XML

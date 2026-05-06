@@ -1,19 +1,19 @@
 /**
  * health command — Show daemon health, stats, and monitoring data.
  *
- *   my-brain health              Show active context health summary
- *   my-brain health --project X  Show specific project health
- *   my-brain health --global     Show global brain health
+ *   the-brain health              Show active context health summary
+ *   the-brain health --project X  Show specific project health
+ *   the-brain health --global     Show global brain health
  */
 import { consola } from "consola";
-import { BrainDB, MemoryLayer } from "@my-brain/core";
-import type { MyBrainConfig } from "@my-brain/core";
+import { BrainDB, MemoryLayer, safeParseConfig } from "@the-brain/core";
+import type { TheBrainConfig } from "@the-brain/core";
 import { join } from "node:path";
 import { readFile, readdir } from "node:fs/promises";
 import { existsSync, statSync } from "node:fs";
 
-const CONFIG_PATH = join(process.env.HOME || "~", ".my-brain", "config.json");
-const PID_FILE = join(process.env.HOME || "~", ".my-brain", "daemon.pid");
+const CONFIG_PATH = join(process.env.HOME || "~", ".the-brain", "config.json");
+const PID_FILE = join(process.env.HOME || "~", ".the-brain", "daemon.pid");
 
 export async function healthCommand(options: {
   project?: string;
@@ -21,7 +21,7 @@ export async function healthCommand(options: {
 }) {
   const dbPath = await resolveDbPath(options);
   if (!dbPath || !existsSync(dbPath)) {
-    consola.warn("No database found. Run `my-brain init` first.");
+    consola.warn("No database found. Run `the-brain init` first.");
     return;
   }
 
@@ -37,7 +37,7 @@ export async function healthCommand(options: {
       ? `Project: ${options.project}`
       : options.global
         ? "Global Brain"
-        : "my-brain";
+        : "the-brain";
     consola.box(buildHealthBox(label, stats, daemonRunning, uptime));
 
     // ── Daemon details ──
@@ -46,28 +46,30 @@ export async function healthCommand(options: {
       consola.info(`Uptime: ${uptime}`);
     } else {
       consola.info("Daemon: not running");
-      consola.info("Start with: my-brain daemon start");
+      consola.info("Start with: the-brain daemon start");
     }
 
     // ── Active projects ──
     try {
-      const config: MyBrainConfig = JSON.parse(
-        await readFile(CONFIG_PATH, "utf-8")
-      );
-      const projectCount = Object.keys(config.contexts || {}).length;
-      if (projectCount > 0) {
-        consola.info(`\nRegistered projects (${projectCount}):`);
-        for (const [name, ctx] of Object.entries(config.contexts)) {
-          const active = config.activeContext === name ? " (active)" : "";
-          const hasDb = existsSync(ctx.dbPath);
-          const dbSize = hasDb ? formatSize(statSync(ctx.dbPath).size) : "none";
-          consola.info(`  ${name}${active}: ${dbSize}`);
+      const raw = await readFile(CONFIG_PATH, "utf-8");
+      const result = safeParseConfig(JSON.parse(raw));
+      if (result.success) {
+        const config = result.data;
+        const projectCount = Object.keys(config.contexts || {}).length;
+        if (projectCount > 0) {
+          consola.info(`\nRegistered projects (${projectCount}):`);
+          for (const [name, ctx] of Object.entries(config.contexts)) {
+            const active = config.activeContext === name ? " (active)" : "";
+            const hasDb = existsSync(ctx.dbPath);
+            const dbSize = hasDb ? formatSize(statSync(ctx.dbPath).size) : "none";
+            consola.info(`  ${name}${active}: ${dbSize}`);
+          }
         }
       }
     } catch {}
 
     // ── Training status ──
-    const loraDir = join(process.env.HOME || "~", ".my-brain", "lora-checkpoints");
+    const loraDir = join(process.env.HOME || "~", ".the-brain", "lora-checkpoints");
     if (existsSync(loraDir)) {
       const adapterPath = join(loraDir, "adapter.safetensors");
       if (existsSync(adapterPath)) {
@@ -78,7 +80,7 @@ export async function healthCommand(options: {
     }
 
     // ── Wiki status ──
-    const wikiDir = join(process.env.HOME || "~", ".my-brain", "wiki");
+    const wikiDir = join(process.env.HOME || "~", ".the-brain", "wiki");
     if (existsSync(wikiDir)) {
       try {
         const files = await readdir(wikiDir);
@@ -94,11 +96,19 @@ export async function healthCommand(options: {
 // ── Helpers ─────────────────────────────────────────────────────
 
 async function resolveDbPath(options: { project?: string; global?: boolean }): Promise<string> {
-  const defaults = join(process.env.HOME || "~", ".my-brain", "global", "brain.db");
+  const defaults = join(process.env.HOME || "~", ".the-brain", "global", "brain.db");
 
   if (!existsSync(CONFIG_PATH)) return defaults;
 
-  const config: MyBrainConfig = JSON.parse(await readFile(CONFIG_PATH, "utf-8"));
+  let config: TheBrainConfig;
+  try {
+    const raw = await readFile(CONFIG_PATH, "utf-8");
+    const result = safeParseConfig(JSON.parse(raw));
+    if (!result.success) return defaults;
+    config = result.data;
+  } catch {
+    return defaults;
+  }
 
   if (options.project) {
     return config.contexts?.[options.project]?.dbPath || defaults;
@@ -115,8 +125,9 @@ async function resolveDbPath(options: { project?: string; global?: boolean }): P
 }
 
 async function checkDaemon(): Promise<boolean> {
+  const pid = await readPid();
+  if (pid === null) return false;
   try {
-    const pid = await readPid();
     process.kill(pid, 0);
     return true;
   } catch {
@@ -124,9 +135,14 @@ async function checkDaemon(): Promise<boolean> {
   }
 }
 
-async function readPid(): Promise<number> {
-  const raw = await readFile(PID_FILE, "utf-8");
-  return parseInt(raw.trim());
+async function readPid(): Promise<number | null> {
+  try {
+    const raw = await readFile(PID_FILE, "utf-8");
+    const pid = parseInt(raw.trim());
+    return Number.isNaN(pid) ? null : pid;
+  } catch {
+    return null;
+  }
 }
 
 function getUptime(): string {
@@ -135,8 +151,10 @@ function getUptime(): string {
     const ms = Date.now() - stat.mtimeMs;
     const hours = Math.floor(ms / 3600000);
     const mins = Math.floor((ms % 3600000) / 60000);
+    const secs = Math.floor((ms % 60000) / 1000);
     if (hours > 0) return `${hours}h ${mins}m`;
-    return `${mins}m`;
+    if (mins > 0) return `${mins}m ${secs}s`;
+    return `${secs}s`;
   } catch {
     return "unknown";
   }

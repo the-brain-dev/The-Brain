@@ -25,6 +25,6 @@
 
 ### Added
 
-- `my-brain context` command — exports brain state as JSON/markdown for external AI agents (Hermes).
+- `the-brain context` command — exports brain state as JSON/markdown for external AI agents (Hermes).
 - 5 integration tests for `context` command + 18 unit tests for `ContentCleaner`.
 

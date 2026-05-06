@@ -4,9 +4,9 @@
 import { consola } from "consola";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { MyBrainConfig } from "@my-brain/core";
+import type { TheBrainConfig } from "@the-brain/core";
 
-const CONFIG_DIR = join(process.env.HOME || "~", ".my-brain");
+const CONFIG_DIR = join(process.env.HOME || "~", ".the-brain");
 const CONFIG_PATH = join(CONFIG_DIR, "config.json");
 
 export async function switchContextCommand(options: {
@@ -23,7 +23,7 @@ export async function switchContextCommand(options: {
   try {
     // Load config
     const raw = await readFile(CONFIG_PATH, "utf-8");
-    const config: MyBrainConfig = JSON.parse(raw);
+    const config: TheBrainConfig = JSON.parse(raw);
 
     // Validate
     if (target !== "global" && !config.contexts?.[target]) {
@@ -31,7 +31,7 @@ export async function switchContextCommand(options: {
       consola.error(
         `Project "${target}" not found.${available ? ` Available: ${available}` : " No projects registered."}`
       );
-      consola.info("Create one with: my-brain init --project " + target);
+      consola.info("Create one with: the-brain init --project " + target);
       process.exit(1);
     }
 
@@ -61,7 +61,7 @@ export async function switchContextCommand(options: {
       }
     }
 
-    consola.info("Run `my-brain daemon restart` to apply the new context.");
+    consola.info("Run `the-brain daemon restart` to apply the new context.");
   } catch (err) {
     consola.error("Context switch failed:", err);
     process.exit(1);

@@ -2,12 +2,12 @@ import type {
   PluginDefinition,
   PluginManifest,
   PluginHooks,
-  MyBrainConfig,
+  TheBrainConfig,
 } from "./types";
 
 /**
  * PluginManager — loads, activates, and manages lifecycle
- * of all plugins in the my-brain ecosystem.
+ * of all plugins in the the-brain ecosystem.
  */
 export class PluginManager {
   private plugins = new Map<string, { definition: PluginDefinition; manifest: PluginManifest }>();
@@ -89,7 +89,7 @@ export class PluginManager {
    */
   async loadFromConfig(
     plugins: PluginDefinition[],
-    config: MyBrainConfig
+    config: TheBrainConfig
   ): Promise<PluginManifest[]> {
     const manifests: PluginManifest[] = [];
     const configMap = new Map(

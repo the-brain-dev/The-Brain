@@ -26,7 +26,7 @@ fragments = [
     },
     # ——— Architecture & Design ———
     {
-        "text": "my-brain follows a plugin architecture. The core is an empty data bus. Everything — harvesters, memory modules, trainers — must be swappable plugins via definePlugin(). Never hardcode a memory implementation.",
+        "text": "the-brain follows a plugin architecture. The core is an empty data bus. Everything — harvesters, memory modules, trainers — must be swappable plugins via definePlugin(). Never hardcode a memory implementation.",
         "metadata": {"source": "claude", "layer": "deep", "type": "preference", "weight": 1.0}
     },
     {
@@ -38,7 +38,7 @@ fragments = [
         "metadata": {"source": "claude", "layer": "deep", "type": "preference", "weight": 0.9}
     },
     {
-        "text": "Ambient UX: The best tools run in the background. my-brain daemon should collect data with zero manual effort from the user. Never ask for confirmation for routine collection.",
+        "text": "Ambient UX: The best tools run in the background. the-brain daemon should collect data with zero manual effort from the user. Never ask for confirmation for routine collection.",
         "metadata": {"source": "claude", "layer": "deep", "type": "preference", "weight": 0.8}
     },
     # ——— Testing Patterns ———

@@ -113,9 +113,9 @@ export interface ConsolidationContext {
 // ── Plugin Definition ───────────────────────────────────────────
 
 export interface PluginHooks {
-  hook(event: HookEventName, handler: (...args: any[]) => Promise<void> | void): void;
-  callHook(event: HookEventName, ...args: any[]): Promise<void>;
-  getHandlers(event: HookEventName): Array<(...args: any[]) => Promise<void> | void>;
+  hook(event: HookEventName, handler: (...args: unknown[]) => Promise<void> | void): void;
+  callHook(event: HookEventName, ...args: unknown[]): Promise<void>;
+  getHandlers(event: HookEventName): Array<(...args: unknown[]) => Promise<void> | void>;
 }
 
 export interface PluginDefinition {
@@ -193,8 +193,15 @@ export interface ProjectContext {
   lastActive?: number;    // Timestamp of last context switch
 }
 
-export interface MyBrainConfig {
+export interface TheBrainConfig {
   plugins: PluginConfig[];
+  /** Pluggable backend overrides (config-driven swapping) */
+  backends?: {
+    storage?: string;       // module path for StorageBackend factory
+    cleaner?: string;       // module path for ContentCleanerPlugin factory
+    scheduler?: string;     // module path for SchedulerPlugin factory
+    outputs?: string[];     // module paths for OutputPlugin factories
+  };
   daemon: {
     pollIntervalMs: number;
     logDir: string;
@@ -213,7 +220,97 @@ export interface MyBrainConfig {
     outputDir: string;
     schedule?: string;
   };
+  // Server config (remote mode)
+  server: {
+    /** "local" (default) or "remote" — enables auth + network binding */
+    mode: "local" | "remote";
+    /** Bind address for the API server (default: 127.0.0.1 for local, 0.0.0.0 for remote) */
+    bindAddress: string;
+    /** Auth token for remote API access. Auto-generated on init. */
+    authToken?: string;
+    /** Override daemon API port (default: 9420) */
+    port?: number;
+    /** Override MCP SSE port (default: 9422) */
+    mcpPort?: number;
+  };
   // Multi-project support
   activeContext: string;                    // "global" or project name
   contexts: Record<string, ProjectContext>; // Map of context name → config
+}
+
+// ── Zod Schemas (runtime validation) ────────
+
+export const ProjectContextSchema = z.object({
+  name: z.string(),
+  label: z.string().optional(),
+  dbPath: z.string(),
+  wikiDir: z.string(),
+  loraDir: z.string().optional(),
+  workDir: z.string().optional(),
+  createdAt: z.number(),
+  lastActive: z.number().optional(),
+});
+
+export const TheBrainConfigSchema = z.object({
+  plugins: z.array(z.object({
+    name: z.string(),
+    enabled: z.boolean(),
+    config: z.record(z.unknown()).optional(),
+  })),
+  backends: z.object({
+    storage: z.string().optional(),
+    cleaner: z.string().optional(),
+    scheduler: z.string().optional(),
+    outputs: z.array(z.string()).optional(),
+  }).optional(),
+  daemon: z.object({
+    pollIntervalMs: z.number().positive(),
+    logDir: z.string(),
+  }),
+  database: z.object({
+    path: z.string(),
+  }),
+  mlx: z.object({
+    enabled: z.boolean(),
+    modelPath: z.string().optional(),
+    loraOutputDir: z.string().optional(),
+    schedule: z.string().optional(),
+  }),
+  wiki: z.object({
+    enabled: z.boolean(),
+    outputDir: z.string(),
+    schedule: z.string().optional(),
+  }),
+  server: z.object({
+    mode: z.enum(["local", "remote"]).default("local"),
+    bindAddress: z.string().default("127.0.0.1"),
+    authToken: z.string().optional(),
+    port: z.number().int().positive().optional(),
+    mcpPort: z.number().int().positive().optional(),
+  }).default({}),
+  activeContext: z.string().default("global"),
+  contexts: z.record(ProjectContextSchema).default({}),
+});
+
+/** Parse and validate config.json at runtime. Returns parsed config or throws ZodError. */
+export function parseConfig(raw: unknown): TheBrainConfig {
+  return TheBrainConfigSchema.parse(raw);
+}
+
+/**
+ * Generate a cryptographically secure auth token.
+ * Format: mb_<32-char-hex>
+ */
+export function generateAuthToken(): string {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("");
+  return `mb_${hex}`;
+}
+
+/** Safe parse — returns result object with success/error, never throws. */
+export function safeParseConfig(raw: unknown): { success: true; data: TheBrainConfig } | { success: false; error: string } {
+  const result = TheBrainConfigSchema.safeParse(raw);
+  if (result.success) return result;
+  return { success: false, error: result.error.issues.map(i => `${i.path.join(".")}: ${i.message}`).join("; ") };
 }

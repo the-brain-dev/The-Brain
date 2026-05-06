@@ -1,5 +1,5 @@
 {
-  "name": "my-brain",
+  "name": "the-brain",
   "version": "0.1.0",
   "description": "Pluggable Cognitive Operating System for AI Agents",
   "private": true,
@@ -35,6 +35,6 @@
     "consola": "^3.4.2"
   },
   "trustedDependencies": [
-    "my-brain"
+    "the-brain"
   ]
 }

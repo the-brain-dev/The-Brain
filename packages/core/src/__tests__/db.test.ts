@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
-import { BrainDB, MemoryLayer } from "@my-brain/core";
-import type { Session, Memory, GraphNodeRecord } from "@my-brain/core";
+import { BrainDB, MemoryLayer } from "@the-brain/core";
+import type { Session, Memory, GraphNodeRecord } from "@the-brain/core";
 
 // ── Helpers ─────────────────────────────────────────────────────
 
@@ -103,7 +103,7 @@ describe("BrainDB", () => {
         endedAt: 1714503600000,
         source: "cursor",
         interactionCount: 42,
-        metadata: { project: "my-brain", language: "typescript" },
+        metadata: { project: "the-brain", language: "typescript" },
       });
 
       await db.createSession(session);
@@ -116,7 +116,7 @@ describe("BrainDB", () => {
       expect(retrieved!.source).toBe("cursor");
       expect(retrieved!.interactionCount).toBe(42);
       expect(retrieved!.metadata).toEqual({
-        project: "my-brain",
+        project: "the-brain",
         language: "typescript",
       });
     });
@@ -941,16 +941,13 @@ describe("BrainDB", () => {
 
   // 20 ────────────────────────────────────────────────────────────
   describe("deleteOldMemories", () => {
-    test("deletes memories matching the current gte semantics", async () => {
+    test("deletes old memories (timestamp <= cutoff)", async () => {
       db = createDB();
 
       const now = Date.now();
       const oneDayMs = 86400 * 1000;
 
-      // NOTE: The current implementation uses gte (>=) instead of lte (<=),
-      // meaning it deletes memories with timestamp >= cutoff (i.e., newer ones).
-      // This test covers the actual behavior as implemented.
-
+      // cutoff = now - 7 days. lte(cutoff) deletes memories OLDER than 7 days.
       await db.insertMemories([
         makeMemory({
           id: "very-old",
@@ -969,32 +966,29 @@ describe("BrainDB", () => {
         }),
       ]);
 
-      // cutoff = now - 7 days. gte(cutoff) matches timestamps >= cutoff.
-      // "recent" (1 day ago) is the only one >= cutoff; "very-old" and "moderate" are < cutoff.
+      // "very-old" (30d) and "moderate" (10d) are <= cutoff → deleted
+      // "recent" (1d) is > cutoff → kept
       const deleted = await db.deleteOldMemories(7);
-      expect(deleted).toBe(1);
+      expect(deleted).toBe(2);
 
-      // Verify "very-old" and "moderate" survived (they are below the cutoff)
       const remaining = await db.getMemoriesByLayer(MemoryLayer.INSTANT);
-      expect(remaining).toHaveLength(2);
-      const remainingIds = remaining.map((m) => m.id).sort();
-      expect(remainingIds).toEqual(["moderate", "very-old"]);
+      expect(remaining).toHaveLength(1);
+      expect(remaining[0].id).toBe("recent");
     });
 
     test("returns 0 when no memories match criteria", async () => {
       db = createDB();
 
-      // Insert only very old memories
+      // Insert only very recent memories
       await db.insertMemory(
         makeMemory({
-          id: "ancient",
+          id: "fresh",
           layer: MemoryLayer.INSTANT,
-          timestamp: 1, // epoch start
+          timestamp: Date.now(), // just now
         })
       );
 
-      // With gte, this would delete memories >= cutoff (recent ones),
-      // but our memory has timestamp=1 which is way below the cutoff.
+      // Fresh memory is > cutoff → nothing deleted
       const deleted = await db.deleteOldMemories(7);
       expect(deleted).toBe(0);
     });

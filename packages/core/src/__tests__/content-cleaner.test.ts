@@ -60,7 +60,7 @@ describe("ContentCleaner", () => {
   <what_happened>Edit</what_happened>
   <occurred_at>2026-04-21T12:55:59.935Z</occurred_at>
   <working_directory>/Users/oskarschachta/.hermes</working_directory>
-  <parameters>"{"file_path":"/Users/oskarschachta/.hermes/skills/my-brain/SKILL.md"}"</parameters>
+  <parameters>"{"file_path":"/Users/oskarschachta/.hermes/skills/the-brain/SKILL.md"}"</parameters>
 </observed_from_primary_session>`;
 
       const result = cleanMemoryContent(raw);
@@ -205,6 +205,60 @@ Actually, change of plans — let's use pnpm instead.`;
       expect(result.summary).not.toContain("npm install");
       expect(result.summary).not.toContain("function_calls");
     });
+
+    // ── NEW: Edge cases for uncovered lines ─────────────
+
+    test("strips XML but falls back to truncation when stripped text too short", () => {
+      const raw = `<function_calls>\n<invoke name="ls"/>\n</function_calls>`;
+      const result = cleanMemoryContent(raw);
+
+      // All content inside XML tags — stripped result is empty, falls through to truncation
+      // Truncation wraps the raw text (including XML) — summary is raw input, not xml-stripped
+      expect(result.type).toBe("unknown");
+      expect(result.summary.length).toBeLessThanOrEqual(120);
+    });
+    
+
+    test("handles self-closing XML tags via stripXmlTags", () => {
+      const raw = `<tool_call name="bash">\n<parameter name="cwd" value="/tmp"/>\n</tool_call>\nThe build succeeded.`;
+      const result = cleanMemoryContent(raw);
+
+      expect(result.summary).toContain("build succeeded");
+      expect(result.action).toBe("xml-stripped");
+    });
+
+    test("handles unclosed XML tags gracefully (fallback to text)", () => {
+      const raw = `<function_calls>\n<invoke name="broken">\nMissing closing tag\nStill processing`;
+      const result = cleanMemoryContent(raw);
+
+      // Unclosed tags: depth > 0 at break → text inside tags is lost
+      // Stripped result too short → falls through to truncation
+      expect(result.type).toBe("unknown");
+    });
+
+    test("extracts params from escaped JSON (Case B — literal backslash-quotes)", () => {
+      const raw = `<observed_from_primary_session>
+  <what_happened>Write</what_happened>
+  <working_directory>/Users/oskarschachta/Projects/my-app</working_directory>
+  <parameters>"{\\"file_path\\":\\"/src/utils.ts\\",\\"command\\":\\"write\\"}"</parameters>
+</observed_from_primary_session>`;
+
+      const result = cleanMemoryContent(raw);
+      expect(result.type).toBe("observation");
+      expect(result.summary).toContain("utils.ts");
+    });
+
+    test("extracts params via regex fallback for malformed JSON (Case C)", () => {
+      const raw = `<observed_from_primary_session>
+  <what_happened>Bash</what_happened>
+  <working_directory>/Users/oskarschachta/Projects/my-app</working_directory>
+  <parameters>"{\\"command\\": \\"npm run build && test\\" --verbose}"</parameters>
+</observed_from_primary_session>`;
+
+      const result = cleanMemoryContent(raw);
+      expect(result.type).toBe("observation");
+      expect(result.action).toBe("Bash");
+    });
   });
 
   // ── cleanGraphNodeLabel ────────────────────────────────
@@ -215,21 +269,17 @@ Actually, change of plans — let's use pnpm instead.`;
 
       const result = cleanGraphNodeLabel(label, "correction");
 
-      // Should be shorter than original
       expect(result.length).toBeLessThan(label.length);
-      // Should contain the key message
       expect(result).toContain("type-level");
     });
 
     test("keeps short concept labels intact", () => {
       const result = cleanGraphNodeLabel("Works frequently with tailwind", "pattern");
-
       expect(result).toBe("Works frequently with tailwind");
     });
 
     test("keeps short preference labels intact", () => {
       const result = cleanGraphNodeLabel("Uses const not let", "preference");
-
       expect(result).toBe("Uses const not let");
     });
 
@@ -238,6 +288,32 @@ Actually, change of plans — let's use pnpm instead.`;
 
       expect(result).not.toContain("\\\\n");
       expect(result).toContain("Line 1 Line 2 Line 3");
+    });
+
+    // ── NEW: sentence extraction from long corrections ──
+
+    test("extracts first sentence from long correction with period", () => {
+      const label =
+        "Use process.env.HOME || homedir() instead of raw homedir() in Bun tests. This avoids the Bun test runner bug.";
+
+      const result = cleanGraphNodeLabel(label, "correction");
+      expect(result).toContain("Use process.env.HOME");
+      expect(result).not.toContain("This avoids");
+    });
+
+    test("extracts first sentence from long correction with semicolon", () => {
+      const label =
+        "Always batch insert memories; this improves performance 100x; also useful for transactions";
+
+      const result = cleanGraphNodeLabel(label, "correction");
+      expect(result).toContain("Always batch insert");
+      expect(result).not.toContain("100x");
+    });
+
+    test("falls back to 100-char truncation for long correction with no break", () => {
+      const label = Array(200).fill("continuous text without periods or semicolons").join(" ");
+      const result = cleanGraphNodeLabel(label, "correction");
+      expect(result.length).toBeLessThanOrEqual(100);
     });
   });
 
@@ -257,14 +333,13 @@ Actually, change of plans — let's use pnpm instead.`;
           summary: "✏️ Edited `SKILL.md` in .hermes",
           action: "Edit",
           project: ".hermes",
-          userRequest: "update the my-brain skill",
+          userRequest: "update the the-brain skill",
           type: "user-request",
         },
       ];
 
       const deduped = deduplicateContents(items);
 
-      // Both have the same summary — should dedup to 1, keeping user-request
       expect(deduped.length).toBe(1);
       expect(deduped[0].type).toBe("user-request");
     });
@@ -286,9 +361,9 @@ Actually, change of plans — let's use pnpm instead.`;
           type: "observation",
         },
         {
-          summary: "🔍 Grepped in my-brain",
+          summary: "🔍 Grepped in the-brain",
           action: "Grep",
-          project: "my-brain",
+          project: "the-brain",
           userRequest: null,
           type: "observation",
         },

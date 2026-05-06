@@ -4,7 +4,7 @@
  * Tests the ANSI-rendered components without needing a terminal.
  */
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { BrainDB } from "@my-brain/core";
+import { BrainDB } from "@the-brain/core";
 import { join } from "node:path";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -17,7 +17,7 @@ describe("Dashboard data fetching", () => {
   let db: BrainDB;
 
   beforeEach(async () => {
-    tmpDir = mkdtempSync(join(tmpdir(), "my-brain-dash-"));
+    tmpDir = mkdtempSync(join(tmpdir(), "the-brain-dash-"));
     db = new BrainDB(join(tmpDir, "test.db"));
 
     // Seed test data

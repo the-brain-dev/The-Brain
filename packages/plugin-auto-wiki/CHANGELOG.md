@@ -4,7 +4,7 @@
 
 ### Added
 
-- Initial release of my-brain — pluggable cognitive OS for AI agents.
+- Initial release of the-brain — pluggable cognitive OS for AI agents.
 
 ## [2.0.0] - 2026-05-04
 
@@ -30,5 +30,5 @@
 ### Technical
 
 - 17 new tests, 268 total pass (0 fail)
-- Wiki path: `~/.my-brain/wiki/` (configurable via `outputDir`)
+- Wiki path: `~/.the-brain/wiki/` (configurable via `outputDir`)
 - Idempotent — re-generation updates existing pages, appends to log, re-lints

@@ -1,0 +1,57 @@
+---
+title: Hook System
+description: Event-driven plugin system powering the-brain's cognitive layers
+---
+
+All plugins communicate through hooks defined in `@the-brain/core`.
+
+## Hook Events
+
+| Hook | When | Consumer |
+|------|------|----------|
+| `HARVESTER_POLL` | Daemon polls IDE logs | Harvesters |
+| `HARVESTER_NEW_DATA` | New interaction found | All layers |
+| `BEFORE_PROMPT` | Before prompt reaches LLM | Graph Memory |
+| `AFTER_RESPONSE` | After LLM responds | SPM Curator |
+| `ON_INTERACTION` | Every interaction | SPM Curator |
+| `SELECTION_EVALUATE` | Evaluate for promotion | SPM Curator |
+| `SELECTION_PROMOTE` | Promote to deeper layer | SPM Curator → DEEP |
+| `DEEP_CONSOLIDATE` | Deep layer consolidation | MLX Trainer, Auto-Wiki |
+| `TRAINING_START` | MLX training begins | Identity Anchor |
+| `TRAINING_COMPLETE` | MLX training finishes | Notifications |
+| `DAEMON_START` | Daemon startup | All plugins |
+| `DAEMON_STOP` | Daemon shutdown | Cleanup |
+
+## Registration
+
+```typescript
+import { definePlugin, HookEvent } from "@the-brain/core";
+
+export default definePlugin({
+  name: "my-plugin",
+  setup(hooks) {
+    hooks.hook(HookEvent.AFTER_RESPONSE, async (ctx) => {
+      // ctx.interaction, ctx.fragments, ctx.promoteToDeep()
+    });
+  },
+});
+```
+
+## Execution
+
+- Handlers execute **serially** in registration order
+- Errors in one handler don't stop others
+- Powered by `hookable` — lightweight, async-safe
+
+## Layer Routing
+
+```typescript
+const router = new LayerRouter();
+router.registerInstant(graphMemory);    // ⚡ Layer 1
+router.registerSelection(spmCurator);   // ⚖️ Layer 2
+router.registerDeep(mlxTrainer);       // 🌌 Layer 3
+
+await router.runInstant(promptCtx);     // Inject context
+await router.runSelection(ctx);         // Evaluate + promote
+await router.runDeep(ctx);              // Train + wiki
+```

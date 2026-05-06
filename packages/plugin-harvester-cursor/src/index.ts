@@ -1,8 +1,8 @@
 /**
- * @my-brain/plugin-harvester-cursor
+ * @the-brain/plugin-harvester-cursor
  *
  * Data harvester that polls Cursor IDE's local conversation logs (JSONL and SQLite)
- * and feeds new interactions into the my-brain pipeline.
+ * and feeds new interactions into the the-brain pipeline.
  *
  * Cursor stores conversation data in several locations:
  *   - SQLite: ~/Library/Application Support/Cursor/User/workspaceStorage/<hash>/state.vscdb
@@ -14,7 +14,7 @@
  * new prompt/response pairs into the ON_INTERACTION hook as Interaction records.
  */
 
-import { existsSync, readdirSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync, mkdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { homedir, platform } from "node:os";
 import { Database } from "bun:sqlite";
@@ -24,9 +24,9 @@ import type {
   InteractionContext,
   MemoryFragment,
   PluginHooks,
-} from "@my-brain/core";
-import { HookEvent, MemoryLayer, definePlugin } from "@my-brain/core";
-import type { HarvesterPlugin } from "@my-brain/core";
+} from "@the-brain/core";
+import { HookEvent, MemoryLayer, definePlugin } from "@the-brain/core";
+import type { HarvesterPlugin } from "@the-brain/core";
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -121,14 +121,14 @@ function matchProjectFromConfig(
   return null;
 }
 
-function getMyBrainConfigDir(): string {
-  return join(homedir(), ".my-brain");
+function getTheBrainConfigDir(homeDir?: string): string {
+  return join(homeDir ?? homedir(), ".the-brain");
 }
 
 // ── Cursor Path Discovery ────────────────────────────────────────
 
-function getCursorBasePath(): string {
-  const home = homedir();
+function getCursorBasePath(homeDir?: string): string {
+  const home = homeDir ?? homedir();
   const os = platform();
 
   if (os === "darwin") {
@@ -144,9 +144,9 @@ function getCursorBasePath(): string {
   return join(home, ".cursor");
 }
 
-function discoverWorkspaces(basePath: string): DiscoveredWorkspace[] {
+function discoverWorkspaces(basePath: string, homeDir?: string): DiscoveredWorkspace[] {
   const workspaces: DiscoveredWorkspace[] = [];
-  const configDir = getMyBrainConfigDir();
+  const configDir = getTheBrainConfigDir(homeDir);
 
   // 1. Workspace storage (per-project state.vscdb)
   const wsStorage = join(basePath, "User", "workspaceStorage");
@@ -738,12 +738,12 @@ function extractFromAITracking(
  * Discover Cursor workspaces from both the old workspaceStorage
  * location AND the new ~/.cursor/projects/ directory.
  */
-function discoverCursorProjectsV3(basePath: string): Array<{
+function discoverCursorProjectsV3(homeDir: string): Array<{
   projectDir: string;
   projectSlug: string;
 }> {
   const results: Array<{ projectDir: string; projectSlug: string }> = [];
-  const projectsDir = join(homedir(), ".cursor", "projects");
+  const projectsDir = join(homeDir, ".cursor", "projects");
 
   if (!existsSync(projectsDir)) return results;
 
@@ -757,7 +757,7 @@ function discoverCursorProjectsV3(basePath: string): Array<{
   for (const entry of entries) {
     const projectDir = join(projectsDir, entry);
     try {
-      const stat = require("node:fs").statSync(projectDir);
+      const stat = statSync(projectDir);
       if (!stat.isDirectory()) continue;
     } catch {
       continue;
@@ -773,14 +773,14 @@ function discoverCursorProjectsV3(basePath: string): Array<{
   return results;
 }
 
-function getStatePath(): string {
-  const stateDir = join(homedir(), ".my-brain");
+function getStatePath(homeDir: string): string {
+  const stateDir = join(homeDir, ".the-brain");
   mkdirSync(stateDir, { recursive: true });
   return join(stateDir, "cursor-harvester-state.json");
 }
 
-function loadState(): CursorState {
-  const statePath = getStatePath();
+function loadState(homeDir: string): CursorState {
+  const statePath = getStatePath(homeDir);
   try {
     if (existsSync(statePath)) {
       const raw = readFileSync(statePath, "utf-8");
@@ -801,8 +801,8 @@ function loadState(): CursorState {
   };
 }
 
-function saveState(state: CursorState): void {
-  const statePath = getStatePath();
+function saveState(state: CursorState, homeDir: string): void {
+  const statePath = getStatePath(homeDir);
   try {
     writeJsonFile(statePath, {
       lastPollTimestamp: state.lastPollTimestamp,
@@ -826,6 +826,8 @@ interface CursorHarvesterConfig {
   pollIntervalMs: number;
   /** Override the base Cursor data path (default: auto-detect) */
   basePath?: string;
+  /** Override home directory for path resolution (default: os.homedir()). Enables test isolation. */
+  homeDir?: string;
   /** Only harvest interactions newer than this many ms (default: 3600000 = 1h on first run) */
   lookbackWindowMs: number;
   /** Emit HARVESTER_NEW_DATA for each interaction (default: true) */
@@ -869,18 +871,22 @@ export default definePlugin({
 
 // ── Harvester Implementation ─────────────────────────────────────
 
-function createCursorHarvester(hooks: PluginHooks): HarvesterPlugin {
-  const state = loadState();
+function createCursorHarvester(
+  hooks: PluginHooks,
+  configOverrides?: Partial<CursorHarvesterConfig>,
+): HarvesterPlugin {
+  const resolvedConfig: CursorHarvesterConfig = { ...DEFAULT_CONFIG, ...configOverrides };
+  const homeDir = resolvedConfig.homeDir ?? homedir();
+  const state = loadState(homeDir);
   let pollTimer: ReturnType<typeof setInterval> | null = null;
   let running = false;
-  const resolvedConfig: CursorHarvesterConfig = { ...DEFAULT_CONFIG };
 
   /**
    * Main poll function — discovers workspaces, extracts new interactions
    * from SQLite and JSONL sources, and feeds them into the pipeline.
    */
   async function poll(): Promise<InteractionContext[]> {
-    const basePath = resolvedConfig.basePath ?? getCursorBasePath();
+    const basePath = resolvedConfig.basePath ?? getCursorBasePath(homeDir);
     const since = Date.now() - resolvedConfig.lookbackWindowMs;
 
     if (!existsSync(basePath)) {
@@ -891,7 +897,7 @@ function createCursorHarvester(hooks: PluginHooks): HarvesterPlugin {
       return [];
     }
 
-    const workspaces = discoverWorkspaces(basePath);
+    const workspaces = discoverWorkspaces(basePath, homeDir);
     const allInteractions: Interaction[] = [];
 
     for (const ws of workspaces) {
@@ -948,7 +954,7 @@ function createCursorHarvester(hooks: PluginHooks): HarvesterPlugin {
 
     // Extract from agent-transcripts (Cursor v3+)
     try {
-      const cursorProjects = discoverCursorProjectsV3(basePath);
+      const cursorProjects = discoverCursorProjectsV3(homeDir);
       for (const { projectDir, projectSlug } of cursorProjects) {
         const { interactions, newOffsets } = extractFromAgentTranscripts(
           projectDir,
@@ -971,7 +977,7 @@ function createCursorHarvester(hooks: PluginHooks): HarvesterPlugin {
 
     // Extract from AI tracking database (Cursor v3+)
     try {
-      const trackingDb = join(homedir(), ".cursor", "ai-tracking", "ai-code-tracking.db");
+      const trackingDb = join(homeDir, ".cursor", "ai-tracking", "ai-code-tracking.db");
       if (existsSync(trackingDb)) {
         const trackingInteractions = extractFromAITracking(trackingDb, since);
         allInteractions.push(...trackingInteractions);
@@ -1009,13 +1015,13 @@ function createCursorHarvester(hooks: PluginHooks): HarvesterPlugin {
 
     // Update state
     state.lastPollTimestamp = Date.now();
-    saveState(state);
+    saveState(state, homeDir);
 
     return contexts;
   }
 
   function buildInteractionContext(interaction: Interaction): InteractionContext {
-    const projectName = (interaction.metadata as any)?.project as string | undefined;
+    const projectName = (interaction.metadata as Record<string, unknown> | undefined)?.project as string | undefined;
     const fragment: MemoryFragment = {
       id: `frag-${interaction.id}`,
       layer: MemoryLayer.INSTANT,
@@ -1068,7 +1074,7 @@ function createCursorHarvester(hooks: PluginHooks): HarvesterPlugin {
       clearInterval(pollTimer);
       pollTimer = null;
     }
-    saveState(state);
+    saveState(state, homeDir);
   }
 
   return {
@@ -1082,4 +1088,4 @@ function createCursorHarvester(hooks: PluginHooks): HarvesterPlugin {
 // ── Re-exports ───────────────────────────────────────────────────
 
 export type { CursorHarvesterConfig };
-export { getCursorBasePath, discoverWorkspaces };
+export { getCursorBasePath, discoverWorkspaces, createCursorHarvester };

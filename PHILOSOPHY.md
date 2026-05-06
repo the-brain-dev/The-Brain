@@ -4,7 +4,7 @@
 
 Modern AI models suffer from "digital amnesia." Every new session is a blank slate, and your assistant forgets your unique patterns, preferences, and the evolution of your coding style.
 
-**my-brain** was created to transform AI from a tool into a digital symbiosis. Our goal is to build a cognitive layer that lives alongside the developer, learns continuously, and becomes an external extension of their own mind.
+**the-brain** was created to transform AI from a tool into a digital symbiosis. Our goal is to build a cognitive layer that lives alongside the developer, learns continuously, and becomes an external extension of their own mind.
 
 ## Project Pillars
 
@@ -26,7 +26,7 @@ Human memory isn't a flat collection of files. It's divided into time-sensitive 
 
 We don't believe in one "correct" way to remember. The AI world changes too quickly.
 
-**Principle:** The my-brain core is an empty data bus. Everything — from log collection to database type to training engine — must be a swappable plugin.
+**Principle:** The the-brain core is an empty data bus. Everything — from log collection to database type to training engine — must be a swappable plugin.
 **Implementation:** Hook system allowing the community to write any form of memory (Graph, Vector, RAG, LoRA) without modifying the system kernel.
 
 ### 4. Invisible Intelligence (Ambient UX)
@@ -51,7 +51,7 @@ Dumping everything into model memory ("data dumping") leads to noise and halluci
 
 ## Collaboration Manifesto
 
-my-brain is and always will be an Open Source project.
+the-brain is and always will be an Open Source project.
 
 We believe that personal artificial intelligence is a right, not a subscription service. We invite you to build this vision with us — by creating plugins, improving data selection algorithms, or simply sharing your ideas about "digital continuity."
 

@@ -1,0 +1,92 @@
+---
+title: Configuration
+description: Full configuration reference for the-brain
+---
+
+Config file: `~/.the-brain/config.json`
+
+## Minimal Config
+
+```json
+{
+  "daemon": { "pollIntervalMs": 30000 },
+  "database": { "path": "~/.the-brain/global/brain.db" },
+  "server": { "mode": "local", "bindAddress": "127.0.0.1" },
+  "activeContext": "global",
+  "contexts": {},
+  "plugins": []
+}
+```
+
+## Full Reference
+
+```json
+{
+  "plugins": [
+    { "name": "@the-brain/plugin-graph-memory", "enabled": true },
+    { "name": "@the-brain/plugin-spm-curator", "enabled": true,
+      "config": { "threshold": 0.30 } },
+    { "name": "@the-brain/plugin-harvester-cursor", "enabled": true },
+    { "name": "@the-brain/plugin-harvester-claude", "enabled": true },
+    { "name": "@the-brain/plugin-identity-anchor", "enabled": true },
+    { "name": "@the-brain/plugin-auto-wiki", "enabled": true,
+      "config": { "schedule": "0 9 * * 0" } }
+  ],
+  "daemon": {
+    "pollIntervalMs": 30000,
+    "logDir": "~/.the-brain/logs"
+  },
+  "database": { "path": "~/.the-brain/global/brain.db" },
+  "mlx": {
+    "enabled": true,
+    "modelPath": "mlx-community/SmolLM2-360M-Instruct",
+    "loraOutputDir": "~/.the-brain/global/lora-checkpoints",
+    "schedule": "0 2 * * *"
+  },
+  "wiki": {
+    "enabled": true,
+    "outputDir": "~/.the-brain/global/wiki",
+    "schedule": "0 9 * * 0"
+  },
+  "server": {
+    "mode": "local",
+    "bindAddress": "127.0.0.1",
+    "authToken": "mb_xxx",
+    "port": 9420,
+    "mcpPort": 9422
+  },
+  "backends": {
+    "storage": "sqlite",
+    "cleaner": "default",
+    "scheduler": "interval",
+    "outputs": []
+  },
+  "activeContext": "global",
+  "contexts": {
+    "my-project": {
+      "name": "my-project",
+      "label": "My Project",
+      "dbPath": "~/.the-brain/projects/my-project/brain.db",
+      "wikiDir": "~/.the-brain/projects/my-project/wiki",
+      "loraDir": "~/.the-brain/projects/my-project/lora-checkpoints",
+      "workDir": "~/code/my-project",
+      "createdAt": 1714800000000,
+      "lastActive": 1714800000000
+    }
+  }
+}
+```
+
+## Plugin Loading
+
+Plugins can be loaded from multiple sources:
+
+```json
+{
+  "plugins": [
+    { "name": "@the-brain/plugin-graph-memory", "enabled": true },
+    { "name": "./my-custom-plugin", "enabled": true },
+    { "name": "github:user/the-brain-plugin", "enabled": true }
+  ]
+}
+```

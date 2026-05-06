@@ -1,5 +1,5 @@
 /**
- * context command — Exports my-brain context for external AI agents (Hermes).
+ * context command — Exports the-brain context for external AI agents (Hermes).
  *
  * Outputs structured JSON with:
  *   - High-weight knowledge graph nodes (cleaned labels)
@@ -10,19 +10,19 @@
  * Uses ContentCleaner to extract signal from raw XML-wrapped Claude Code memories.
  * Deduplicates across layers (instant/selection/deep).
  */
-import { BrainDB, MemoryLayer } from "@my-brain/core";
+import { BrainDB, MemoryLayer } from "@the-brain/core";
 import {
   cleanMemoryContent,
   cleanGraphNodeLabel,
   deduplicateContents,
-} from "@my-brain/core";
-import type { MyBrainConfig, GraphNodeRecord } from "@my-brain/core";
-import type { CleanedContent } from "@my-brain/core";
+} from "@the-brain/core";
+import type { TheBrainConfig, GraphNodeRecord } from "@the-brain/core";
+import type { CleanedContent } from "@the-brain/core";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 
-const CONFIG_PATH = join(process.env.HOME || "~", ".my-brain", "config.json");
+const CONFIG_PATH = join(process.env.HOME || "~", ".the-brain", "config.json");
 
 export interface ContextOutput {
   meta: {
@@ -82,7 +82,7 @@ export async function contextCommand(options: {
     if (options.json || options.markdown) {
       console.log(JSON.stringify({ error: "no_database", dbPath }));
     } else {
-      console.log("No brain database found. Run 'my-brain daemon start' first.");
+      console.log("No brain database found. Run 'the-brain daemon start' first.");
     }
     return;
   }
@@ -113,7 +113,9 @@ export async function contextCommand(options: {
     };
 
     // ── Graph Nodes (cleaned) ──────────────────────────────
-    const highWeight = await db.getHighWeightNodes(0.5);
+    // Single query: get all nodes ≥0.3, then split into highWeight (≥0.5) and topConcepts
+    const allNodes = await db.getHighWeightNodes(0.3);
+    const highWeight = allNodes.filter((n) => n.weight >= 0.5);
     output.graphNodes.highWeight = highWeight
       .slice(0, 10)
       .map((n: GraphNodeRecord) => ({
@@ -123,8 +125,6 @@ export async function contextCommand(options: {
         weight: n.weight,
         source: n.source,
       }));
-
-    const allNodes = await db.getHighWeightNodes(0.3);
     output.graphNodes.topConcepts = allNodes
       .filter((n: GraphNodeRecord) =>
         n.type === "concept" || n.type === "preference" || n.type === "pattern"
@@ -151,9 +151,8 @@ export async function contextCommand(options: {
           source: m.source,
         };
       })
-      // Filter out system preambles and empty content
-      .filter((c) => c.type !== "unknown" || !c.summary.includes("skipped"))
-      .filter((c) => c.summary !== "(empty)");
+      // Filter out empty summaries and system preambles
+      .filter((c) => c.summary !== "(empty)" && !c.summary.includes("skipped"));
 
     // Deduplicate by cleaned summary
     const seen = new Map<string, typeof cleanedRecent[0]>();
@@ -228,7 +227,7 @@ export async function contextCommand(options: {
 function formatMarkdown(ctx: ContextOutput): string {
   const lines: string[] = [];
 
-  lines.push("## 🧠 my-brain Context");
+  lines.push("## 🧠 the-brain Context");
   lines.push(`**Context:** ${ctx.meta.activeContext} (${ctx.meta.dbType})`);
   lines.push(`**Stats:** ${ctx.stats.totalMemories} memories | ${ctx.stats.totalGraphNodes} graph nodes`);
   lines.push("");
@@ -289,7 +288,7 @@ async function resolveDbPath(options: {
   try {
     if (existsSync(CONFIG_PATH)) {
       const raw = await readFile(CONFIG_PATH, "utf-8");
-      const config: MyBrainConfig = JSON.parse(raw);
+      const config: TheBrainConfig = JSON.parse(raw);
 
       if (options.project) {
         const ctx = config.contexts?.[options.project];
@@ -298,21 +297,21 @@ async function resolveDbPath(options: {
       }
 
       if (options.global) {
-        return config.database.path || join(process.env.HOME || "~", ".my-brain", "global", "brain.db");
+        return config.database.path || join(process.env.HOME || "~", ".the-brain", "global", "brain.db");
       }
 
       const active = config.activeContext || "global";
       if (active !== "global" && config.contexts?.[active]) {
         return config.contexts[active].dbPath;
       }
-      return config.database.path || join(process.env.HOME || "~", ".my-brain", "global", "brain.db");
+      return config.database.path || join(process.env.HOME || "~", ".the-brain", "global", "brain.db");
     }
   } catch {}
 
-  return join(process.env.HOME || "~", ".my-brain", "brain.db");
+  return join(process.env.HOME || "~", ".the-brain", "brain.db");
 }
 
-async function loadConfig(): Promise<MyBrainConfig | null> {
+async function loadConfig(): Promise<TheBrainConfig | null> {
   try {
     if (existsSync(CONFIG_PATH)) {
       return JSON.parse(await readFile(CONFIG_PATH, "utf-8"));

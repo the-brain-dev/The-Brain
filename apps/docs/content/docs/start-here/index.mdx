@@ -1,0 +1,62 @@
+---
+title: Overview
+description: the-brain — Pluggable Cognitive Operating System for AI Agents
+---
+
+the-brain is an extensible background orchestrator that observes your interactions with AI coding assistants and builds a persistent memory tailored to you.
+
+## Why the-brain?
+
+AI models forget everything between sessions. the-brain remembers — your coding patterns, preferences, corrections, and evolving style. It runs locally, costs nothing, and requires zero effort.
+
+## Quick Start
+
+```bash
+curl -fsSL https://the-brain.dev/install.sh | bash
+the-brain init
+the-brain daemon start
+```
+
+That's it. The daemon watches your IDE logs and builds your brain in the background.
+
+## Architecture at a Glance
+
+```
+Harvesters (Cursor, Claude Code, Windsurf)
+  ↓
+⚡ INSTANT — Graph Memory (immediate corrections)
+  ↓
+⚖️ SELECTION — SPM Curator (filters noise)
+  ↓
+🌌 DEEP — MLX LoRA Training (overnight consolidation)
+```
+
+## What the-brain Learns
+
+- **Corrections**: "No, actually use `useCallback` here" → remembers for next time
+- **Preferences**: "I prefer arrow functions" → injected into every prompt
+- **Patterns**: Repeated tech choices → auto-suggests related concepts
+- **Projects**: Per-project memory isolation with cross-project promotion
+
+## Sections
+
+- **Start Here** — Installation, quickstart, configuration
+- **Core Concepts** — Architecture, hook system, memory layers
+- **Customization** — Plugins, harvesters, training, storage
+- **Reference** — CLI, config schema, MCP tools, env vars
+- **Integrations** — MCP server, remote mode, IDE setup, menu bar
+- **Development** — Contributing, project structure, testing
+
+## Tech Stack
+
+| Component | Technology |
+|-----------|-----------|
+| Runtime | Bun + TypeScript |
+| Database | bun:sqlite + Drizzle ORM |
+| Plugins | hookable event system |
+| Training | Apple MLX (Python sidecar) |
+| Docs | Next.js + Fumadocs |
+
+## License
+
+MIT © 2026 Oskar Schachta

@@ -104,7 +104,7 @@ describe("TestHarness", () => {
 
     expect(result.layer).toBe(MemoryLayer.DEEP);
     expect(result.fragmentsPromoted).toBeGreaterThanOrEqual(0);
-    expect(result.duration).toBeGreaterThan(0);
+    expect(result.duration).toBeGreaterThanOrEqual(0); // can be 0 for fast consolidation
 
     const state = await harness.getState();
     expect(state.lastConsolidation).toBeDefined();

@@ -9,8 +9,8 @@ import { homedir } from "node:os";
 import { execSync } from "node:child_process";
 
 const LAUNCHD_DIR = join(homedir(), "Library", "LaunchAgents");
-const PLIST_PATH = join(LAUNCHD_DIR, "com.mybrain.daemon.plist");
-const LABEL = "com.mybrain.daemon";
+const PLIST_PATH = join(LAUNCHD_DIR, "com.thebrain.daemon.plist");
+const LABEL = "com.thebrain.daemon";
 
 export async function daemonCommand(
   action: string,
@@ -18,13 +18,13 @@ export async function daemonCommand(
 ) {
   switch (action) {
     case "start": {
-      consola.start("Starting my-brain daemon...");
+      consola.start("Starting the-brain daemon...");
       const pollInterval = options.pollInterval ? parseInt(String(options.pollInterval)) : 30000;
       await startDaemon({ pollIntervalMs: pollInterval });
       break;
     }
     case "stop": {
-      consola.start("Stopping my-brain daemon...");
+      consola.start("Stopping the-brain daemon...");
       await stopDaemon();
       break;
     }
@@ -35,7 +35,7 @@ export async function daemonCommand(
       consola.info(`Launchd service: ${launchdLoaded ? "🟢 loaded" : "⚪ not loaded"}`);
       if (running) {
         try {
-          const pidPath = join(process.env.HOME || "~", ".my-brain", "daemon.pid");
+          const pidPath = join(process.env.HOME || "~", ".the-brain", "daemon.pid");
           const pidStr = await readFile(pidPath, "utf-8");
           consola.info(`PID: ${pidStr.trim()}`);
         } catch {}
@@ -90,10 +90,10 @@ async function installLaunchdService(pollIntervalMs: number) {
   <true/>
 
   <key>StandardOutPath</key>
-  <string>${homedir()}/.my-brain/logs/daemon-stdout.log</string>
+  <string>${homedir()}/.the-brain/logs/daemon-stdout.log</string>
 
   <key>StandardErrorPath</key>
-  <string>${homedir()}/.my-brain/logs/daemon-stderr.log</string>
+  <string>${homedir()}/.the-brain/logs/daemon-stderr.log</string>
 
   <key>EnvironmentVariables</key>
   <dict>
@@ -122,7 +122,7 @@ async function installLaunchdService(pollIntervalMs: number) {
   try {
     execSync(`launchctl load ${PLIST_PATH}`, { stdio: "pipe" });
     consola.success("Launchd service loaded and started!");
-    consola.info("my-brain daemon will now auto-start on boot.");
+    consola.info("the-brain daemon will now auto-start on boot.");
   } catch (err) {
     consola.error("Failed to load launchd service:", String(err));
     consola.info(`You can load manually: launchctl load ${PLIST_PATH}`);
@@ -158,7 +158,7 @@ async function checkLaunchdLoaded(): Promise<boolean> {
 
 async function checkDaemonRunning(): Promise<boolean> {
   try {
-    const pidPath = join(process.env.HOME || "~", ".my-brain", "daemon.pid");
+    const pidPath = join(process.env.HOME || "~", ".the-brain", "daemon.pid");
     const pidStr = await readFile(pidPath, "utf-8");
     const pid = parseInt(pidStr.trim());
 

@@ -5,7 +5,7 @@
  * No mock.module() — all tests use real DB + real filesystem.
  */
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { BrainDB, MemoryLayer, HookEvent } from "@my-brain/core";
+import { BrainDB, MemoryLayer, HookEvent } from "@the-brain/core";
 import { createAutoWikiPlugin } from "../index";
 import { mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";

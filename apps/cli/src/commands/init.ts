@@ -1,22 +1,22 @@
 /**
- * init command — Initialize my-brain database, config, and project contexts
+ * init command — Initialize the-brain database, config, and project contexts
  */
 import { consola } from "consola";
 import { mkdir, writeFile, access, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { BrainDB } from "@my-brain/core";
-import type { MyBrainConfig, ProjectContext } from "@my-brain/core";
+import { BrainDB, generateAuthToken } from "@the-brain/core";
+import type { TheBrainConfig, ProjectContext } from "@the-brain/core";
 
-const CONFIG_DIR = join(process.env.HOME || "~", ".my-brain");
+const CONFIG_DIR = join(process.env.HOME || "~", ".the-brain");
 const CONFIG_PATH = join(CONFIG_DIR, "config.json");
 
-const DEFAULT_CONFIG: MyBrainConfig = {
+const DEFAULT_CONFIG: TheBrainConfig = {
   plugins: [
-    { name: "@my-brain/plugin-graph-memory", enabled: true },
-    { name: "@my-brain/plugin-spm-curator", enabled: true, config: { threshold: 0.30 } },
-    { name: "@my-brain/plugin-harvester-cursor", enabled: true },
-    { name: "@my-brain/plugin-identity-anchor", enabled: true },
-    { name: "@my-brain/plugin-auto-wiki", enabled: true, config: { schedule: "0 9 * * 0" } },
+    { name: "@the-brain/plugin-graph-memory", enabled: true },
+    { name: "@the-brain/plugin-spm-curator", enabled: true, config: { threshold: 0.30 } },
+    { name: "@the-brain/plugin-harvester-cursor", enabled: true },
+    { name: "@the-brain/plugin-identity-anchor", enabled: true },
+    { name: "@the-brain/plugin-auto-wiki", enabled: true, config: { schedule: "0 9 * * 0" } },
   ],
   daemon: {
     pollIntervalMs: 30000,
@@ -36,6 +36,10 @@ const DEFAULT_CONFIG: MyBrainConfig = {
     outputDir: join(CONFIG_DIR, "global", "wiki"),
     schedule: "0 9 * * 0",
   },
+  server: {
+    mode: "local" as const,
+    bindAddress: "127.0.0.1",
+  },
   activeContext: "global",
   contexts: {},
 };
@@ -46,8 +50,9 @@ export async function initCommand(options: {
   project?: string;
   workDir?: string;
   label?: string;
+  remote?: boolean;
 }) {
-  consola.start("Initializing my-brain...");
+  consola.start("Initializing the-brain...");
 
   try {
     // Create directories
@@ -56,7 +61,7 @@ export async function initCommand(options: {
     await mkdir(join(CONFIG_DIR, "global"), { recursive: true });
 
     // Load or create config
-    let config: MyBrainConfig;
+    let config: TheBrainConfig;
     let configExists = false;
     try {
       await access(CONFIG_PATH);
@@ -69,6 +74,21 @@ export async function initCommand(options: {
       if (!config.contexts) config.contexts = {};
     } catch {
       config = { ...DEFAULT_CONFIG };
+    }
+
+    // ── Remote mode ────────────────────────────────────
+    if (options.remote) {
+      const token = generateAuthToken();
+      config.server = {
+        mode: "remote",
+        bindAddress: "0.0.0.0",
+        authToken: token,
+        port: config.server?.port,
+        mcpPort: config.server?.mcpPort,
+      };
+      consola.info("Remote mode enabled — auth token generated");
+      consola.info(`  Token: ${token}`);
+      consola.info("  Set this on your client: export THE_BRAIN_AUTH_TOKEN=<token>");
     }
 
     // Override database path if specified
@@ -130,7 +150,7 @@ export async function initCommand(options: {
     await mkdir(activeWikiDir, { recursive: true });
 
     const boxLines = [
-      `🧠 my-brain initialized successfully!`,
+      `🧠 the-brain initialized successfully!`,
       ``,
       `  Config:  ${CONFIG_PATH}`,
       `  Active:  ${config.activeContext}`,
@@ -148,12 +168,23 @@ export async function initCommand(options: {
       );
     }
 
+    if (config.server?.mode === "remote") {
+      boxLines.push(
+        ``,
+        `🔑 Auth token (save this!):`,
+        `  ${config.server.authToken}`,
+        ``,
+        `Client setup:`,
+        `  export THE_BRAIN_REMOTE_URL="http://<server-ip>:${config.server.port ?? 9420}"`,
+        `  export THE_BRAIN_AUTH_TOKEN="${config.server.authToken}"`,
+      );
+    }
     boxLines.push(
       ``,
       `Next steps:`,
-      `  my-brain daemon start     Start the background daemon`,
-      `  my-brain inspect --stats  Check your brain's health`,
-      `  my-brain switch-context --project <name>  Switch active project`,
+      `  the-brain daemon start     Start the background daemon`,
+      `  the-brain inspect --stats  Check your brain's health`,
+      `  the-brain switch-context --project <name>  Switch active project`,
     );
 
     consola.box(boxLines.join("\n"));

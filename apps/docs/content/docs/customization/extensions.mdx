@@ -1,0 +1,103 @@
+---
+title: Extension System
+description: Extend the-brain with custom scripts loaded at runtime
+---
+
+the-brain supports zero-config extensions — drop a `.ts` file into `~/.the-brain/extensions/` and it loads automatically on daemon start.
+
+## Quick Start
+
+```bash
+# Creates directory + sample template
+the-brain ext ensure-dir
+```
+
+```typescript
+// ~/.the-brain/extensions/my-extension.ts
+export default function (brain) {
+  // Access full engine: hooks, DB, storage, scheduler, config
+  brain.hook("afterResponse", async (ctx) => {
+    console.log(`New interaction from ${ctx.interaction.source}`);
+  });
+
+  // Register a CLI command
+  brain.registerCommand("hello", async () => {
+    console.log("Hello from the-brain extension!");
+  });
+}
+```
+
+```bash
+the-brain ext hello    # Runs the registered command
+```
+
+## BrainAPI Reference
+
+Extensions receive a `BrainAPI` object with full engine access:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `brain.hook(event, handler)` | `(string, fn) => void` | Register on any hook event |
+| `brain.emit(event, ...args)` | `(string, ...args) => Promise<void>` | Fire a hook event |
+| `brain.db` | `BrainDB` (readonly) | Direct database access |
+| `brain.storage` | `StorageBackend` (readonly) | Active storage backend |
+| `brain.scheduler` | `SchedulerPlugin` (readonly) | Task scheduler |
+| `brain.config` | `TheBrainConfig` (readonly) | Full configuration |
+| `brain.extensionName` | `string` | Name of the extension file |
+| `brain.registerCommand(name, handler)` | `(string, fn) => Promise<void>` | Register CLI command |
+
+## CLI Commands
+
+```bash
+# Run a registered extension command
+the-brain ext <command> [args...]
+
+# List all available extension commands
+the-brain ext    # (empty = lists available)
+```
+
+## Loading Mechanism
+
+- **Directory**: `~/.the-brain/extensions/`
+- **Format**: `.ts` files exporting a default function `(brain: BrainAPI) => void`
+- **Reload**: `ExtensionLoader.reload(name)` hot-reloads an extension
+- **Skip**: `sample.ts` is never loaded
+
+## Available Hooks
+
+Extensions can hook into any event from the hook system:
+`beforePrompt`, `afterResponse`, `onInteraction`, `harvester:poll`, `harvester:newData`, `selection:evaluate`, `selection:promote`, `deep:consolidate`, `training:start`, `training:complete`, `daemon:start`, `daemon:stop`
+
+## Example: Auto-tag Memories
+
+```typescript
+export default function (brain) {
+  brain.hook("harvester:newData", async (ctx) => {
+    const prompt = ctx.interaction.prompt;
+    const tags = [];
+
+    if (/react|component|hook/.test(prompt)) tags.push("react");
+    if (/python|django|flask/.test(prompt)) tags.push("python");
+
+    ctx.interaction.metadata = { ...ctx.interaction.metadata, tags };
+  });
+}
+```
+
+## Example: Notification on Training
+
+```typescript
+export default function (brain) {
+  brain.hook("training:complete", async (ctx) => {
+    const duration = (ctx as any).duration;
+    console.log(`Training done in ${duration}s!`);
+
+    // Use node-notifier for system notification
+    const { default: notifier } = await import("node-notifier");
+    notifier.notify({
+      title: "the-brain",
+      message: `MLX training complete (${duration}s)`,
+    });
+  });
+}
+```

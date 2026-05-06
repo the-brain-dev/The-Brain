@@ -10,12 +10,12 @@ import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { BrainDB, MemoryLayer, LayerRouter, PluginManager, createHookSystem, ProjectManager } from "@my-brain/core";
-import type { InteractionContext, MemoryFragment, PromptContext, ConsolidationContext } from "@my-brain/core";
+import { BrainDB, MemoryLayer, LayerRouter, PluginManager, createHookSystem, ProjectManager } from "@the-brain/core";
+import type { InteractionContext, MemoryFragment, PromptContext, ConsolidationContext } from "@the-brain/core";
 
-const TEST_HOME = join(tmpdir(), "my-brain-pipeline-e2e-" + Date.now());
-const MY_BRAIN = join(TEST_HOME, ".my-brain");
-const GLOBAL_DIR = join(MY_BRAIN, "global");
+const TEST_HOME = join(tmpdir(), "the-brain-pipeline-e2e-" + Date.now());
+const THE_BRAIN = join(TEST_HOME, ".the-brain");
+const GLOBAL_DIR = join(THE_BRAIN, "global");
 
 describe("Pipeline E2E: Harvester → Graph → SPM → Consolidation", () => {
   let db: BrainDB;
@@ -33,11 +33,11 @@ describe("Pipeline E2E: Harvester → Graph → SPM → Consolidation", () => {
     router = new LayerRouter();
 
     // Load real plugins
-    const graphMod = await import("@my-brain/plugin-graph-memory");
+    const graphMod = await import("@the-brain/plugin-graph-memory");
     const graphPlugin = graphMod.createGraphMemoryPlugin(db);
     await pm.load(graphPlugin);
 
-    const spmMod = await import("@my-brain/plugin-spm-curator");
+    const spmMod = await import("@the-brain/plugin-spm-curator");
     // Register SPM on hooks (the daemon does this via engine.ts)
     spmMod.createSpmCurator({ threshold: 0.3 });
     const spmInstance = spmMod.createSpmCurator({ threshold: 0.3 }).instance;
@@ -201,7 +201,7 @@ describe("Pipeline E2E: Harvester → Graph → SPM → Consolidation", () => {
 });
 
 describe("Pipeline E2E: Real data consolidation", () => {
-  const REAL_DB_PATH = "/Users/oskarschachta/.my-brain/global/brain.db";
+  const REAL_DB_PATH = "/Users/oskarschachta/.the-brain/global/brain.db";
 
   test("consolidation on real data produces Deep memories", async () => {
     const db = new BrainDB(REAL_DB_PATH);
@@ -247,7 +247,7 @@ describe("Pipeline E2E: Real data consolidation", () => {
     const testDB = new BrainDB(":memory:");
 
     // Load plugins (same as daemon engine.ts)
-    const graphMod = await import("@my-brain/plugin-graph-memory");
+    const graphMod = await import("@the-brain/plugin-graph-memory");
     const graphPlugin = graphMod.createGraphMemoryPlugin(testDB);
 
     const hooks = createHookSystem();
@@ -255,7 +255,7 @@ describe("Pipeline E2E: Real data consolidation", () => {
     const pluginMgr = new PluginManager(hooks);
     await pluginMgr.load(graphPlugin);
 
-    const spm = (await import("@my-brain/plugin-spm-curator")).createSpmCurator({ threshold: 0.3 }).instance;
+    const spm = (await import("@the-brain/plugin-spm-curator")).createSpmCurator({ threshold: 0.3 }).instance;
     router.registerSelection(spm);
 
     // Step 1: Simulate harvester inserting interactions

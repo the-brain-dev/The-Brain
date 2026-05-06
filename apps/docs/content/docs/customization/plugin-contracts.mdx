@@ -1,0 +1,150 @@
+---
+title: Plugin Contracts
+description: TypeScript interfaces for each plugin layer in the-brain
+---
+
+the-brain defines 11 plugin types across its cognitive architecture. Each type maps to a specific layer or concern.
+
+## Core Plugin Interface
+
+```typescript
+interface PluginDefinition {
+  name: string;
+  version?: string;
+  description?: string;
+  setup(hooks: PluginHooks): void | Promise<void>;
+  teardown?(): void | Promise<void>;
+}
+```
+
+## Layer Plugins
+
+### InstantLayerPlugin
+
+Registered on the ⚡ Instant Layer. Intercepts prompts before they reach the LLM.
+
+```typescript
+interface InstantLayerPlugin extends PluginDefinition {
+  beforePrompt(ctx: PromptContext): Promise<void>;
+}
+```
+
+### SelectionLayerPlugin
+
+Registered on the ⚖️ Selection Layer. Evaluates interactions for promotion.
+
+```typescript
+interface SelectionLayerPlugin extends PluginDefinition {
+  evaluate(ctx: InteractionContext): Promise<SurpriseGateResult>;
+  promote?(ctx: InteractionContext): Promise<void>;
+}
+```
+
+### DeepLayerPlugin
+
+Registered on the 🌌 Deep Layer. Consolidates memories into permanent storage.
+
+```typescript
+interface DeepLayerPlugin extends PluginDefinition {
+  consolidate(ctx: ConsolidationContext): Promise<void>;
+}
+```
+
+## Harvester Plugin
+
+Reads IDE logs and emits interactions.
+
+```typescript
+interface HarvesterPlugin extends PluginDefinition {
+  poll(): Promise<Interaction[]>;
+}
+```
+
+## Content Cleaner
+
+Strips noise from harvested content.
+
+```typescript
+interface ContentCleanerPlugin {
+  clean(content: string): CleanedContent;
+}
+
+interface CleanedContent {
+  content: string;
+  metadata?: Record<string, unknown>;
+}
+```
+
+## Storage Backend
+
+Pluggable database layer.
+
+```typescript
+interface StorageBackend {
+  insertMemory(memory: MemoryFragment): Promise<void>;
+  getMemoriesByLayer(layer: MemoryLayer, limit?: number): Promise<MemoryFragment[]>;
+  getSurprisingMemories(threshold: number): Promise<MemoryFragment[]>;
+  getRecentMemories(hoursAgo?: number): Promise<MemoryFragment[]>;
+  getAllMemories(limit?: number): Promise<MemoryFragment[]>;
+  getStats(): Promise<BrainStats>;
+  close(): void;
+}
+```
+
+## Scheduler Plugin
+
+Task scheduling for daemon polling and cron jobs.
+
+```typescript
+interface SchedulerPlugin {
+  schedule(name: string, intervalMs: number, task: () => Promise<void>): SchedulerHandle;
+  scheduleOnce(name: string, delayMs: number, task: () => Promise<void>): void;
+  shutdown(): Promise<void>;
+}
+
+interface SchedulerHandle {
+  cancel(): void;
+}
+```
+
+## Output Plugin
+
+Generates output artifacts (wiki, reports, etc.).
+
+```typescript
+interface OutputPlugin {
+  name: string;
+  generate(ctx: OutputGenerateContext): Promise<OutputResult>;
+}
+
+interface OutputGenerateContext {
+  memories: MemoryFragment[];
+  graphNodes: GraphNode[];
+  stats: BrainStats;
+  outputDir: string;
+}
+
+interface OutputResult {
+  files: Array<{ path: string; bytes: number }>;
+}
+```
+
+## Implementation Example
+
+```typescript
+import { definePlugin } from "@the-brain/core";
+import type {
+  DeepLayerPlugin,
+  ConsolidationContext,
+} from "@the-brain/core";
+
+const myTrainer: DeepLayerPlugin = definePlugin({
+  name: "my-custom-trainer",
+  setup(hooks) {
+    hooks.hook("deep:consolidate", async (ctx: ConsolidationContext) => {
+      // Custom training logic
+      await trainModel(ctx.fragments);
+    });
+  },
+});
+```

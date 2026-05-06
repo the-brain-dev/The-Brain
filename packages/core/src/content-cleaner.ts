@@ -1,5 +1,5 @@
 /**
- * ContentCleaner — extracts signal from raw my-brain memory content.
+ * ContentCleaner — extracts signal from raw the-brain memory content.
  *
  * Raw memory content from Claude Code harvesters is mostly XML-wrapped
  * observations. This module strips the noise and returns compact,
@@ -272,7 +272,7 @@ function extractProjectName(wd: string | null): string | null {
   let last = parts[parts.length - 1];
   if (!last && parts.length > 1) last = parts[parts.length - 2];
 
-  // If the last segment is hidden (.hermes, .my-brain, etc.), use it as-is
+  // If the last segment is hidden (.hermes, .the-brain, etc.), use it as-is
   // (it's a meaningful project indicator)
   if (last && last.startsWith(".")) {
     return last;

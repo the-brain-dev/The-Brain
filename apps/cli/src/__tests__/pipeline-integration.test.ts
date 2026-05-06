@@ -7,7 +7,7 @@ import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-const TEST_HOME = join(tmpdir(), "my-brain-pipeline-test-" + Date.now());
+const TEST_HOME = join(tmpdir(), "the-brain-pipeline-test-" + Date.now());
 
 describe("Pipeline: Harvester → Graph → SPM → MLX", () => {
   let BrainDB: any;
@@ -21,21 +21,21 @@ describe("Pipeline: Harvester → Graph → SPM → MLX", () => {
 
   beforeAll(async () => {
     process.env.HOME = TEST_HOME;
-    await mkdir(join(TEST_HOME, ".my-brain"), { recursive: true });
+    await mkdir(join(TEST_HOME, ".the-brain"), { recursive: true });
 
-    const core = await import("@my-brain/core");
+    const core = await import("@the-brain/core");
     BrainDB = core.BrainDB;
     MemoryLayer = core.MemoryLayer;
     HookEvent = core.HookEvent;
 
     // Create DB
-    db = new BrainDB(join(TEST_HOME, ".my-brain", "brain.db"));
+    db = new BrainDB(join(TEST_HOME, ".the-brain", "brain.db"));
 
     // Load plugins
-    const graphMod = await import("@my-brain/plugin-graph-memory");
+    const graphMod = await import("@the-brain/plugin-graph-memory");
     createGraphMemoryPlugin = graphMod.createGraphMemoryPlugin;
 
-    const spmMod = await import("@my-brain/plugin-spm-curator");
+    const spmMod = await import("@the-brain/plugin-spm-curator");
     createSpmCurator = spmMod.createSpmCurator;
   });
 
@@ -153,11 +153,11 @@ describe("Pipeline: Harvester → Graph → SPM → MLX", () => {
 
   test("Step 4: Graph Memory pattern detection on stored interactions", async () => {
     // Set up hooks and simulate AFTER_RESPONSE like the daemon does
-    const { createHookSystem } = await import("@my-brain/core");
+    const { createHookSystem } = await import("@the-brain/core");
     const hooks = createHookSystem();
 
     // Register graph memory plugin
-    const pluginManager = new (await import("@my-brain/core")).PluginManager(hooks);
+    const pluginManager = new (await import("@the-brain/core")).PluginManager(hooks);
     await pluginManager.load(graphPlugin);
 
     // Fire AFTER_RESPONSE for each interaction
@@ -202,7 +202,7 @@ describe("Pipeline: Harvester → Graph → SPM → MLX", () => {
       },
     }));
 
-    // Validacja: każdy fragment ma text i metadata
+    // Validation: each fragment has text and metadata
     for (const f of fragments) {
       expect(typeof f.text).toBe("string");
       expect(f.text.length).toBeGreaterThan(0);

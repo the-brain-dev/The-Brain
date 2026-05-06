@@ -1,22 +1,22 @@
 /**
  * train command — Trigger LoRA training on DEEP memories.
  *
- *   my-brain train                 Train on all DEEP-layer memories
- *   my-brain train --project <p>    Train on a specific project's DEEP memories
- *   my-brain train --global         Train on global brain DEEP memories
- *   my-brain train --iterations N   Override training iterations
- *   my-brain train --dry-run        Show what would be trained, don't execute
+ *   the-brain train                 Train on all DEEP-layer memories
+ *   the-brain train --project <p>    Train on a specific project's DEEP memories
+ *   the-brain train --global         Train on global brain DEEP memories
+ *   the-brain train --iterations N   Override training iterations
+ *   the-brain train --dry-run        Show what would be trained, don't execute
  */
 import { consola } from "consola";
-import { BrainDB, MemoryLayer } from "@my-brain/core";
-import type { MemoryFragment, ConsolidationContext, MyBrainConfig } from "@my-brain/core";
-import { createMlxTrainer } from "@my-brain/trainer-local-mlx";
+import { BrainDB, MemoryLayer } from "@the-brain/core";
+import type { MemoryFragment, ConsolidationContext, TheBrainConfig } from "@the-brain/core";
+import { createMlxTrainer } from "@the-brain/trainer-local-mlx";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 
-const CONFIG_PATH = join(process.env.HOME || "~", ".my-brain", "config.json");
-const DEFAULT_DB_PATH = join(process.env.HOME || "~", ".my-brain", "brain.db");
+const CONFIG_PATH = join(process.env.HOME || "~", ".the-brain", "config.json");
+const DEFAULT_DB_PATH = join(process.env.HOME || "~", ".the-brain", "brain.db");
 
 export async function trainCommand(options: {
   project?: string;
@@ -30,7 +30,7 @@ export async function trainCommand(options: {
   if (existsSync(CONFIG_PATH)) {
     try {
       const raw = await readFile(CONFIG_PATH, "utf-8");
-      const config: MyBrainConfig = JSON.parse(raw);
+      const config: TheBrainConfig = JSON.parse(raw);
 
       if (options.project) {
         const ctx = config.contexts?.[options.project];
@@ -58,7 +58,7 @@ export async function trainCommand(options: {
     const deepMemories = await db.getMemoriesByLayer(MemoryLayer.DEEP, 500);
 
     if (deepMemories.length === 0) {
-      consola.warn("No DEEP-layer memories found. Run `my-brain consolidate --now` first.");
+      consola.warn("No DEEP-layer memories found. Run `the-brain consolidate --now` first.");
       return;
     }
 

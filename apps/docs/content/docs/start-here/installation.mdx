@@ -1,0 +1,59 @@
+---
+title: Installation
+description: Install the-brain on macOS and Linux in 2 minutes
+---
+
+## One-Liner
+
+```bash
+curl -fsSL https://the-brain.dev/install.sh | bash
+```
+
+The installer auto-detects your OS:
+- **macOS**: Bun CLI + menu bar app + LaunchAgents
+- **Linux**: Bun CLI + remote mode with auth token
+
+## Prerequisites
+
+- [Bun](https://bun.sh) (`curl -fsSL https://bun.sh/install | bash`)
+- macOS with Apple Silicon (for MLX training — optional)
+- Python 3.11+ and `uv` (for MLX sidecar — optional)
+
+## Manual Install
+
+```bash
+git clone https://github.com/oskarschachta/the-brain.git
+cd the-brain
+bun install
+bun run build
+the-brain init
+```
+
+## Initialize with a Project
+
+```bash
+the-brain init --project my-app --work-dir ~/code/my-app
+```
+
+Each project gets isolated memory, wiki, and LoRA checkpoints.
+
+## Remote Mode (Linux Server)
+
+```bash
+# On server
+the-brain init --remote
+the-brain daemon start
+# → API on 0.0.0.0:9420, MCP on 0.0.0.0:9422
+
+# On Mac client
+export THE_BRAIN_REMOTE_URL="http://<server-ip>:9420"
+export THE_BRAIN_AUTH_TOKEN="mb_<token>"
+the-brain agent
+```
+
+## Verify
+
+```bash
+the-brain inspect --stats
+# Memories: 0 | Graph nodes: 0 | Status: running
+```

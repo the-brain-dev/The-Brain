@@ -1,0 +1,106 @@
+---
+title: Memory Layers
+description: How INSTANT, SELECTION, and DEEP layers work — internals and configuration
+---
+
+the-brain organizes memory across three layers, each processing information at different timescales.
+
+## ⚡ Layer 1: INSTANT (Working Memory)
+
+**Plugin**: `plugin-graph-memory`
+
+Intercepts prompts and injects real-time biases before they reach the LLM.
+
+### Detection Pipeline
+
+The `AFTER_RESPONSE` handler runs a 6-stage pipeline:
+
+1. **Correction detection** — 11 regex patterns with confidence weights 0.65-0.9
+   - `no, actually`, `I meant`, `that's not right`, `wrong`, `fix:`, `don't use`
+2. **Fallback corrections** — prompts starting with `no`, `fix`, `instead`
+3. **Preference detection** — 6 regex patterns: `explicit`, `style`, `paradigm`, `rule`
+4. **Pattern detection** — keywords appearing ≥3 times in recent interactions
+5. **Concept node creation** — new keywords not matching any existing node
+6. **Node interconnection** — bidirectional links between all new nodes
+
+### Quality Filters
+
+- **60+ English stop words** excluded from keyword extraction
+- **Weight decay**: every ~10 interactions, nodes >24h old lose 2% weight (floor: 0.05)
+- **Weight boost**: matched nodes gain +0.05 per use
+- **Correction weights**: 0.65-0.9 depending on pattern confidence
+- **Preference weight**: always 0.7
+- **Concept weight**: always 0.4
+
+### Context Injection
+
+`BEFORE_PROMPT` extracts keywords → searches graph nodes → filters by `minWeight` →
+boosts matched nodes → fetches connected nodes → injects formatted context.
+
+Edge cases: empty keywords → no injection. Connected nodes also respect `minWeight`.
+Metadata from BEFORE_PROMPT (`matchedNodeIds`, `promptKeywords`) flows to AFTER_RESPONSE.
+
+## ⚖️ Layer 2: SELECTION (The Gatekeeper)
+
+**Plugin**: `plugin-spm-curator`
+
+Evaluates every interaction and filters noise from signal using a composite surprise score.
+
+### Dual-Mode Architecture
+
+1. **TF-IDF mode** (default, `useTfidf: true`): Wider spread, +93% better discrimination
+   - Builds vocabulary from production memories at daemon startup
+   - `initTfidfFromTexts(texts)` → `finalizeTfidf()` lifecycle
+   - Falls back to EMA-Gaussian before vocabulary is locked
+
+2. **EMA-Gaussian mode** (fallback): Running mean/variance per feature
+   - Uses 6 scalar features: promptLen, responseLen, totalLen, lexicalDiversity, hourOfDay, dayOfWeek
+
+### Composite Score Formula
+
+```
+composite = scalarWeight × scalarScore + embeddingWeight × embScore + noveltyWeight × noveltyScore
+```
+
+All sub-scores normalized to [0, 1]. Default weights: `scalar=0.35, embedding=0.40, novelty=0.25`.
+
+### Quality Features
+
+- **Duplicate detection**: djb2 hash of first 200 chars; Set of 5,000 recent hashes; duplicates get score 0
+- **N-gram novelty**: character n-grams (default n=4) compared against 50,000-cache FIFO
+- **Z-score clamping**: capped at [0, 5] to prevent outlier dominance
+- **TF-IDF seed**: `finalizeTfidf(seedTexts)` primes centroid to avoid all scores being 0.5 at startup
+
+### Runtime Introspection
+
+```typescript
+// Access via hook
+hooks.callHook("spm-curator:getInstance", (instance) => {
+  instance.setThreshold(0.5);   // Dynamic threshold
+  instance.getStats();          // gaussians, centroidDim, promoteRate, etc.
+});
+```
+
+## 🌌 Layer 3: DEEP (Long-Term)
+
+**Plugin**: `trainer-local-mlx`
+
+Overnight LoRA training on curated memories. See [MLX Training](/docs/customization/mlx-training).
+
+### Promotion Flow
+
+```
+Interaction → INSTANT (graph memory)
+  ↓ AFTER_RESPONSE
+SPM evaluation → composite surprise score
+  ↓ above threshold (default 0.82)
+SELECTION promotion → DEEP
+  ↓ DEEP_CONSOLIDATE (2 AM cron)
+MLX LoRA training → model weights
+```
+
+## Layer Configuration
+
+All three layers are pluggable — swap built-in plugins with custom implementations.
+
+See [Plugin Contracts](/docs/customization/plugin-contracts) for the interfaces each layer plugin must implement.

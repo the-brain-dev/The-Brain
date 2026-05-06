@@ -7,7 +7,7 @@ import {
   type PluginHooks,
   type PromptContext,
   type GraphNodeRecord,
-} from "@my-brain/core";
+} from "@the-brain/core";
 
 // ── Configuration ────────────────────────────────────────────────
 
@@ -334,7 +334,7 @@ export function createGraphMemoryPlugin(
   }
 
   return definePlugin({
-    name: "@my-brain/plugin-graph-memory",
+    name: "@the-brain/plugin-graph-memory",
     version: "0.1.0",
     description:
       "Instant Layer plugin — creates fast relational nodes of corrections, preferences, and patterns with weighted graph connections.",

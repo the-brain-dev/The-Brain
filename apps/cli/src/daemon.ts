@@ -2,13 +2,13 @@
  * Daemon runtime — starts engine, runs infinite processing loop.
  * Multi-project aware: consolidates active project + cross-project SPM promotion.
  */
-import { join } from "node:path";
 import { writeFile, unlink, readFile } from "node:fs/promises";
 import { consola } from "consola";
-import { HookEvent, MemoryLayer, ProjectManager } from "@my-brain/core";
-import type { BrainDB, ConsolidationContext } from "@my-brain/core";
+import { HookEvent, MemoryLayer, ProjectManager } from "@the-brain/core";
+import type { BrainDB, ConsolidationContext } from "@the-brain/core";
 import { initDaemon, getConfigDir, getPidFile, getConfigPath } from "./engine";
 import type { DaemonConfig, DaemonEngine } from "./engine";
+import { startAPIServer, type APIState } from "./api-server";
 
 const CONSOLIDATION_INTERVAL = 3600 * 1000; // 1 hour
 
@@ -20,7 +20,7 @@ export { initDaemon } from "./engine";
 // ── startDaemon ────────────────────────────────────────────────
 
 export async function startDaemon(config: DaemonConfig) {
-  consola.start("Initializing my-brain daemon...");
+  consola.start("Initializing the-brain daemon...");
   const engine = await initDaemon(config);
   const PID_FILE = getPidFile();
 
@@ -34,7 +34,30 @@ export async function startDaemon(config: DaemonConfig) {
     activeContext: engine.activeProject || "global",
   });
 
-  // ── Main loop ────────────────────────────────────────────────
+  // ── API server (menu bar app, health checks) ──────────────
+  const apiState: APIState = {
+    startTime: Date.now(),
+    lastTraining: null,
+    lastTrainingDuration: null,
+    lastTrainingLoss: null,
+    lastConsolidationAt: null,
+  };
+
+  // ── Resolve server config from brain config ──
+  const serverCfg = {
+    mode: engine.config.server?.mode ?? "local" as const,
+    bindAddress: engine.config.server?.bindAddress ?? "127.0.0.1",
+    authToken: engine.config.server?.authToken,
+    port: engine.config.server?.port,
+  };
+  const apiServer = startAPIServer(engine, apiState, serverCfg);
+  const apiPort = serverCfg.port ?? 9420;
+  consola.info(`API server: http://${serverCfg.bindAddress}:${apiPort} (${serverCfg.mode} mode)`);
+  if (serverCfg.authToken) {
+    consola.info(`  Auth: Bearer ${serverCfg.authToken.slice(0, 12)}...`);
+  }
+
+  // ── Main loop via pluggable scheduler ──────────────────────
   const tick = async () => {
     if (!engine.running) return;
     try {
@@ -45,13 +68,18 @@ export async function startDaemon(config: DaemonConfig) {
     }
   };
 
+  // Initial tick + recurring schedule
   await tick();
-  const interval = setInterval(tick, config.pollIntervalMs);
+  engine.scheduler.schedule("main-loop", config.pollIntervalMs, tick);
+
+  // ── Overnight training schedule ──────────────────────────
+  const mlxSchedule = engine.brainConfig.mlx?.schedule ?? "0 2 * * *";
+  scheduleOvernightTraining(engine, mlxSchedule, apiState);
 
   // Cleanup
   const cleanup = async () => {
     engine.running = false;
-    clearInterval(interval);
+    await engine.scheduler.shutdown();
     await engine.cleanup();
     process.exit(0);
   };
@@ -59,7 +87,12 @@ export async function startDaemon(config: DaemonConfig) {
   process.on("SIGINT", cleanup);
   process.on("SIGTERM", cleanup);
 
-  await new Promise(() => {}); // infinite — never resolves
+  // Keep process alive — cleanup calls process.exit(0)
+  await new Promise<void>((resolve) => {
+    const timer = setInterval(() => {
+      if (!engine.running) { clearInterval(timer); resolve(); }
+    }, 1000);
+  });
 }
 
 // ── Consolidation ──────────────────────────────────────────────
@@ -84,12 +117,20 @@ async function runConsolidationCheck(engine: DaemonEngine) {
           duration: 0,
         },
       };
-      await engine.layerRouter.runDeep(ctx);
-
-      // Fire DEEP_CONSOLIDATE hook (auto-wiki, MLX trainer react to this)
-      await engine.hooks.callHook(HookEvent.DEEP_CONSOLIDATE, ctx);
+      // Promote to DEEP (write to DB), but DON'T fire DEEP_CONSOLIDATE here.
+      // Training runs on a separate overnight cron schedule via mlx.schedule config.
+      for (const frag of surprising) {
+        if (frag.surpriseScore && frag.surpriseScore >= 0.4) {
+          await activeDB.insertMemory({
+            ...frag,
+            layer: MemoryLayer.DEEP,
+            metadata: { ...(frag.metadata || {}), promotedAt: now },
+          });
+        }
+      }
 
       engine.lastConsolidation = now;
+      consola.debug(`Promoted ${surprising.length} memories to DEEP (hourly SPM check)`);
     }
 
     // ── 2. Cross-project promotion check (SPM) ──
@@ -153,6 +194,121 @@ async function crossProjectPromotionCheck(pm: ProjectManager) {
       }
     }
   }
+}
+
+// ── Overnight Training Scheduler ────────────────────────────────
+
+/**
+ * Parse a simple 5-field cron expression into ms until next run.
+ * Format: minute hour day-of-month month day-of-week
+ * Supports wildcard (*), explicit values, and ranges.
+ */
+function parseCronSchedule(cron: string): number {
+  const parts = cron.trim().split(/\s+/);
+  if (parts.length !== 5) return 3600_000; // default: every hour
+
+  const [minStr, hourStr, dom, month, dow] = parts;
+  const now = new Date();
+
+  // Parse fields
+  const parseField = (field: string, currentValue: number, unit: "minute" | "hour"): number => {
+    if (field === "*") return currentValue;
+    // Range support: "0-6"
+    if (field.includes("-")) {
+      const [start, end] = field.split("-").map(Number);
+      if (currentValue >= start && currentValue <= end) return currentValue;
+      return start;
+    }
+    // Comma-separated
+    if (field.includes(",")) {
+      const values = field.split(",").map(Number);
+      const next = values.find(v => v >= currentValue);
+      return next ?? values[0];
+    }
+    return Number(field);
+  };
+
+  const targetMinute = parseField(minStr, now.getMinutes(), "minute");
+  const targetHour = parseField(hourStr, now.getHours(), "hour");
+
+  // Compute next occurrence
+  const next = new Date(now);
+  next.setSeconds(0, 0);
+
+  if (targetHour > now.getHours() || (targetHour === now.getHours() && targetMinute > now.getMinutes())) {
+    // Later today
+    next.setHours(targetHour, targetMinute);
+  } else {
+    // Tomorrow
+    next.setDate(next.getDate() + 1);
+    next.setHours(targetHour, targetMinute);
+  }
+
+  return next.getTime() - now.getTime();
+}
+
+/**
+ * Schedule overnight MLX LoRA training based on mlx.schedule in config.
+ * Consolidates DEEP memories and runs full training pipeline.
+ */
+function scheduleOvernightTraining(engine: DaemonEngine, cronExpr: string, apiState: APIState) {
+  const scheduleNext = () => {
+    const delayMs = parseCronSchedule(cronExpr);
+    consola.info(`Overnight training scheduled in ${Math.round(delayMs / 3600_000)}h ${Math.round((delayMs % 3600_000) / 60_000)}m (cron: ${cronExpr})`);
+
+    engine.scheduler.scheduleOnce("overnight-training", delayMs, async () => {
+      if (!engine.running) return;
+
+      consola.start("Starting overnight MLX LoRA training...");
+      const startTime = Date.now();
+
+      try {
+        const activeDB = await engine.projectManager.getActiveDB();
+        const deepMemories = await activeDB.getMemoriesByLayer(MemoryLayer.DEEP, 500);
+
+        if (deepMemories.length < 3) {
+          consola.info(`Overnight training skipped: only ${deepMemories.length} DEEP memories (need ≥3)`);
+          return;
+        }
+
+        const fragments = deepMemories.map((m) => ({
+          id: m.id,
+          layer: MemoryLayer.DEEP,
+          content: m.content,
+          surpriseScore: m.surpriseScore,
+          timestamp: m.timestamp,
+          source: m.source,
+          metadata: m.metadata,
+        }));
+
+        // ── Fire DEEP_CONSOLIDATE to trigger training ──
+        const ctx: ConsolidationContext = {
+          targetLayer: MemoryLayer.DEEP,
+          fragments,
+          results: {
+            layer: MemoryLayer.DEEP,
+            fragmentsPromoted: 0,
+            fragmentsDiscarded: 0,
+            duration: 0,
+          },
+        };
+
+        await engine.hooks.callHook(HookEvent.DEEP_CONSOLIDATE, ctx);
+
+        const duration = (Date.now() - startTime) / 1000;
+        apiState.lastTraining = Date.now();
+        apiState.lastTrainingDuration = duration;
+        consola.success(`Overnight training complete in ${duration.toFixed(1)}s`);
+      } catch (err) {
+        consola.error("Overnight training failed:", err);
+      }
+
+      // Schedule next run
+      scheduleNext();
+    });
+  };
+
+  scheduleNext();
 }
 
 // ── stopDaemon ─────────────────────────────────────────────────

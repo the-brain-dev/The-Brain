@@ -1,5 +1,5 @@
 /**
- * @my-brain/plugin-spm-curator
+ * @the-brain/plugin-spm-curator
  *
  * Surprise-Gated Self-Predictive Memory Selection Layer plugin.
  *
@@ -44,7 +44,7 @@ import {
   type SurpriseGateResult,
   type MemoryFragment,
   type Interaction,
-} from "@my-brain/core";
+} from "@the-brain/core";
 import { TfidfSurpriseDetector } from "./tfidf-detector";
 import type { TfidfState } from "./tfidf-detector";
 
@@ -346,7 +346,7 @@ export function createSpmCurator(configOverrides: Partial<SpmCuratorConfig> = {}
   const instance = new SpmCuratorPlugin(config);
 
   const definition = definePlugin({
-    name: "@my-brain/plugin-spm-curator",
+    name: "@the-brain/plugin-spm-curator",
     version: "0.1.0",
     description:
       "Surprise-Gated Self-Predictive Memory curator — filters mundane interactions via online predictive modeling.",

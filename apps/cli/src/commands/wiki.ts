@@ -1,26 +1,26 @@
 /**
- * wiki command — Browse, serve, and generate the my-brain knowledge wiki.
+ * wiki command — Browse, serve, and generate the the-brain knowledge wiki.
  *
- *   my-brain wiki open              Open wiki in Obsidian (if installed)
- *   my-brain wiki serve [--port N]   Start local HTTP server to browse wiki
- *   my-brain wiki path               Print wiki directory path
- *   my-brain wiki generate           Generate wiki from graph nodes + memories
+ *   the-brain wiki open              Open wiki in Obsidian (if installed)
+ *   the-brain wiki serve [--port N]   Start local HTTP server to browse wiki
+ *   the-brain wiki path               Print wiki directory path
+ *   the-brain wiki generate           Generate wiki from graph nodes + memories
  */
 import { consola } from "consola";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import type { MyBrainConfig } from "@my-brain/core";
+import type { TheBrainConfig } from "@the-brain/core";
 
-const CONFIG_PATH = join(process.env.HOME || "~", ".my-brain", "config.json");
+const CONFIG_PATH = join(process.env.HOME || "~", ".the-brain", "config.json");
 
 async function getWikiDir(options: { project?: string; global?: boolean }): Promise<string> {
-  const defaults = join(process.env.HOME || "~", ".my-brain", "wiki");
+  const defaults = join(process.env.HOME || "~", ".the-brain", "wiki");
 
   if (!existsSync(CONFIG_PATH)) return defaults;
 
   try {
-    const config: MyBrainConfig = JSON.parse(await readFile(CONFIG_PATH, "utf-8"));
+    const config: TheBrainConfig = JSON.parse(await readFile(CONFIG_PATH, "utf-8"));
 
     if (options.project) {
       return config.contexts?.[options.project]?.wikiDir || defaults;
@@ -185,7 +185,7 @@ function renderMarkdownToHTML(md: string, baseDir: string): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>my-brain wiki</title>
+  <title>the-brain wiki</title>
   <style>
     body { font-family: -apple-system, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; }
     h1 { border-bottom: 2px solid #eee; padding-bottom: 8px; }
@@ -203,14 +203,14 @@ function renderMarkdownToHTML(md: string, baseDir: string): string {
 </html>`;
 }
 
-// ── Wiki Generation (my-brain wiki generate) ──────────────────
+// ── Wiki Generation (the-brain wiki generate) ──────────────────
 
 async function generateWikiFromBrain(options: { project?: string; global?: boolean }) {
   const consola = (await import("consola")).consola;
-  const { BrainDB } = await import("@my-brain/core");
-  const { createAutoWikiPlugin } = await import("@my-brain/plugin-auto-wiki");
+  const { BrainDB } = await import("@the-brain/core");
+  const { createAutoWikiPlugin } = await import("@the-brain/plugin-auto-wiki");
 
-  const DB_PATH = join(process.env.HOME || "~", ".my-brain", "global", "brain.db");
+  const DB_PATH = join(process.env.HOME || "~", ".the-brain", "global", "brain.db");
 
   let dbPath = DB_PATH;
   if (existsSync(CONFIG_PATH)) {
@@ -230,12 +230,12 @@ async function generateWikiFromBrain(options: { project?: string; global?: boole
   try {
     consola.start("Generating wiki...");
     const wiki = createAutoWikiPlugin(db, {
-      outputDir: join(process.env.HOME || "~", ".my-brain", "wiki"),
-      title: "my-brain Wiki",
+      outputDir: join(process.env.HOME || "~", ".the-brain", "wiki"),
+      title: "the-brain Wiki",
     });
     const result = await wiki.generateWiki();
     consola.success(`Wiki generated: ${result.filepath}`);
-    consola.info(`Browse with: my-brain wiki serve`);
+    consola.info(`Browse with: the-brain wiki serve`);
   } catch (err) {
     consola.error("Wiki generation failed:", err);
     process.exit(1);

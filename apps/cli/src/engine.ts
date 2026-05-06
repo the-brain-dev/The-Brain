@@ -3,18 +3,18 @@
  * Multi-project aware: loads config.json, creates ProjectManager,
  * routes data to active project or global brain.
  */
-import { BrainDB, PluginManager, createHookSystem, LayerRouter, HookEvent, MemoryLayer, ProjectManager } from "@my-brain/core";
-import type { PromptContext, InteractionContext, ConsolidationContext, MyBrainConfig } from "@my-brain/core";
+import { BrainDB, PluginManager, createHookSystem, LayerRouter, HookEvent, MemoryLayer, ProjectManager, resolveBackends, ExtensionLoader, safeParseConfig } from "@the-brain/core";
+import type { PromptContext, InteractionContext, ConsolidationContext, TheBrainConfig, ContentCleanerPlugin, StorageBackend, SchedulerPlugin, OutputPlugin, BackendConfig } from "@the-brain/core";
 import { consola } from "consola";
 import { join } from "node:path";
 import { mkdir, writeFile, readFile, unlink } from "node:fs/promises";
 
-const CONFIG_DIR = join(process.env.HOME || "~", ".my-brain");
+const CONFIG_DIR = join(process.env.HOME || "~", ".the-brain");
 const CONFIG_PATH = join(CONFIG_DIR, "config.json");
 const PID_FILE = join(CONFIG_DIR, "daemon.pid");
 
 export function getConfigDir(): string {
-  return join(process.env.HOME || "~", ".my-brain");
+  return join(process.env.HOME || "~", ".the-brain");
 }
 
 export function getConfigPath(): string {
@@ -27,14 +27,31 @@ export function getPidFile(): string {
 
 export interface DaemonConfig {
   pollIntervalMs: number;
+  server?: {
+    mode: "local" | "remote";
+    bindAddress: string;
+    authToken?: string;
+    port?: number;
+  };
 }
 
 export interface DaemonEngine {
+  /** Direct DB access (legacy — use storage instead) */
   db: BrainDB;
+  /** Pluggable storage backend (SQLite default) */
+  storage: StorageBackend;
+  /** Pluggable content cleaner */
+  contentCleaner: ContentCleanerPlugin;
+  /** Pluggable task scheduler */
+  scheduler: SchedulerPlugin;
+  /** Registered output plugins */
+  outputPlugins: OutputPlugin[];
   projectManager: ProjectManager;
   hooks: ReturnType<typeof createHookSystem>;
   pluginManager: PluginManager;
   layerRouter: LayerRouter;
+  /** Full brain configuration (includes mlx, wiki schedules) */
+  brainConfig: TheBrainConfig;
   config: DaemonConfig;
   running: boolean;
   interactionCount: number;
@@ -45,14 +62,15 @@ export interface DaemonEngine {
 
 // ── Config loading ──────────────────────────────────────────────
 
-async function loadConfig(): Promise<MyBrainConfig> {
+async function loadConfig(): Promise<TheBrainConfig> {
   try {
     const raw = await readFile(CONFIG_PATH, "utf-8");
-    const config: MyBrainConfig = JSON.parse(raw);
-    // Ensure multi-project fields exist
-    if (!config.activeContext) config.activeContext = "global";
-    if (!config.contexts) config.contexts = {};
-    return config;
+    const parsed = JSON.parse(raw);
+    const result = safeParseConfig(parsed);
+    if (result.success) return result.data;
+    consola.warn(`Config validation warnings: ${result.error}`);
+    // Fall through to defaults
+    throw new Error(`Invalid config: ${result.error}`);
   } catch {
     // No config file — create minimal default
     return {
@@ -61,6 +79,7 @@ async function loadConfig(): Promise<MyBrainConfig> {
       database: { path: join(CONFIG_DIR, "global", "brain.db") },
       mlx: { enabled: false, loraOutputDir: join(CONFIG_DIR, "global", "lora-checkpoints") },
       wiki: { enabled: true, outputDir: join(CONFIG_DIR, "global", "wiki") },
+      server: { mode: "local" as const, bindAddress: "127.0.0.1" },
       activeContext: "global",
       contexts: {},
     };
@@ -70,25 +89,25 @@ async function loadConfig(): Promise<MyBrainConfig> {
 // ── Plugin loading ─────────────────────────────────────────────
 
 async function loadPlugins(hooks: ReturnType<typeof createHookSystem>, db: BrainDB) {
-  const graphMemoryMod = await import("@my-brain/plugin-graph-memory");
+  const graphMemoryMod = await import("@the-brain/plugin-graph-memory");
   const graphMemory = graphMemoryMod.createGraphMemoryPlugin(db);
 
-  const spmMod = await import("@my-brain/plugin-spm-curator");
+  const spmMod = await import("@the-brain/plugin-spm-curator");
   const spmCurator = spmMod.createSpmCurator();
 
-  const cursorMod = await import("@my-brain/plugin-harvester-cursor");
-  const cursorHarvester = (cursorMod.default || cursorMod) as any;
+  const cursorMod = await import("@the-brain/plugin-harvester-cursor");
+  const cursorHarvester = cursorMod.default ?? cursorMod;
 
-  const claudeMod = await import("@my-brain/plugin-harvester-claude");
-  const claudeHarvester = (claudeMod.default || claudeMod) as any;
+  const claudeMod = await import("@the-brain/plugin-harvester-claude");
+  const claudeHarvester = claudeMod.default ?? claudeMod;
 
-  const identityMod = await import("@my-brain/plugin-identity-anchor");
+  const identityMod = await import("@the-brain/plugin-identity-anchor");
   const identityAnchor = identityMod.createIdentityAnchorPlugin();
 
-  const wikiMod = await import("@my-brain/plugin-auto-wiki");
+  const wikiMod = await import("@the-brain/plugin-auto-wiki");
   const autoWiki = wikiMod.createAutoWikiPlugin(db);
 
-  const mlxMod = await import("@my-brain/trainer-local-mlx");
+  const mlxMod = await import("@the-brain/trainer-local-mlx");
   const mlxTrainer = mlxMod.createMlxTrainer();
 
   return { graphMemory, spmCurator, cursorHarvester, claudeHarvester, identityAnchor, autoWiki, mlxTrainer };
@@ -111,7 +130,7 @@ function registerHandlers(engine: DaemonEngine) {
     consola.debug(`#${engine.interactionCount} [${source}] "${prompt}..."`);
 
     // Resolve target DB based on project tag from harvester
-    const projectName = (ctx.interaction as any).project;
+    const projectName = (ctx.interaction.metadata as Record<string, unknown> | undefined)?.project as string | undefined;
     const targetDB = await engine.projectManager.resolveDB(projectName);
 
     await targetDB.insertMemory({
@@ -188,6 +207,20 @@ export async function initDaemon(config: DaemonConfig): Promise<DaemonEngine> {
   const db = await projectManager.getActiveDB();
   const activeProject = projectManager.getActiveProjectName();
 
+  // ── Resolve backends from config (or defaults) ────────────
+  const backends = await resolveBackends(
+    brainConfig.backends,
+    join(CONFIG_DIR, "global", "brain.db")
+  );
+  consola.info(`  Storage: ${brainConfig.backends?.storage ?? "sqlite (default)"}`);
+  consola.info(`  Cleaner: ${brainConfig.backends?.cleaner ?? "default"}`);
+  consola.info(`  Scheduler: ${brainConfig.backends?.scheduler ?? "interval (default)"}`);
+  if (brainConfig.backends?.outputs) {
+    for (const path of brainConfig.backends.outputs) {
+      consola.info(`  Output: ${path}`);
+    }
+  }
+
   consola.info(`Active context: ${activeProject || "global"}`);
   if (activeProject) {
     const ctx = projectManager.getActiveContext();
@@ -203,12 +236,25 @@ export async function initDaemon(config: DaemonConfig): Promise<DaemonEngine> {
   consola.info("Loading plugins...");
   const plugins = await loadPlugins(hooks, db);
 
-  await pluginManager.load(plugins.graphMemory);
-  await pluginManager.load(plugins.spmCurator.definition);
-  await pluginManager.load(plugins.cursorHarvester);
-  await pluginManager.load(plugins.claudeHarvester);
-  await pluginManager.load(plugins.identityAnchor);
-  await pluginManager.load(plugins.autoWiki);
+  for (const [name, p] of [
+    ["graph-memory", () => pluginManager.load(plugins.graphMemory)],
+    ["spm-curator", () => pluginManager.load(plugins.spmCurator.definition)],
+    ["harvester-cursor", () => pluginManager.load(plugins.cursorHarvester)],
+    ["harvester-claude", () => pluginManager.load(plugins.claudeHarvester)],
+    ["identity-anchor", () => pluginManager.load(plugins.identityAnchor)],
+    ["auto-wiki", () => pluginManager.load(plugins.autoWiki)],
+  ] as const) {
+    try {
+      await p();
+    } catch (err) {
+      consola.warn(`Plugin ${name} failed to load: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+  // Collect output plugins
+  const outputPlugins: OutputPlugin[] = [...backends.outputs];
+  const wikiOutput = plugins.autoWiki.asOutputPlugin();
+  outputPlugins.push(wikiOutput);
+  consola.info(`  Output plugin: ${wikiOutput.name}`);
 
   try {
     await pluginManager.load(plugins.mlxTrainer);
@@ -218,6 +264,19 @@ export async function initDaemon(config: DaemonConfig): Promise<DaemonEngine> {
   }
 
   consola.success(`Loaded ${pluginManager.list().length} plugins`);
+
+  // ── Load user extensions (~/.the-brain/extensions/) ──────────
+  const extensionLoader = new ExtensionLoader(
+    hooks, db, backends.storage, backends.scheduler, brainConfig
+  );
+  const extResults = await extensionLoader.loadAll();
+  if (extResults.length > 0) {
+    consola.info(`Loaded ${extResults.length} extension(s):`);
+    for (const ext of extResults) {
+      const status = ext.error ? `FAILED: ${ext.error}` : "ok";
+      consola.info(`  ${ext.name} — ${status}`);
+    }
+  }
 
   // ── Initialize TF-IDF vocabulary from existing memories ───────────
   if (plugins.spmCurator.instance.getTfidf()) {
@@ -239,12 +298,18 @@ export async function initDaemon(config: DaemonConfig): Promise<DaemonEngine> {
   await writeFile(PID_FILE, String(process.pid));
 
   const engine: DaemonEngine = {
-    db, hooks, pluginManager, layerRouter, projectManager,
+    db,
+    storage: backends.storage,
+    contentCleaner: backends.cleaner,
+    scheduler: backends.scheduler,
+    hooks, pluginManager, layerRouter, projectManager,
+    brainConfig,
     config,
     running: true,
     interactionCount: 0,
     lastConsolidation: Date.now(),
     activeProject,
+    outputPlugins,
     cleanup: async () => {
       engine.running = false;
       await pluginManager.shutdown();

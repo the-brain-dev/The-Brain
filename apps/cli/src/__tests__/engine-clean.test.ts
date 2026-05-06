@@ -6,12 +6,12 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-const TEST_HOME = join(tmpdir(), "my-brain-engine-test-" + Date.now());
+const TEST_HOME = join(tmpdir(), "the-brain-engine-test-" + Date.now());
 
 describe("DaemonEngine", () => {
   beforeAll(async () => {
     process.env.HOME = TEST_HOME;
-    await mkdir(join(TEST_HOME, ".my-brain"), { recursive: true });
+    await mkdir(join(TEST_HOME, ".the-brain"), { recursive: true });
   });
 
   afterAll(async () => {
@@ -85,7 +85,7 @@ describe("DaemonEngine", () => {
 
   test("exports CONFIG_DIR and PID_FILE via getters", async () => {
     const { getConfigDir, getPidFile } = await import("../engine");
-    expect(getConfigDir()).toContain(".my-brain");
+    expect(getConfigDir()).toContain(".the-brain");
     expect(getPidFile()).toContain("daemon.pid");
   });
 
@@ -99,14 +99,14 @@ describe("DaemonEngine", () => {
   });
 
   test("registerHandlers processes HARVESTER_NEW_DATA correctly", async () => {
-    const { HookEvent, MemoryLayer, createHookSystem, BrainDB } = await import("@my-brain/core");
+    const { HookEvent, MemoryLayer, createHookSystem, BrainDB } = await import("@the-brain/core");
     const { join } = await import("node:path");
     const hooks = createHookSystem();
-    const dbPath = join(TEST_HOME, ".my-brain", "engine-handler-test.db");
+    const dbPath = join(TEST_HOME, ".the-brain", "engine-handler-test.db");
 
     // Mock engine with a real DB
     const db = new BrainDB(dbPath);
-    const { PluginManager, LayerRouter } = await import("@my-brain/core");
+    const { PluginManager, LayerRouter } = await import("@the-brain/core");
     const pm = new PluginManager(hooks);
     const lr = new LayerRouter();
 

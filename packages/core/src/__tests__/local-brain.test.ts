@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, afterEach } from "bun:test";
 import { LocalBrainDir } from "../local-brain";
-import { mkdtempSync, rmSync, existsSync, readFileSync } from "node:fs";
+import { mkdtempSync, rmSync, existsSync, readFileSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -108,7 +108,6 @@ describe("LocalBrainDir", () => {
 
     // Create nested directory
     const nestedDir = join(tmpDir, "src", "components", "deep");
-    const { mkdirSync } = require("node:fs");
     mkdirSync(nestedDir, { recursive: true });
 
     const discovered = LocalBrainDir.discover(nestedDir);

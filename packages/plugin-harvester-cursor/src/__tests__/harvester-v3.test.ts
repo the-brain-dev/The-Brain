@@ -2,7 +2,7 @@
  * Tests for Cursor v3 harvester features.
  */
 import { describe, it, expect, afterEach } from "bun:test";
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync, mkdirSync, existsSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Database } from "bun:sqlite";
@@ -55,7 +55,6 @@ describe("Cursor v3 harvester - agent-transcripts", () => {
     writeFileSync(join(transcriptsDir, "session-2.jsonl"), secondEntry + "\n");
 
     // Verify the files exist
-    const { existsSync, readdirSync } = require("node:fs");
     const files = readdirSync(transcriptsDir).filter((f: string) => f.endsWith(".jsonl"));
     expect(files.length).toBe(2);
   });
@@ -65,14 +64,12 @@ describe("Cursor v3 harvester - agent-transcripts", () => {
     const transcriptsDir = join(tmpDir, "agent-transcripts");
     mkdirSync(transcriptsDir, { recursive: true });
 
-    const { existsSync } = require("node:fs");
     expect(existsSync(transcriptsDir)).toBe(true);
   });
 
   it("handles missing agent-transcripts directory", () => {
     tmpDir = mkdtempSync(join(tmpdir(), "cursor-harvest-v3-"));
     const transcriptsDir = join(tmpDir, "agent-transcripts");
-    const { existsSync } = require("node:fs");
     expect(existsSync(transcriptsDir)).toBe(false);
   });
 });

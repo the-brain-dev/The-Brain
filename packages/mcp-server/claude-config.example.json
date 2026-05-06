@@ -1,0 +1,12 @@
+{
+  "_comment": "Add this to your Claude Desktop config to connect the-brain as an MCP server.",
+  "_config_path": "~/Library/Application Support/Claude/claude_desktop_config.json",
+  "_docs": "https://modelcontextprotocol.io/quickstart/user",
+
+  "mcpServers": {
+    "the-brain": {
+      "command": "the-brain",
+      "args": ["mcp", "serve", "--transport", "stdio"]
+    }
+  }
+}

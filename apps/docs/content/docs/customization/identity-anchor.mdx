@@ -1,0 +1,58 @@
+---
+title: Identity Anchor
+description: Stable self-vector preventing catastrophic forgetting
+---
+
+The Identity Anchor plugin maintains a stable representation of your core coding identity across multiple training runs.
+
+## Why It Matters
+
+Without an anchor, repeated LoRA training can cause catastrophic forgetting — the model drifts away from your fundamental preferences and coding style.
+
+## How It Works
+
+1. **Capture**: Watches `SELECTION_PROMOTE` for fragments containing identity keywords
+   - "I prefer", "always use", "my style", coding standards
+2. **Vectorize**: Builds a self-vector from high-surprise identity fragments
+3. **Detect Drift**: Before each training run, computes cosine similarity between current and baseline
+4. **Boost**: If drift exceeds threshold, repeats anchor fragments N times in training data
+
+## Configuration
+
+```json
+{
+  "plugins": [
+    {
+      "name": "@the-brain/plugin-identity-anchor",
+      "enabled": true,
+      "config": {
+        "driftThreshold": 0.3,
+        "boostFactor": 5,
+        "maxAnchorFragments": 20
+      }
+    }
+  ]
+}
+```
+
+## How It Integrates
+
+During overnight training, the Identity Anchor injects boosted fragments before MLX training:
+
+```
+DEEP_CONSOLIDATE hook fires
+  ↓
+Identity Anchor: computeDrift()
+  ↓ drift > 0.3?
+Identity Anchor: getBoostedFragments()
+  ↓
+MLX Trainer: [boostedFragments, ...trainingData]
+```
+
+## Keywords
+
+The plugin captures fragments mentioning:
+- "I prefer", "I like", "my style"
+- "always use", "never use"
+- "my convention", "my approach"
+- "my standard", "my workflow"

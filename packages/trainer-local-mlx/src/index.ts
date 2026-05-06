@@ -1,11 +1,11 @@
 /**
- * @my-brain/trainer-local-mlx
+ * @the-brain/trainer-local-mlx
  * Zero-cost, privacy-first LoRA training on Apple Silicon.
  * Wraps the Python MLX sidecar for local fine-tuning.
  */
-import { definePlugin, HookEvent } from "@my-brain/core";
-import type { ConsolidationContext, DeepLayerPlugin, MemoryLayer as ML } from "@my-brain/core";
-import { MemoryLayer } from "@my-brain/core";
+import { definePlugin, HookEvent } from "@the-brain/core";
+import type { ConsolidationContext, DeepLayerPlugin, MemoryLayer as ML } from "@the-brain/core";
+import { MemoryLayer } from "@the-brain/core";
 import { spawn } from "node:child_process";
 import { join } from "node:path";
 
@@ -24,7 +24,7 @@ interface TrainerConfig {
 
 const DEFAULT_CONFIG: TrainerConfig = {
   modelPath: "mlx-community/SmolLM2-135M-Instruct",
-  loraOutputDir: join(process.env.HOME || "~", ".my-brain", "lora-checkpoints"),
+  loraOutputDir: join(process.env.HOME || "~", ".the-brain", "lora-checkpoints"),
   pythonSidecarPath: join(
     import.meta.dir,
     "..",
@@ -101,7 +101,7 @@ export function createMlxTrainer(config: Partial<TrainerConfig> = {}) {
     const os = await import("node:os");
     const path = await import("node:path");
 
-    const tmpDir = path.join(os.tmpdir(), "my-brain-train-" + Date.now());
+    const tmpDir = path.join(os.tmpdir(), "the-brain-train-" + Date.now());
     mkdirSync(tmpDir, { recursive: true });
 
     const dataFile = path.join(tmpDir, "fragments.json");
@@ -203,7 +203,7 @@ export function createMlxTrainer(config: Partial<TrainerConfig> = {}) {
   let hooks: any;
 
   const trainerPlugin = definePlugin({
-    name: "@my-brain/trainer-local-mlx",
+    name: "@the-brain/trainer-local-mlx",
     version: "0.1.0",
     description:
       "Zero-cost, privacy-first LoRA training on Apple Silicon using MLX",
@@ -222,7 +222,7 @@ export function createMlxTrainer(config: Partial<TrainerConfig> = {}) {
       });
     },
 
-    // Expose for direct CLI invocation (my-brain train)
+    // Expose for direct CLI invocation (the-brain train)
     async train(ctx: ConsolidationContext): Promise<void> {
       await runTraining(ctx);
     },

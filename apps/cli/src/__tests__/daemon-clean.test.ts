@@ -16,7 +16,7 @@ describe("daemon process management", () => {
     const home = process.env.HOME || "/tmp";
 
     // Write a fake PID file
-    const pidDir = join(home, ".my-brain");
+    const pidDir = join(home, ".the-brain");
     const pidPath = join(pidDir, "daemon.pid");
     try {
       await (await import("node:fs/promises")).mkdir(pidDir, { recursive: true });
@@ -67,7 +67,7 @@ describe("daemon process management", () => {
     const join = (await import("node:path")).join;
     const home = process.env.HOME || "/tmp";
 
-    const pidDir = join(home, ".my-brain");
+    const pidDir = join(home, ".the-brain");
     const pidPath = join(pidDir, "daemon.pid");
     try { await mkdir(pidDir, { recursive: true }); } catch {}
     await writeFile(pidPath, String(process.pid));
@@ -99,7 +99,7 @@ describe("daemon process management", () => {
     const home = process.env.HOME || "/tmp";
 
     // Ensure no stale PID
-    const pidPath = join(home, ".my-brain", "daemon.pid");
+    const pidPath = join(home, ".the-brain", "daemon.pid");
     try { await unlink(pidPath); } catch {}
 
     const origKill = process.kill;

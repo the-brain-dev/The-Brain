@@ -2,8 +2,8 @@
  * Clean harvester tests — no mock.module(), just test what's actually exposed
  */
 import { describe, test, expect } from "bun:test";
-import { HookEvent } from "@my-brain/core";
-import type { PluginDefinition } from "@my-brain/core";
+import { HookEvent } from "@the-brain/core";
+import type { PluginDefinition } from "@the-brain/core";
 import { mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";

@@ -1,6 +1,7 @@
 // Verify pattern dedup: bun run apps/cli/src/verify-dedup.ts
-import { BrainDB, createHookSystem, PluginManager, HookEvent } from "@my-brain/core";
-import { createGraphMemoryPlugin } from "@my-brain/plugin-graph-memory";
+import { BrainDB, createHookSystem, PluginManager, HookEvent } from "@the-brain/core";
+import { createGraphMemoryPlugin } from "@the-brain/plugin-graph-memory";
+import { unlinkSync } from "node:fs";
 
 async function main() {
   const db = new BrainDB("/tmp/dedup-test.db");
@@ -23,7 +24,7 @@ async function main() {
   const d = new Database("/tmp/dedup-test.db");
   const patterns = d.query("SELECT COUNT(*) as c FROM graph_nodes WHERE type='pattern'").get() as any;
   const all = d.query("SELECT type, COUNT(*) as c FROM graph_nodes GROUP BY type").all() as any[];
-  d.close(); db.close(); require("fs").unlinkSync("/tmp/dedup-test.db");
+  d.close(); db.close(); unlinkSync("/tmp/dedup-test.db");
 
   console.log("Pattern nodes:", patterns.c, "(expected: ~2-3 unique patterns, not 3x duplicates)");
   for (const r of all) console.log("  " + r.type + ": " + r.c);

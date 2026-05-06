@@ -16,13 +16,13 @@
     "rootDir": ".",
     "baseUrl": ".",
     "paths": {
-      "@my-brain/core": ["./packages/core/src"],
-      "@my-brain/core/*": ["./packages/core/src/*"],
-      "@my-brain/plugin-graph-memory": ["./packages/plugin-graph-memory/src"],
-      "@my-brain/plugin-spm-curator": ["./packages/plugin-spm-curator/src"],
-      "@my-brain/plugin-harvester-cursor": ["./packages/plugin-harvester-cursor/src"],
-      "@my-brain/plugin-identity-anchor": ["./packages/plugin-identity-anchor/src"],
-      "@my-brain/plugin-auto-wiki": ["./packages/plugin-auto-wiki/src"]
+      "@the-brain/core": ["./packages/core/src"],
+      "@the-brain/core/*": ["./packages/core/src/*"],
+      "@the-brain/plugin-graph-memory": ["./packages/plugin-graph-memory/src"],
+      "@the-brain/plugin-spm-curator": ["./packages/plugin-spm-curator/src"],
+      "@the-brain/plugin-harvester-cursor": ["./packages/plugin-harvester-cursor/src"],
+      "@the-brain/plugin-identity-anchor": ["./packages/plugin-identity-anchor/src"],
+      "@the-brain/plugin-auto-wiki": ["./packages/plugin-auto-wiki/src"]
     }
   },
   "include": ["packages/**/*.ts", "apps/**/*.ts"],

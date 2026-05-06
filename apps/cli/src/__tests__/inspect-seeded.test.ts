@@ -6,18 +6,18 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-const TEST_HOME = join(tmpdir(), "my-brain-inspect-test-" + Date.now());
-const TEST_DB = join(TEST_HOME, ".my-brain", "brain.db");
+const TEST_HOME = join(tmpdir(), "the-brain-inspect-test-" + Date.now());
+const TEST_DB = join(TEST_HOME, ".the-brain", "brain.db");
 
 describe("inspectCommand", () => {
   beforeAll(async () => {
     // Isolate under a temp HOME
     const oldHome = process.env.HOME;
     process.env.HOME = TEST_HOME;
-    await mkdir(join(TEST_HOME, ".my-brain"), { recursive: true });
+    await mkdir(join(TEST_HOME, ".the-brain"), { recursive: true });
 
     // Seed the test DB with data
-    const { BrainDB, MemoryLayer } = await import("@my-brain/core");
+    const { BrainDB, MemoryLayer } = await import("@the-brain/core");
     const db = new BrainDB(TEST_DB);
 
     // Insert some sessions

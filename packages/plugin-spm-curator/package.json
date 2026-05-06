@@ -1,11 +1,11 @@
 {
-  "name": "@my-brain/plugin-spm-curator",
+  "name": "@the-brain/plugin-spm-curator",
   "version": "0.1.0",
   "description": "Selection Layer plugin — Surprise-Gated Self-Predictive Memory curator",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
-    "@my-brain/core": "workspace:*"
+    "@the-brain/core": "workspace:*"
   }
 }

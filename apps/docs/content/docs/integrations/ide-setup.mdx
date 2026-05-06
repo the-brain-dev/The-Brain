@@ -1,0 +1,35 @@
+---
+title: IDE Setup
+description: Configure your IDE to work with the-brain
+---
+
+the-brain auto-discovers interactions from these IDEs.
+
+## Cursor IDE
+
+No configuration needed. the-brain reads SQLite logs from `~/.cursor/`.
+
+**Supported formats**:
+- v2: `workspaceStorage/*/state.vscdb` (SQLite)
+- v3: `agent-transcripts/*.jsonl` (JSONL)
+- AI tracking: `ai-tracking/*.db` (SQLite)
+
+## Claude Code
+
+the-brain reads `.claude/history.jsonl` from your project root.
+
+**Project detection**: Uses `cwd` from `.claude/settings.json` to match against registered contexts.
+
+## Windsurf
+
+Reads `~/.codeium/windsurf/conversations/*.json`.
+
+**Push agent**: On the Mac client, the agent polls these directories every 60s and pushes to the remote server.
+
+## Gemini
+
+Reads `~/.gemini/logs.json`. Conversation history extracted from `content.blocks`.
+
+## Adding a New IDE
+
+See [Harvesters](/docs/customization/harvesters) for writing your own harvester plugin.

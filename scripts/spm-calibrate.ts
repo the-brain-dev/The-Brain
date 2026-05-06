@@ -12,8 +12,8 @@
 import { Database } from "bun:sqlite";
 import { join } from "node:path";
 
-const DB_PATH = join(process.env.HOME || "/Users/oskarschachta", ".my-brain", "global", "brain.db");
-const CONFIG_PATH = join(process.env.HOME || "/Users/oskarschachta", ".my-brain", "config.json");
+const DB_PATH = join(process.env.HOME || "/Users/oskarschachta", ".the-brain", "global", "brain.db");
+const CONFIG_PATH = join(process.env.HOME || "/Users/oskarschachta", ".the-brain", "config.json");
 
 function calibrate() {
   const db = new Database(DB_PATH);

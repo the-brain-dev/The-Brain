@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 /**
- * Release script for my-brain
+ * Release script for the-brain
  *
  * Usage:
  *   bun run scripts/release.ts <major|minor|patch|x.y.z>

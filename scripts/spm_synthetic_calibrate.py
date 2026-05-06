@@ -238,7 +238,7 @@ def main():
     
     # Load and score production data
     print("\n📥 Loading production data...")
-    db_path = HOME / ".my-brain" / "global" / "brain.db"
+    db_path = HOME / ".the-brain" / "global" / "brain.db"
     prod_texts = load_production(str(db_path))
     print(f"   ✓ {len(prod_texts)} production texts")
     
@@ -297,7 +297,7 @@ def main():
         "calibrated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
     
-    out_path = HOME / ".my-brain" / "spm-tfidf.json"
+    out_path = HOME / ".the-brain" / "spm-tfidf.json"
     os.makedirs(out_path.parent, exist_ok=True)
     with open(out_path, "w") as f:
         json.dump(output, f, indent=2)

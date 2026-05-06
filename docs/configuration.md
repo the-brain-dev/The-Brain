@@ -1,13 +1,13 @@
 # Configuration
 
-my-brain is configured via `~/.my-brain/config.yaml`.
+the-brain is configured via `~/.the-brain/config.yaml`.
 
 ## Full Configuration Reference
 
 ```yaml
-# Database path (default: ~/.my-brain/brain.db)
+# Database path (default: ~/.the-brain/brain.db)
 database:
-  path: ~/.my-brain/brain.db
+  path: ~/.the-brain/brain.db
 
 # Daemon settings
 daemon:
@@ -45,24 +45,24 @@ deep:
   # LoRA rank
   loraRank: 16
   # Output directory for LoRA adapters
-  outputDir: ~/.my-brain/lora-adapters
+  outputDir: ~/.the-brain/lora-adapters
 
 # Plugins to load
 plugins:
-  - "@my-brain/plugin-graph-memory"
-  - "@my-brain/plugin-spm-curator"
-  - "@my-brain/plugin-harvester-cursor"
-  - "@my-brain/plugin-harvester-claude"
-  - "@my-brain/plugin-identity-anchor"
-  - "@my-brain/plugin-auto-wiki"
-  - "@my-brain/trainer-local-mlx"
+  - "@the-brain/plugin-graph-memory"
+  - "@the-brain/plugin-spm-curator"
+  - "@the-brain/plugin-harvester-cursor"
+  - "@the-brain/plugin-harvester-claude"
+  - "@the-brain/plugin-identity-anchor"
+  - "@the-brain/plugin-auto-wiki"
+  - "@the-brain/trainer-local-mlx"
 
 # Output plugins
 outputs:
   auto-wiki:
     enabled: true
     schedule: "0 9 * * 0"  # Sunday at 9 AM
-    outputDir: ~/.my-brain/wiki
+    outputDir: ~/.the-brain/wiki
     port: 3000
 ```
 
@@ -70,9 +70,9 @@ outputs:
 
 | Variable | Purpose | Default |
 |----------|---------|---------|
-| `MY_BRAIN_HOME` | Override config/data directory | `~/.my-brain` |
-| `MY_BRAIN_CONFIG` | Override config file path | `~/.my-brain/config.yaml` |
-| `MY_BRAIN_LOG_LEVEL` | Log level (debug, info, warn, error) | `info` |
+| `THE_BRAIN_HOME` | Override config/data directory | `~/.the-brain` |
+| `THE_BRAIN_CONFIG` | Override config file path | `~/.the-brain/config.yaml` |
+| `THE_BRAIN_LOG_LEVEL` | Log level (debug, info, warn, error) | `info` |
 | `NO_MLX` | Disable MLX Python sidecar | unset |
 
 ## Plugin Loading
@@ -82,13 +82,13 @@ Plugins can be loaded from multiple sources:
 ```yaml
 plugins:
   # npm package (default — looks in workspace)
-  - "@my-brain/plugin-graph-memory"
+  - "@the-brain/plugin-graph-memory"
 
   # Local path
   - "./my-custom-plugin"
 
   # GitHub URL
-  - "github:user/my-brain-plugin"
+  - "github:user/the-brain-plugin"
 ```
 
 ## CLI Equivalents
@@ -96,7 +96,7 @@ plugins:
 Some settings can be overridden via CLI:
 
 ```bash
-my-brain daemon start --poll-interval 30
-my-brain consolidate --now --batch-size 100
-my-brain switch-context --project my-app
+the-brain daemon start --poll-interval 30
+the-brain consolidate --now --batch-size 100
+the-brain switch-context --project my-app
 ```

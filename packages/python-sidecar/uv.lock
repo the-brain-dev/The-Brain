@@ -625,7 +625,7 @@ wheels = [
 ]
 
 [[package]]
-name = "my-brain-mlx-sidecar"
+name = "the-brain-mlx-sidecar"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

@@ -1,0 +1,67 @@
+---
+title: Prompt System
+description: Built-in prompt templates for AI interactions
+---
+
+the-brain includes a prompt management system for MCP server responses and agent interactions.
+
+## Loading Prompts
+
+```typescript
+import { loadPrompt, listPrompts, renderPrompt } from "@the-brain/core";
+
+// List all available prompts
+const names = await listPrompts(); // → ["consolidate", "train", "health", "inspect"]
+
+// Load a specific prompt
+const prompt = await loadPrompt("consolidate");
+/*
+{
+  frontmatter: { name: "consolidate", version: "1.0", ... },
+  content: "...",
+  raw: "..."
+}
+*/
+
+// Render with argument substitution
+const rendered = renderPrompt(prompt, {
+  memoryCount: 42,
+  layer: "DEEP",
+});
+```
+
+## Available Prompts
+
+| Name | Description | Args |
+|------|-------------|------|
+| `consolidate` | Memory consolidation summary | `memoryCount`, `layer` |
+| `train` | MLX training context | `fragmentCount`, `modelName` |
+| `health` | Daemon health status | `uptime`, `stats` |
+| `inspect` | Brain inspection report | `stats`, `nodes` |
+
+## Prompt Format
+
+Prompts are defined in `packages/core/src/prompts/` as Markdown with YAML frontmatter:
+
+```markdown
+---
+name: consolidate
+version: "1.0"
+description: "Consolidation summary"
+args: ["memoryCount", "layer"]
+---
+
+## Consolidation Report
+
+Processed {{memoryCount}} memories at {{layer}} layer.
+```
+
+## Programmatic Usage
+
+The MCP server uses prompts for tool responses:
+
+```typescript
+// In mcp-server/src/tools/
+const prompt = await loadPrompt("consolidate");
+const response = renderPrompt(prompt, { memoryCount: 42, layer: "DEEP" });
+```

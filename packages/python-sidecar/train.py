@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-my-brain MLX Sidecar — LoRA fine-tuning on Apple Silicon.
+the-brain MLX Sidecar — LoRA fine-tuning on Apple Silicon.
 
-Called by @my-brain/trainer-local-mlx to consolidate curated memories
+Called by @the-brain/trainer-local-mlx to consolidate curated memories
 into model weights using Apple's MLX framework.
 
 Usage:
   uv run --with mlx-lm python3 train.py \
     --model-path mlx-community/Meta-Llama-3.1-8B-Instruct-4bit \
-    --lora-output-dir ~/.my-brain/lora-checkpoints \
+    --lora-output-dir ~/.the-brain/lora-checkpoints \
     --learning-rate 1e-4 \
     --lora-rank 16 \
     --iterations 200 \
@@ -74,7 +74,7 @@ def prepare_training_data(fragments: list[dict], output_path: str) -> tuple[int,
     data_path = Path(output_path) / "training_data.jsonl"
     data_path.parent.mkdir(parents=True, exist_ok=True)
     
-    with open(data_path, "w") as f:
+    with open(data_path, "w", encoding="utf-8") as f:
         for sample in samples:
             f.write(json.dumps(sample) + "\n")
     
@@ -125,7 +125,7 @@ def train_lora(
     print(f"[MLX] Loading training data from: {data_path}")
     
     # Load and tokenize training data
-    with open(data_path) as f:
+    with open(data_path, encoding="utf-8") as f:
         train_data = [json.loads(line) for line in f if line.strip()]
     
     print(f"[MLX] Training samples: {len(train_data)}")
@@ -204,7 +204,7 @@ def train_lora(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="my-brain MLX LoRA Trainer Sidecar"
+        description="the-brain MLX LoRA Trainer Sidecar"
     )
     parser.add_argument("--model-path", required=True, help="HuggingFace model or local path")
     parser.add_argument("--lora-output-dir", required=True, help="Output directory for LoRA adapter")
@@ -224,7 +224,11 @@ def main():
         print("[MLX] Training data would be processed, but no actual training occurs.")
         
         # Simulation mode — just parse and report
-        fragments = json.loads(args.data)
+        try:
+            fragments = json.loads(args.data)
+        except json.JSONDecodeError as e:
+            print(f"[MLX] ERROR: Invalid JSON data: {e}", file=sys.stderr)
+            sys.exit(1)
         print(f"[MLX] Would train on {len(fragments)} fragments")
         print(f"[MLX] Model: {args.model_path}")
         print(f"[MLX] Output: {args.lora_output_dir}")
@@ -238,7 +242,7 @@ def main():
             "warning": "MLX not installed. Install with: pip install mlx mlx-lm",
         }
         config_path = os.path.join(args.lora_output_dir, "training_config.json")
-        with open(config_path, "w") as f:
+        with open(config_path, "w", encoding="utf-8") as f:
             json.dump(sim_config, f, indent=2)
         
         return
@@ -251,7 +255,7 @@ def main():
         # Treat as file path
         data_file = Path(args.data)
         if data_file.exists():
-            with open(data_file) as f:
+            with open(data_file, encoding="utf-8") as f:
                 fragments = json.load(f)
         else:
             print(f"[MLX] ERROR: Data not found at {args.data} and not valid JSON", file=sys.stderr)

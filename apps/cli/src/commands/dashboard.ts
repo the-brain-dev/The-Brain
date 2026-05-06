@@ -1,11 +1,11 @@
 /**
- * dashboard command — Live Terminal UI for my-brain monitoring.
+ * dashboard command — Live Terminal UI for the-brain monitoring.
  *
  * Usage:
- *   my-brain dashboard              Live dashboard (default 2s refresh)
- *   my-brain dashboard --project X  Dashboard for specific project
- *   my-brain dashboard --global     Global brain dashboard
- *   my-brain dashboard --interval 5 5-second refresh
+ *   the-brain dashboard              Live dashboard (default 2s refresh)
+ *   the-brain dashboard --project X  Dashboard for specific project
+ *   the-brain dashboard --global     Global brain dashboard
+ *   the-brain dashboard --interval 5 5-second refresh
  *
  * Features:
  *   - Live daemon status + uptime
@@ -19,12 +19,12 @@
  * beyond the standard library.
  */
 
-import { BrainDB, MemoryLayer } from "@my-brain/core";
-import type { MyBrainConfig } from "@my-brain/core";
+import { BrainDB, MemoryLayer } from "@the-brain/core";
+import type { TheBrainConfig } from "@the-brain/core";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
 import { existsSync, statSync } from "node:fs";
-import type { Memory } from "@my-brain/core";
+import type { Memory } from "@the-brain/core";
 
 // ── ANSI Constants ──────────────────────────────────────────────
 
@@ -57,7 +57,7 @@ interface DashboardState {
   stats: Awaited<ReturnType<BrainDB["getStats"]>>;
   recentMemories: Memory[];
   topNodes: Array<{ label: string; type: string; weight: number }>;
-  config: MyBrainConfig | null;
+  config: TheBrainConfig | null;
   loraStatus: string;
   wikiPages: number;
   lastRefresh: Date;
@@ -67,8 +67,8 @@ type Tab = "overview" | "memories" | "graph" | "activity";
 
 // ── Config Paths ────────────────────────────────────────────────
 
-const CONFIG_PATH = join(process.env.HOME || "~", ".my-brain", "config.json");
-const PID_FILE = join(process.env.HOME || "~", ".my-brain", "daemon.pid");
+const CONFIG_PATH = join(process.env.HOME || "~", ".the-brain", "config.json");
+const PID_FILE = join(process.env.HOME || "~", ".the-brain", "daemon.pid");
 
 // ── Daemon Helpers ──────────────────────────────────────────────
 
@@ -117,10 +117,10 @@ function formatAge(ts: number): string {
 // ── Data Fetching ───────────────────────────────────────────────
 
 async function resolveDbPath(options: { project?: string; global?: boolean }): Promise<string> {
-  const defaults = join(process.env.HOME || "~", ".my-brain", "global", "brain.db");
+  const defaults = join(process.env.HOME || "~", ".the-brain", "global", "brain.db");
   if (!existsSync(CONFIG_PATH)) return defaults;
 
-  const config: MyBrainConfig = JSON.parse(await readFile(CONFIG_PATH, "utf-8"));
+  const config: TheBrainConfig = JSON.parse(await readFile(CONFIG_PATH, "utf-8"));
   if (options.project) return config.contexts?.[options.project]?.dbPath || defaults;
   if (options.global) return config.database?.path || defaults;
 
@@ -136,7 +136,7 @@ async function fetchState(db: BrainDB): Promise<DashboardState> {
   const uptime = daemonRunning ? getUptime() : "—";
   const stats = await db.getStats();
 
-  let config: MyBrainConfig | null = null;
+  let config: TheBrainConfig | null = null;
   try {
     config = JSON.parse(await readFile(CONFIG_PATH, "utf-8"));
   } catch {}
@@ -163,7 +163,7 @@ async function fetchState(db: BrainDB): Promise<DashboardState> {
 
   // LoRA adapter status
   let loraStatus = "not found";
-  const loraPath = join(process.env.HOME || "~", ".my-brain", "lora-checkpoints", "adapter.safetensors");
+  const loraPath = join(process.env.HOME || "~", ".the-brain", "lora-checkpoints", "adapter.safetensors");
   if (existsSync(loraPath)) {
     const size = statSync(loraPath).size;
     loraStatus = `${formatSize(size)}`;
@@ -171,7 +171,7 @@ async function fetchState(db: BrainDB): Promise<DashboardState> {
 
   // Wiki pages
   let wikiPages = 0;
-  const wikiDir = join(process.env.HOME || "~", ".my-brain", "wiki");
+  const wikiDir = join(process.env.HOME || "~", ".the-brain", "wiki");
   if (existsSync(wikiDir)) {
     try {
       const { readdir } = await import("node:fs/promises");
@@ -206,7 +206,7 @@ function renderHeader(state: DashboardState, label: string): string {
     ? color(GREEN, `● RUNNING`)
     : color(RED, `● STOPPED`);
   const uptime = state.daemonRunning ? `  ⏱ ${state.uptime}` : "";
-  const title = bold(`my-brain dashboard — ${label}`);
+  const title = bold(`the-brain dashboard — ${label}`);
 
   return `${BG_BLUE}${WHITE} ${title} ${" ".repeat(Math.max(0, process.stdout.columns - title.length - 18))} ${status}${uptime} ${RESET}\n`;
 }
@@ -298,7 +298,7 @@ function renderActivityLog(state: DashboardState): string {
   lines += `${DIM}${"─".repeat(60)}${RESET}\n`;
 
   // Show memory sources breakdown
-  const perSource = (state.stats as any).memoryPerSource as Array<{ source: string; c: number }> || [];
+  const perSource = (state.stats as Record<string, unknown>).memoryPerSource as Array<{ source: string; c: number }> || [];
 
   if (perSource.length === 0) {
     lines += `  ${dim("(no harvester activity detected)")}\n`;
@@ -378,7 +378,7 @@ export async function dashboardCommand(options: {
 }) {
   const dbPath = await resolveDbPath(options);
   if (!dbPath || !existsSync(dbPath)) {
-    console.error("No database found. Run `my-brain init` first.");
+    console.error("No database found. Run `the-brain init` first.");
     process.exit(1);
   }
 

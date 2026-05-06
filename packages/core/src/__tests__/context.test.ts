@@ -2,12 +2,12 @@
  * ProjectManager tests — multi-project isolation, context switching, cross-project promotion.
  */
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { ProjectManager, BrainDB, MemoryLayer } from "@my-brain/core";
-import type { MyBrainConfig, ProjectContext } from "@my-brain/core";
+import { ProjectManager, BrainDB, MemoryLayer } from "@the-brain/core";
+import type { TheBrainConfig, ProjectContext } from "@the-brain/core";
 import { join } from "node:path";
 import { mkdir, rm } from "node:fs/promises";
 
-const TMP_DIR = "/tmp/test-my-brain-context";
+const TMP_DIR = "/tmp/test-the-brain-context";
 
 beforeAll(async () => {
   await mkdir(TMP_DIR, { recursive: true });
@@ -18,7 +18,7 @@ afterAll(async () => {
   await rm(TMP_DIR, { recursive: true, force: true });
 });
 
-function makeConfig(overrides?: Partial<MyBrainConfig>): MyBrainConfig {
+function makeConfig(overrides?: Partial<TheBrainConfig>): TheBrainConfig {
   return {
     plugins: [],
     daemon: { pollIntervalMs: 30000, logDir: join(TMP_DIR, "logs") },
@@ -252,6 +252,52 @@ describe("ProjectManager", () => {
     pm.unregisterProject("to-remove");
     expect(config.contexts["to-remove"]).toBeUndefined();
     expect(pm.listProjects()).toHaveLength(0);
+    pm.close();
+  });
+
+  test("getConfig returns the mutable config reference", () => {
+    const config = makeConfig();
+    const pm = new ProjectManager(config);
+    const returned = pm.getConfig();
+    expect(returned).toBe(config);
+    // Mutations through the returned reference affect the original
+    returned.activeContext = "modified";
+    expect(config.activeContext).toBe("modified");
+    pm.close();
+  });
+
+  test("getConfigDir returns the config directory path", () => {
+    const config = makeConfig();
+    const customDir = join(TMP_DIR, "custom-config");
+    const pm = new ProjectManager(config, customDir);
+    expect(pm.getConfigDir()).toBe(customDir);
+    pm.close();
+  });
+
+  test("getActiveLoraDir returns project loraDir when project is active", () => {
+    const config = makeConfig();
+    config.contexts["lora-proj"] = {
+      name: "lora-proj",
+      dbPath: join(TMP_DIR, "projects", "lora-proj", "brain.db"),
+      wikiDir: join(TMP_DIR, "projects", "lora-proj", "wiki"),
+      loraDir: join(TMP_DIR, "projects", "lora-proj", "lora"),
+      createdAt: Date.now(),
+    };
+    config.activeContext = "lora-proj";
+
+    const pm = new ProjectManager(config);
+    expect(pm.getActiveLoraDir()).toBe(
+      join(TMP_DIR, "projects", "lora-proj", "lora"),
+    );
+    pm.close();
+  });
+
+  test("getActiveLoraDir falls back to global mlx.loraOutputDir when no project is active", () => {
+    const config = makeConfig();
+    config.activeContext = "global";
+
+    const pm = new ProjectManager(config);
+    expect(pm.getActiveLoraDir()).toBe(config.mlx.loraOutputDir);
     pm.close();
   });
 });

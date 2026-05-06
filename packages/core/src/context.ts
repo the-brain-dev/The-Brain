@@ -2,8 +2,8 @@
  * ProjectManager — Multi-project context isolation with global overlay.
  *
  * Manages multiple BrainDB instances:
- *   - One per project (~/.my-brain/projects/<name>/brain.db)
- *   - One global (~/.my-brain/global/brain.db)
+ *   - One per project (~/.the-brain/projects/<name>/brain.db)
+ *   - One global (~/.the-brain/global/brain.db)
  *
  * Provides routing:
  *   - getProjectDB(name)  → project-specific database
@@ -11,7 +11,7 @@
  *   - getActiveDB()       → currently active context (global or project)
  */
 import { BrainDB } from "./db/index";
-import type { MyBrainConfig, ProjectContext } from "./types";
+import type { TheBrainConfig, ProjectContext } from "./types";
 import { join } from "node:path";
 import { mkdir } from "node:fs/promises";
 
@@ -20,12 +20,12 @@ export type DBMap = Map<string, BrainDB>;
 export class ProjectManager {
   private dbs: DBMap = new Map();
   private globalDB: BrainDB;
-  private config: MyBrainConfig;
+  private config: TheBrainConfig;
   private configDir: string;
 
-  constructor(config: MyBrainConfig, configDir?: string) {
+  constructor(config: TheBrainConfig, configDir?: string) {
     this.config = config;
-    this.configDir = configDir ?? join(process.env.HOME || "~", ".my-brain");
+    this.configDir = configDir ?? join(process.env.HOME || "~", ".the-brain");
     this.globalDB = new BrainDB(config.database.path);
   }
 
@@ -37,7 +37,7 @@ export class ProjectManager {
 
     const ctx = this.config.contexts[projectName];
     if (!ctx) {
-      throw new Error(`No context registered for project "${projectName}". Run \`my-brain init --project ${projectName}\` first.`);
+      throw new Error(`No context registered for project "${projectName}". Run \`the-brain init --project ${projectName}\` first.`);
     }
 
     // Ensure directory exists
@@ -118,7 +118,7 @@ export class ProjectManager {
   }
 
   /** Get the config (mutable reference for persistence). */
-  getConfig(): MyBrainConfig {
+  getConfig(): TheBrainConfig {
     return this.config;
   }
 

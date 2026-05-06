@@ -1,12 +1,12 @@
 # Writing Your Own Plugin
 
-my-brain's entire architecture is plugin-based. Everything — from data harvesters to
+the-brain's entire architecture is plugin-based. Everything — from data harvesters to
 memory modules to trainers — is a plugin registered via `definePlugin()`.
 
 ## Quick Start
 
 ```typescript
-import { definePlugin } from '@my-brain/core';
+import { definePlugin } from '@the-brain/core';
 
 export default definePlugin({
   name: 'my-custom-plugin',
@@ -41,7 +41,7 @@ Registers on `AFTER_FETCH`. Reads logs from IDE sources and feeds them into the
 pipeline. Must implement:
 - Incremental reading (track offsets to avoid re-reading)
 - Deduplication (SHA-256 of content)
-- State persistence (`~/.my-brain/<name>-state.json`)
+- State persistence (`~/.the-brain/<name>-state.json`)
 
 ### Memory Module (Instant Layer)
 Registers on `BEFORE_PROMPT`. Injects context before the prompt reaches the LLM.
@@ -59,7 +59,7 @@ Examples: LoRA Training, Vector DB, Static Wiki.
 
 ```
 packages/plugin-<name>/
-├── package.json          # { name: "@my-brain/plugin-<name>", main: "./src/index.ts" }
+├── package.json          # { name: "@the-brain/plugin-<name>", main: "./src/index.ts" }
 ├── src/
 │   ├── index.ts          # exports default definePlugin(...)
 │   └── __tests__/
@@ -94,12 +94,12 @@ describe('my plugin', () => {
 Add your plugin to `apps/cli/src/daemon.ts`:
 
 ```typescript
-import myPlugin from '@my-brain/plugin-<name>';
+import myPlugin from '@the-brain/plugin-<name>';
 
 pluginManager.register(myPlugin);
 ```
 
 ## Publishing
 
-Plugins can be published as npm packages (`@my-brain/plugin-*`) or loaded from
+Plugins can be published as npm packages (`@the-brain/plugin-*`) or loaded from
 local paths. See [configuration.md](configuration.md) for plugin loading options.

@@ -20,7 +20,7 @@ fragments = [
         "metadata": {"source": "claude", "layer": "instant", "type": "correction", "weight": 0.9}
     },
     {
-        "text": "my-brain follows a plugin architecture. The core is an empty data bus. Everything — harvesters, memory modules, trainers — must be swappable plugins via definePlugin(). Never hardcode a memory implementation.",
+        "text": "the-brain follows a plugin architecture. The core is an empty data bus. Everything — harvesters, memory modules, trainers — must be swappable plugins via definePlugin(). Never hardcode a memory implementation.",
         "metadata": {"source": "claude", "layer": "deep", "type": "preference", "weight": 1.0}
     },
     {
@@ -65,7 +65,7 @@ fragments = [
     },
 ]
 
-output_path = "/Users/oskarschachta/.my-brain/lora-checkpoints/lora_fragments.json"
+output_path = "/Users/oskarschachta/.the-brain/lora-checkpoints/lora_fragments.json"
 with open(output_path, "w") as f:
     json.dump(fragments, f)
 print(f"Written {len(fragments)} fragments to {output_path}")

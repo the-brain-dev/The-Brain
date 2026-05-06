@@ -1,7 +1,7 @@
 /**
  * SPM Curator — integration test on real data from the database.
  *
- * Reads actual memories from ~/.my-brain/global/brain.db,
+ * Reads actual memories from ~/.the-brain/global/brain.db,
  * parses them into interactions, feeds them through SPM curator,
  * and reports on:
  *   - How many are promoted at various thresholds
@@ -9,12 +9,12 @@
  *   - Whether the model correctly identifies surprising vs mundane
  */
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { BrainDB, MemoryLayer } from "@my-brain/core";
+import { BrainDB, MemoryLayer } from "@the-brain/core";
 import { createSpmCurator, SpmCuratorPlugin } from "../index";
-import type { InteractionContext, Memory, MemoryFragment } from "@my-brain/core";
+import type { InteractionContext, Memory, MemoryFragment } from "@the-brain/core";
 import { join } from "node:path";
 
-const DB_PATH = "/Users/oskarschachta/.my-brain/global/brain.db";
+const DB_PATH = "/Users/oskarschachta/.the-brain/global/brain.db";
 const MIN_MEMORIES = 10;
 
 function memoryToInteraction(m: Memory): { prompt: string; response: string } {

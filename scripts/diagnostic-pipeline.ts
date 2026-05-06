@@ -1,7 +1,7 @@
 // Diagnostic: run the full pipeline in foreground and inspect results.
 // bun run scripts/diagnostic-pipeline.ts
-import { BrainDB, createHookSystem, PluginManager, HookEvent } from "@my-brain/core";
-import { createGraphMemoryPlugin } from "@my-brain/plugin-graph-memory";
+import { BrainDB, createHookSystem, PluginManager, HookEvent } from "@the-brain/core";
+import { createGraphMemoryPlugin } from "@the-brain/plugin-graph-memory";
 import { Database } from "bun:sqlite";
 import { unlinkSync } from "node:fs";
 
@@ -16,12 +16,12 @@ async function main() {
   await pm.load(graphMemory);
 
   // Load Claude harvester
-  const claudeMod = await import("@my-brain/plugin-harvester-claude");
+  const claudeMod = await import("@the-brain/plugin-harvester-claude");
   const claudePlugin = claudeMod.default || claudeMod;
   await pm.load(claudePlugin);
 
   // Load Cursor harvester
-  const cursorMod = await import("@my-brain/plugin-harvester-cursor");
+  const cursorMod = await import("@the-brain/plugin-harvester-cursor");
   const cursorPlugin = cursorMod.default || cursorMod;
   await pm.load(cursorPlugin);
 
@@ -66,7 +66,7 @@ async function main() {
     // Try to find the issue by checking if the harvester found any interactions
     console.log("Checking harvester state files...");
     const home = process.env.HOME;
-    const statePath = home + "/.my-brain/claude-harvester-state.json";
+    const statePath = home + "/.the-brain/claude-harvester-state.json";
     try {
       const state = JSON.parse(fs.readFileSync(statePath, "utf-8"));
       console.log("Claude state processedIds:", state.processedIds.length);

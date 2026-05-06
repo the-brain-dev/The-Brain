@@ -96,7 +96,7 @@ output = {
     "alpha": alpha,
 }
 
-out_path = HOME / ".my-brain" / "spm-wildchat.json"
+out_path = HOME / ".the-brain" / "spm-wildchat.json"
 os.makedirs(out_path.parent, exist_ok=True)
 with open(out_path, "w") as f:
     json.dump(output, f, indent=2)

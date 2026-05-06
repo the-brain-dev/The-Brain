@@ -1,16 +1,17 @@
 #!/usr/bin/env bun
 /**
- * my-brain CLI — Pluggable Cognitive Operating System for AI Agents
+ * the-brain CLI — Pluggable Cognitive Operating System for AI Agents
  *
  * Commands:
- *   my-brain init [--project <name>]    Initialize database and config
- *   my-brain daemon start|stop|status|enable|disable
- *   my-brain consolidate --now          Force memory consolidation
- *   my-brain inspect --stats [--project <name>|--global]
- *   my-brain plugins list               List loaded plugins
- *   my-brain switch-context --project <name>  Switch active context
- *   my-brain train [--dry-run] [--iterations N]  Train LoRA on DEEP memories
- *   my-brain wiki generate               Generate knowledge wiki
+ *   the-brain init [--project <name>]    Initialize database and config
+ *   the-brain daemon start|stop|status|enable|disable
+ *   the-brain consolidate --now          Force memory consolidation
+ *   the-brain inspect --stats [--project <name>|--global]
+ *   the-brain plugins list               List loaded plugins
+ *   the-brain switch-context --project <name>  Switch active context
+ *   the-brain train [--dry-run] [--iterations N]  Train LoRA on DEEP memories
+ *   the-brain wiki generate               Generate knowledge wiki
+ *   the-brain docs <dev|build|serve>      Fumadocs documentation site
  */
 import { cac } from "cac";
 import { consola } from "consola";
@@ -25,20 +26,26 @@ import { wikiCommand } from "./commands/wiki";
 import { dashboardCommand } from "./commands/dashboard";
 import { contextCommand } from "./commands/context";
 import { trainCommand } from "./commands/train";
+import { backendCommand } from "./commands/backend";
+import { mcpCommand } from "./commands/mcp";
+import { agentCommand } from "./commands/agent";
+import { docsCommand } from "./commands/docs";
+import { getExtensionCommands } from "@the-brain/core";
 
-const cli = cac("my-brain");
+const cli = cac("the-brain");
 
 // Version
 cli.version("0.2.0");
 
 // ── Init ──────────────────────────────────────────────────────────
 cli
-  .command("init", "Initialize my-brain database and config")
+  .command("init", "Initialize the-brain database and config")
   .option("--force", "Overwrite existing config")
-  .option("--db-path <path>", "Database path (default: ~/.my-brain/global/brain.db)")
+  .option("--db-path <path>", "Database path (default: ~/.the-brain/global/brain.db)")
   .option("--project <name>", "Create a new project context (isolated brain)")
   .option("--work-dir <path>", "Project root for auto-detection")
   .option("--label <name>", "Human-friendly project name")
+  .option("--remote", "Enable remote server mode (generates auth token, binds 0.0.0.0)")
   .action(async (options) => {
     await initCommand(options);
   });
@@ -127,7 +134,7 @@ cli
 
 // ── Dashboard ──────────────────────────────────────────────────────
 cli
-  .command("dashboard", "Live Terminal UI dashboard for my-brain")
+  .command("dashboard", "Live Terminal UI dashboard for the-brain")
   .option("--project <name>", "Dashboard for specific project")
   .option("--global", "Dashboard for global brain")
   .option("--interval <seconds>", "Refresh interval (default: 2)")
@@ -146,6 +153,66 @@ cli
   .option("--limit <n>", "Max results per section (default: 10)")
   .action(async (options) => {
     await contextCommand(options);
+  });
+
+// ── Backend ────────────────────────────────────────────────────────
+cli
+  .command("backend <action>", "Manage pluggable backends (list|set|unset)")
+  .option("--slot <slot>", "Backend slot: storage|cleaner|scheduler")
+  .option("--module <path>", "Module path or npm package name")
+  .action(async (action: string, options) => {
+    await backendCommand(action, options);
+  });
+
+// ── Docs (Fumadocs) ────────────────────────────────────────────────
+cli
+  .command("docs <action>", "Manage documentation site (dev|build|serve)")
+  .option("--port <number>", "Port for dev/server (default: 3001)")
+  .action(async (action: string, options) => {
+    await docsCommand(action, options);
+  });
+
+// ── MCP Server ────────────────────────────────────────────────────
+cli
+  .command("mcp <action>", "Start MCP server (serve)")
+  .option("--transport <transport>", "Transport: stdio (default) | sse")
+  .option("--port <number>", "Port for HTTP/SSE transport (default: 9422)")
+  .option("--project <name>", "Target specific project context")
+  .option("--global", "Target global context")
+  .action(async (action: string, options) => {
+    await mcpCommand(action, options);
+  });
+
+// ── Agent (remote client) ──────────────────────────────────────────
+cli
+  .command("agent", "Run remote client agent — polls IDE logs and pushes to server")
+  .option("--once", "Run one poll cycle and exit")
+  .option("--interval <seconds>", "Poll interval in seconds (default: 60)")
+  .action(async (options) => {
+    await agentCommand(options);
+  });
+
+// ── Extension commands ─────────────────────────────────────────────
+cli
+  .command("ext <cmd> [args...]", "Run a command registered by an extension")
+  .action(async (cmd: string, args: string[]) => {
+    const commands = getExtensionCommands();
+    const handler = commands.get(cmd);
+    if (!handler) {
+      console.error(`Unknown extension command: "${cmd}"`);
+      console.error(`Available: ${[...commands.keys()].join(", ") || "(none)"}`);
+      process.exit(1);
+    }
+    await handler(args);
+  });
+
+// ── Timeline ───────────────────────────────────────────────────────
+import { timelineCommand } from "./commands/timeline";
+
+cli
+  .command("timeline", "Open brain activity timeline in browser")
+  .action(async () => {
+    await timelineCommand();
   });
 
 // Parse

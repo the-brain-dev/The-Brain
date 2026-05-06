@@ -1,8 +1,8 @@
-# Development Rules for my-brain
+# Development Rules for the-brain
 
 This document defines rules for both humans and AI agents working on this project.
 Agents that comply with AGENTS.md (Cursor, Claude Code, Windsurf, pi, Copilot) will
-automatically read and follow these rules when opened from the my-brain root directory.
+automatically read and follow these rules when opened from the the-brain root directory.
 
 ## Conversational Style
 
@@ -20,7 +20,7 @@ automatically read and follow these rules when opened from the my-brain root dir
   trainers — must be swappable plugins via `definePlugin()`.
 - **Selection over Accumulation**: Dumping everything into memory causes noise and hallucinations.
   The system must actively reject redundant, low-value information (Surprise-Gated SPM).
-- **Ambient UX**: The best tools are the ones you forget you're using. my-brain runs as a
+- **Ambient UX**: The best tools are the ones you forget you're using. the-brain runs as a
   background daemon with zero-effort data collection.
 - **TDD with >80% coverage**: All new code must include tests. Target >80% line coverage.
 
@@ -42,6 +42,25 @@ automatically read and follow these rules when opened from the my-brain root dir
 - To run coverage: `bun test --coverage`
 - NEVER run `bun run dev` in the background without being asked
 - NEVER commit unless the user asks
+
+## Documentation
+
+- **Docs live in `apps/docs/content/docs/`** — Fumadocs MDX files organized by section:
+  - `start-here/` — Overview, Installation, Quickstart, Configuration
+  - `core-concepts/` — Architecture, Hook System, Memory Layers
+  - `customization/` — Plugins, Harvesters, MLX Training, Storage, Identity Anchor
+  - `reference/` — CLI Reference, Config Schema, MCP Tools, Env Variables
+  - `integrations/` — MCP Server, Remote Mode, IDE Setup, Menu Bar
+  - `development/` — Contributing, Project Structure, Testing
+- **Update docs IMMEDIATELY after code changes** — same commit if possible.
+  - New CLI flag? → update `reference/cli-reference.mdx`
+  - New config field? → update `start-here/configuration.mdx` and `reference/config-schema.mdx`
+  - New hook/event? → update `core-concepts/hook-system.mdx`
+  - New plugin/harvester? → update `customization/` section
+  - New integration? → update `integrations/` section
+- Build docs to verify: `cd apps/docs && bun run build` (should compile clean, 12+ pages)
+- Dev server: `cd apps/docs && bun run dev` → http://localhost:3001
+- CLI shortcut: `the-brain docs dev` / `the-brain docs build`
 
 ## Test Conventions
 
@@ -76,7 +95,7 @@ Use these sections under `## [Unreleased]`:
 ## Project Structure
 
 ```
-my-brain/
+the-brain/
 ├── apps/
 │   └── cli/                    # CLI application (cac-based, 6 commands)
 │       ├── src/
@@ -85,7 +104,7 @@ my-brain/
 │       │   └── commands/       # CLI subcommands
 │       └── CHANGELOG.md
 ├── packages/
-│   ├── core/                   # @my-brain/core — types, hooks, plugin manager, db
+│   ├── core/                   # @the-brain/core — types, hooks, plugin manager, db
 │   ├── plugin-graph-memory/    # ⚡ Instant Layer — graph-based quick corrections
 │   ├── plugin-spm-curator/     # ⚖️ Selection Layer — surprise-gated filtering
 │   ├── plugin-harvester-cursor/# 📥 Cursor IDE log harvester
@@ -123,7 +142,7 @@ Follow this checklist in order.
 Create `src/index.ts`:
 
 ```typescript
-import { definePlugin, type PluginHooks } from "@my-brain/core";
+import { definePlugin, type PluginHooks } from "@the-brain/core";
 
 export default definePlugin({
   name: "harvester-<name>",
@@ -142,7 +161,7 @@ export default definePlugin({
 });
 ```
 
-**Harvester State Format** — persist to `~/.my-brain/<harvester>-state.json`:
+**Harvester State Format** — persist to `~/.the-brain/<harvester>-state.json`:
 ```json
 {
   "lastOffset": 12345,
@@ -220,9 +239,9 @@ Optional hooks (recommended):
   - `harvester-project.test.ts` — verify workspace → project name matching
   - `harvester-edge.test.ts` — empty responses, UTF-8 issues, truncated files
 
-- **Integration test**: Use `TestHarness` from `@my-brain/core`:
+- **Integration test**: Use `TestHarness` from `@the-brain/core`:
   ```typescript
-  import { TestHarness } from "@my-brain/core";
+  import { TestHarness } from "@the-brain/core";
 
   const harness = new TestHarness();
   await harness.start();
@@ -249,7 +268,7 @@ Optional hooks (recommended):
 
 Add to `apps/cli/src/daemon.ts` in the plugin list:
 ```typescript
-import harvesterNew from "@my-brain/plugin-harvester-<name>";
+import harvesterNew from "@the-brain/plugin-harvester-<name>";
 // ...
 const plugins = [harvesterCursor, harvesterClaude, harvesterNew, ...];
 ```
@@ -270,7 +289,7 @@ const plugins = [harvesterCursor, harvesterClaude, harvesterNew, ...];
 
 Before submitting, verify:
 - [ ] Uses `definePlugin()` with clean `setup(hooks)` pattern
-- [ ] Persists state to `~/.my-brain/<harvester>-state.json`
+- [ ] Persists state to `~/.the-brain/<harvester>-state.json`
 - [ ] Implements SHA-256 content deduplication
 - [ ] Resolves project context via workDir matching
 - [ ] Handles empty/partial/invalid log entries gracefully

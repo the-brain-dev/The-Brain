@@ -1,0 +1,41 @@
+---
+title: Menu Bar App
+description: macOS menu bar app for the-brain
+---
+
+The the-brain menu bar app provides quick access to your brain's state and actions.
+
+## Installation
+
+Automatically installed on macOS by `install.sh`:
+
+```bash
+curl -fsSL https://the-brain.dev/install.sh | bash
+```
+
+## Features
+
+- **Status indicator**: Green dot = daemon running, gray = stopped
+- **Memory counts**: Instant / Selection / Deep layers
+- **Quick actions**: Consolidate, Train, Wiki Generate
+- **Drag & drop**: Drop files onto the menu bar icon to ingest them
+- **Remote mode**: Reads `THE_BRAIN_REMOTE_URL` and `THE_BRAIN_AUTH_TOKEN` from environment
+
+## LaunchAgent
+
+The menu bar app starts automatically on login via `~/Library/LaunchAgents/com.thebrain.menubar.plist`.
+
+The daemon also auto-starts via `~/Library/LaunchAgents/com.thebrain.daemon.plist`.
+
+```bash
+the-brain daemon enable   # Enable auto-launch
+the-brain daemon disable  # Disable auto-launch
+```
+
+## Building from Source
+
+```bash
+cd apps/menu-bar
+swift build
+open .
+```
