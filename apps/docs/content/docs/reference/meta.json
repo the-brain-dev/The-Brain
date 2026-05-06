@@ -1,6 +1,6 @@
 {
   "title": "Reference",
   "root": false,
-  "pages": ["cli-reference", "config-schema", "mcp-tools", "env-variables", "content-cleaner"],
+  "pages": ["cli-reference", "config-schema", "http-api", "mcp-tools", "env-variables", "content-cleaner", "benchmarks"],
   "defaultOpen": false
 }

@@ -3,6 +3,81 @@ title: the-brain
 description: Pluggable Cognitive Operating System for AI Agents
 ---
 
-🧠 **the-brain** is an extensible background orchestrator that builds persistent memory from your AI coding assistant interactions.
+# 🧠 the-brain
 
-[Start Here →](/docs/start-here)
+**Pluggable Cognitive Operating System for AI Agents** — an extensible background orchestrator that builds persistent memory from your AI coding assistant interactions.
+
+---
+
+## Why the-brain?
+
+AI models forget everything between sessions. the-brain remembers — your coding patterns, preferences, corrections, and evolving style. It runs locally, costs nothing, and requires zero effort.
+
+<Mermaid chart={`
+graph LR
+    H["Harvesters<br/>Cursor · Claude · Gemini · Windsurf"] --> I["⚡ INSTANT<br/>Graph Memory"]
+    I --> S["⚖️ SELECTION<br/>SPM Curator"]
+    S --> D["🌌 DEEP<br/>MLX LoRA · SQLite · Wiki"]
+
+    style H fill:#1e3a5f,stroke:#22d3ee
+    style I fill:#4a1942,stroke:#fb7185
+    style S fill:#4a3a0f,stroke:#fb923c
+    style D fill:#2d1b4e,stroke:#a78bfa
+`}/>
+
+## Quick Links
+
+| | |
+|---|---|
+| 🚀 **[Installation](/docs/start-here/installation)** | Install in 60 seconds on macOS or Linux |
+| ⚡ **[Quickstart](/docs/start-here/quickstart)** | Your first brain in 5 minutes |
+| ⚙️ **[Configuration](/docs/start-here/configuration)** | Config file reference |
+| 🏗️ **[Architecture](/docs/core-concepts)** | 3-layer cognitive architecture |
+| 🧩 **[Writing Plugins](/docs/customization/writing-plugins)** | Extend the-brain with custom plugins |
+| 💻 **[CLI Reference](/docs/reference/cli-reference)** | Complete command reference |
+| 🌐 **[MCP Server](/docs/integrations/mcp-server)** | Use with Claude Desktop, Cursor, Zed |
+| 📡 **[Remote Mode](/docs/integrations/remote-mode)** | Run on a Linux server, connect from macOS |
+
+## Architecture at a Glance
+
+```
+Harvesters (Cursor, Claude Code, Windsurf, Gemini)
+  ↓
+⚡ INSTANT — Graph Memory (immediate corrections and preferences)
+  ↓
+⚖️ SELECTION — SPM Curator (filters noise from signal)
+  ↓
+🌌 DEEP — MLX LoRA Training (overnight consolidation)
+```
+
+## What the-brain Learns
+
+- **Corrections** — "No, actually use `useCallback` here" → remembers for next time
+- **Preferences** — "I prefer arrow functions" → injected into every prompt
+- **Patterns** — Repeated tech choices → auto-suggests related concepts
+- **Projects** — Per-project memory isolation with cross-project promotion
+
+## Documentation Sections
+
+| Section | Description |
+|---------|-------------|
+| **[Start Here](/docs/start-here)** | Installation, quickstart, configuration |
+| **[Core Concepts](/docs/core-concepts)** | Architecture, hook system, memory layers |
+| **[Customization](/docs/customization)** | Plugins, harvesters, training, extensions |
+| **[Reference](/docs/reference)** | CLI, config schema, MCP tools, env vars |
+| **[Integrations](/docs/integrations)** | MCP server, remote mode, IDE setup, menu bar |
+| **[Development](/docs/development)** | Contributing, project structure, testing |
+
+## Tech Stack
+
+| Component | Technology |
+|-----------|-----------|
+| Runtime | Bun + TypeScript |
+| Database | bun:sqlite + Drizzle ORM |
+| Plugins | hookable event system |
+| Training | Apple MLX (Python sidecar) |
+| Docs | Next.js + Fumadocs |
+
+## License
+
+MIT © 2026 Oskar Schachta

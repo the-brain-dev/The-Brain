@@ -1,0 +1,243 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for the-brain
+---
+
+## Daemon Won't Start
+
+**Symptoms:** `the-brain daemon start` fails silently or exits immediately.
+
+**Check list:**
+
+```bash
+# 1. Is the daemon already running?
+the-brain daemon status
+
+# 2. Check logs
+cat ~/.the-brain/logs/*.log | tail -30
+
+# 3. Check config.json is valid JSON
+python3 -m json.tool ~/.the-brain/config.json
+
+# 4. Verify all dependencies
+bun --version   # requires >= 1.2
+python3 --version  # requires >= 3.11 (for MLX)
+```
+
+**Config issue:** If you migrated from `my-brain`, the old config format may be incompatible. Re-run:
+
+```bash
+the-brain init --force
+```
+
+## Port 9420 Already in Use
+
+**Symptom:** `Error: Address already in use :9420`
+
+```bash
+# Find what's using port 9420
+lsof -i :9420
+
+# Kill the existing process
+kill <PID>
+
+# Or start on a custom port
+# (set server.port in config.json)
+```
+
+If the daemon is running but you can't reach it:
+
+```bash
+curl http://localhost:9420/api/health
+```
+
+## MCP Server Won't Connect
+
+**Symptom:** Claude Desktop / Cursor shows "MCP server error: connection failed"
+
+**Check the MCP config:**
+
+For Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "the-brain": {
+      "command": "bun",
+      "args": ["run", "the-brain", "mcp", "serve"]
+    }
+  }
+}
+```
+
+**Verify the CLI works standalone:**
+
+```bash
+the-brain mcp serve
+# Should print info and wait (stdio mode)
+```
+
+**Common causes:**
+- `bun` not in PATH when launched from Claude Desktop → use absolute path: `bun` → `/usr/local/bin/bun` (or `which bun`)
+- Daemon not running (MCP needs a running daemon to serve data)
+- Wrong project context (try `--global` or `--project <name>`)
+
+## No Memories Appearing
+
+**Symptom:** `the-brain inspect --stats` shows 0 memories after hours of use.
+
+```bash
+# 1. Is the daemon running?
+the-brain daemon status
+
+# 2. Are harvesters loaded?
+the-brain plugins list
+
+# 3. Manually test harvester by checking Cursor logs
+ls -la ~/.cursor/agent-transcripts/*.jsonl 2>/dev/null | head -5
+
+# 4. Force a poll cycle (restart daemon triggers a poll)
+the-brain daemon stop && the-brain daemon start
+
+# 5. Check if harvester state files exist
+ls -la ~/.the-brain/*-state.json
+```
+
+**If plugins list is empty**, harvesters aren't loading. Check `config.json` has them listed:
+
+```json
+{
+  "plugins": [
+    { "name": "@the-brain/plugin-harvester-cursor", "enabled": true }
+  ]
+}
+```
+
+## MLX Training Fails
+
+**Symptom:** `the-brain train` or nightly training fails with Python error.
+
+```bash
+# 1. Check MLX prerequisites
+python3 -c "import mlx.core; print('MLX:', mlx.core.__version__)"
+
+# 2. Check uv is installed
+uv --version
+
+# 3. Run training with verbose output
+the-brain train --dry-run
+
+# 4. Check Python sidecar logs
+cat ~/.the-brain/logs/*train*.log
+```
+
+**Common fixes:**
+- MLX requires Apple Silicon (M1+) — not available on Intel Macs or Linux
+- Set `NO_MLX=1` in environment to skip MLX entirely
+- Run `uv run --with mlx-lm python3 -c "import mlx.core"` to pre-cache dependencies
+
+## Memory Lost After Restart
+
+**Symptom:** Memories from yesterday are gone.
+
+```bash
+# Check which database file is active
+cat ~/.the-brain/config.json | grep dbPath
+
+# Verify the file exists and has content
+sqlite3 ~/.the-brain/global/brain.db "SELECT COUNT(*) FROM memories" 2>/dev/null
+
+# Check memory layers specifically
+the-brain inspect --memories deep
+the-brain inspect --memories selection
+```
+
+**Memory is NOT lost.** The inspect command shows INSTANT layer by default. DEEP memories are there — use `--memories deep` or `--memories all`.
+
+## Config Changes Not Taking Effect
+
+The daemon reads config at startup. After editing `~/.the-brain/config.json`:
+
+```bash
+the-brain daemon stop && the-brain daemon start
+```
+
+For plugin config changes, also restart the daemon:
+
+```bash
+the-brain daemon restart
+```
+
+## Remote Mode: Connection Refused
+
+**Symptom:** Agent can't connect to remote daemon.
+
+```bash
+# On the server, check daemon is running and listening
+the-brain daemon status
+ss -tlnp | grep 9420
+
+# Check auth token matches
+# Server:
+cat ~/.the-brain/config.json | grep authToken
+
+# Client:
+echo $THE_BRAIN_AUTH_TOKEN
+
+# Test connection from client
+curl -H "Authorization: Bearer mb_<token>" http://<server-ip>:9420/api/health
+```
+
+**Common issues:**
+- Server firewall blocking port 9420
+- `bindAddress` in config is `127.0.0.1` instead of `0.0.0.0`
+- Auth token mismatch (check for trailing whitespace)
+- `the-brain init --remote` wasn't run on the server
+
+## Menu Bar App Shows Gray Dot
+
+**Symptom:** TheBrainBar shows gray (not green) dot.
+
+- Gray dot means daemon is not running → start it: `the-brain daemon start`
+- Wait ~10 seconds for the menu bar to re-check
+- If still gray, restart the menu bar app: kill TheBrainBar from Activity Monitor, it auto-restarts via LaunchAgent
+
+## LaunchAgent Not Starting
+
+**Symptom:** Daemon or menu bar doesn't auto-start on login.
+
+```bash
+# Check LaunchAgent status
+launchctl list | grep thebrain
+
+# Manually load
+launchctl load ~/Library/LaunchAgents/com.thebrain.daemon.plist
+launchctl load ~/Library/LaunchAgents/com.thebrain.bar.plist
+
+# Enable auto-launch via CLI
+the-brain daemon enable
+```
+
+If LaunchAgent fails silently, check permissions:
+
+```bash
+ls -la ~/Library/LaunchAgents/com.thebrain.*.plist
+# Should be readable by you (not root-owned)
+```
+
+## Error: "getaddrinfo ENOENT" in Timeline
+
+The timeline SPA tries to fetch from `localhost:9420` and fails. This usually means:
+
+1. The daemon isn't running on your machine (start it)
+2. You're accessing from a remote browser (use remote mode instead)
+3. Port 9420 was changed in config but the timeline HTML still hits `localhost:9420`
+
+## Still Stuck?
+
+Open a [GitHub Discussion](https://github.com/the-brain-dev/Brain/discussions) with:
+
+- Output of `the-brain daemon status`
+- Output of `the-brain health --json`
+- Relevant log lines from `~/.the-brain/logs/`
+- Your `~/.the-brain/config.json` (redact auth tokens)

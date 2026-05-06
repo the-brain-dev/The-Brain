@@ -1,0 +1,211 @@
+---
+title: End-to-End Tutorial
+description: Set up the-brain with a React project — from init to context injection
+---
+
+This tutorial walks through a complete the-brain workflow with a real React project. You'll see how memories are harvested, curated, and injected back into your prompts.
+
+## Prerequisites
+
+- macOS with Apple Silicon (for MLX — optional but recommended)
+- [Bun](https://bun.sh) installed
+- A React project you're actively working on (or use any project)
+
+## Step 1: Install the-brain
+
+```bash
+curl -fsSL https://the-brain.dev/install.sh | bash
+```
+
+Verify:
+
+```bash
+the-brain --version
+```
+
+## Step 2: Initialize with Your Project
+
+```bash
+the-brain init --project my-react-app --work-dir ~/code/my-react-app --label "My React Project"
+```
+
+This creates an isolated context for your project:
+
+```
+~/.the-brain/
+├── config.json          # activeContext + contexts
+├── global/              # Cross-project knowledge
+└── projects/
+    └── my-react-app/    # Project-specific memory
+        ├── brain.db
+        ├── wiki/
+        └── lora-checkpoints/
+```
+
+## Step 3: Start the Daemon
+
+```bash
+the-brain daemon start
+```
+
+The daemon runs in the background, polling your IDE logs every 30 seconds. Verify:
+
+```bash
+the-brain health
+# → Status: running
+```
+
+## Step 4: Work Normally
+
+Now use your AI coding assistant (Cursor, Claude Code, or Windsurf) inside `~/code/my-react-app`. Every interaction gets harvested:
+
+- Corrections you make ("no, use `useCallback` instead")
+- Preferences you express ("I prefer arrow functions")
+- Patterns that emerge ("we keep using the same testing library")
+
+**How it works in the background:**
+
+```bash
+# Every 30 seconds, the daemon:
+# 1. Reads new interactions from IDE logs
+# 2. SHA-256 deduplication prevents duplicates
+# 3. Layer 1 (Graph Memory) detects corrections, preferences, patterns
+# 4. Layer 2 (SPM Curator) scores each interaction for surprise
+# 5. High-scoring interactions get promoted to Deep layer
+```
+
+## Step 5: Inspect Your Brain
+
+After a few interactions, check what the-brain has learned:
+
+```bash
+# Overall stats
+the-brain inspect --stats
+
+# Graph memory nodes (corrections, preferences, patterns)
+the-brain inspect --graph
+
+# Recent interactions
+the-brain inspect --recent
+
+# Search by keyword
+the-brain inspect --search "useCallback"
+
+# Filter by type
+the-brain inspect --top correction
+the-brain inspect --top preference
+```
+
+Example output you might see:
+
+```
+📊 Memory Stats
+  Total: 24 fragments
+  ⚡ Instant: 18 graph nodes
+  ⚖️ Selection: 4 curated
+  🌌 Deep: 2 consolidated
+
+🔝 Top Corrections (weight: 0.6+)
+  • "Use useCallback instead of useMemo for handlers" (weight: 0.72)
+  • "Always extract error types in try-catch" (weight: 0.65)
+  • "Use named exports over default exports" (weight: 0.58)
+```
+
+## Step 6: Use Context Injection
+
+Now when you start a new conversation in your AI assistant, inject your brain's context:
+
+```bash
+the-brain context --prompt "fix the auth bug in login component" --format markdown
+```
+
+This returns relevant memories, corrections, and patterns. The output might look like:
+
+```markdown
+## Context from the-brain
+
+### Active Corrections
+- Use useCallback instead of useMemo for handler functions
+- Always extract error types in try-catch blocks
+
+### Active Preferences
+- Prefer arrow functions over function declarations
+- Use named exports over default exports
+
+### Related Patterns
+- Using React Hook Form + Zod for form validation
+- Tailwind CSS with custom design system tokens
+```
+
+## Step 7: View the Timeline
+
+Open the timeline to see your interaction history:
+
+```bash
+the-brain timeline
+```
+
+Or visit [http://localhost:9420/timeline](http://localhost:9420/timeline) in your browser. Filter by layer (Instant / Selection / Deep) and source (Cursor / Claude Code).
+
+## Step 8: Consolidate and Train
+
+After a day of work, promote valuable memories to the Deep layer:
+
+```bash
+# Promote surprising memories to DEEP
+the-brain consolidate --now
+
+# Run LoRA training (overnight or manual)
+the-brain train
+
+# Or preview what would be trained
+the-brain train --dry-run
+```
+
+Training produces LoRA adapters:
+
+```
+~/.the-brain/projects/my-react-app/lora-checkpoints/
+├── adapter.safetensors    # ~2-5 MB weights
+├── training_config.json   # Run metadata
+└── training_data.jsonl    # Input training data
+```
+
+## Step 9: Switch Contexts
+
+Working on multiple projects? Switch between them:
+
+```bash
+the-brain switch-context --project my-react-app
+the-brain inspect --stats   # → sees project-specific memories
+
+the-brain switch-context --global
+the-brain inspect --stats   # → sees cross-project memories
+```
+
+Global context aggregates patterns across all projects. Useful for developer-level knowledge (your preferred testing library, commit style, etc.).
+
+## Step 10: Automate
+
+Enable auto-start so the daemon and menu bar app launch on login:
+
+```bash
+the-brain daemon enable
+```
+
+Now your brain is always running, always learning.
+
+## Recap
+
+| Step | Command | What Happens |
+|------|---------|-------------|
+| Install | `curl ... \| bash` | Bun + CLI + LaunchAgents |
+| Init | `the-brain init --project X` | Creates isolated context |
+| Start | `the-brain daemon start` | Background daemon starts |
+| Work | Use Cursor/Claude Code | IDE interactions harvested |
+| Inspect | `the-brain inspect --stats` | See what was learned |
+| Inject | `the-brain context --prompt "..."` | Get relevant context |
+| Consolidate | `the-brain consolidate --now` | Promote to DEEP |
+| Train | `the-brain train` | MLX LoRA training |
+
+That's it. Your brain is now working for you, getting more accurate with every interaction.

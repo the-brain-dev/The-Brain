@@ -7,25 +7,64 @@ the-brain implements a 3-layer cognitive architecture inspired by human memory.
 
 ## Data Flow
 
-```
-Harvesters (Cursor IDE, Claude Code, Windsurf)
-  ↓
-⚡ INSTANT — Graph Memory (immediate corrections)
-  ↓
-⚖️ SELECTION — SPM Curator (filters noise)
-  ↓
-🌌 DEEP — MLX LoRA Training (overnight consolidation)
-```
+<Mermaid chart={`
+graph TB
+    subgraph INPUT["📥 Input — Harvesters"]
+        H1["Cursor IDE"]
+        H2["Claude Code"]
+        H3["Gemini CLI"]
+        H4["Windsurf"]
+        H5["Drag & Drop"]
+    end
+
+    subgraph INSTANT["⚡ Layer 1: INSTANT — Graph Memory"]
+        G1["Correction Detection"]
+        G2["Preference Tracking"]
+        G3["Pattern Detection"]
+        G4["Concept Nodes"]
+        G5["Weight Decay"]
+    end
+
+    subgraph SELECTION["⚖️ Layer 2: SELECTION — SPM Curator"]
+        S1["Composite Score"]
+        S2["TF-IDF / EMA-Gaussian"]
+        S3["N-gram Novelty"]
+        S4["Deduplication"]
+    end
+
+    subgraph DEEP["🌌 Layer 3: DEEP — Consolidation"]
+        D1["MLX LoRA Training"]
+        D2["SQLite Storage"]
+        D3["Auto-Wiki"]
+    end
+
+    H1 -->|HARVESTER_POLL| INSTANT
+    H2 -->|HARVESTER_POLL| INSTANT
+    H3 -->|HARVESTER_POLL| INSTANT
+    H4 -->|HARVESTER_POLL| INSTANT
+    H5 -->|HARVESTER_POLL| INSTANT
+
+    INSTANT -->|AFTER_RESPONSE| SELECTION
+    SELECTION -->|score > 0.30| DEEP
+    DEEP -->|2AM cron| D1
+    DEEP -->|always| D2
+    DEEP -->|weekly| D3
+
+    style INPUT fill:#1e3a5f,stroke:#22d3ee
+    style INSTANT fill:#4a1942,stroke:#fb7185
+    style SELECTION fill:#4a3a0f,stroke:#fb923c
+    style DEEP fill:#2d1b4e,stroke:#a78bfa
+`}/>
 
 ## Design Principles
 
-**Local-First**: Data never leaves your machine. Local SQLite, local MLX training.
+**Local-First:** Data never leaves your machine. Local SQLite, local MLX training.
 
-**Pluggable Architecture**: Core is an empty data bus. Everything — harvesters, memory modules, trainers — is a swappable plugin via `definePlugin()`.
+**Pluggable Architecture:** Core is an empty data bus. Everything — harvesters, memory modules, trainers — is a swappable plugin via `definePlugin()`.
 
-**Selection over Accumulation**: The system actively rejects redundant information. SPM (Surprise-Gated Prediction Error) learns only from what surprises you.
+**Selection over Accumulation:** The system actively rejects redundant information. SPM (Surprise-Gated Prediction Error) learns only from what surprises you.
 
-**Ambient UX**: Zero-effort background daemon. No manual input required.
+**Ambient UX:** Zero-effort background daemon. No manual input required.
 
 ## Database
 

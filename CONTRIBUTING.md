@@ -63,7 +63,7 @@ PRs that bloat the core will likely be rejected.
 
 ## Questions?
 
-Open a discussion on [GitHub Discussions](https://github.com/oskarschachta/the-brain/discussions).
+Open a discussion on [GitHub Discussions](https://github.com/the-brain-dev/Brain/discussions).
 
 ## FAQ
 

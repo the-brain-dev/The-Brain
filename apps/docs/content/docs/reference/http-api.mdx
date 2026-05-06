@@ -1,0 +1,287 @@
+---
+title: HTTP API Reference
+description: REST API reference for the the-brain daemon (port 9420)
+---
+
+The the-brain daemon exposes a REST API on `localhost:9420` (default). In remote mode, all endpoints except `/api/health` require `Authorization: Bearer <token>`.
+
+## Authentication
+
+```http
+Authorization: Bearer mb_<token>
+```
+
+Required on all endpoints in remote mode except `/api/health`.
+
+## CORS
+
+All endpoints return `Access-Control-Allow-Origin: *` and support `OPTIONS` preflight.
+
+---
+
+## `GET /api/health`
+
+Daemon status and identity.
+
+**Auth:** None (public)
+
+**Response:**
+
+```json
+{
+  "status": "running",
+  "pid": 12345,
+  "uptime": 3600000,
+  "uptimeFormatted": "1h 0m",
+  "activeProject": "my-app",
+  "interactionCount": 42,
+  "mode": "local"
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | string | `"running"` or `"stopped"` |
+| `pid` | number | Process ID |
+| `uptime` | number | Milliseconds since daemon start |
+| `uptimeFormatted` | string | Human-readable uptime (`1h 0m`, `3d 12h`) |
+| `activeProject` | string | Current project name or `"global"` |
+| `interactionCount` | number | Total interactions processed |
+| `mode` | string | `"local"` or `"remote"` |
+
+---
+
+## `GET /api/stats`
+
+Memory and graph statistics.
+
+**Auth:** Required in remote mode
+
+**Response:**
+
+```json
+{
+  "memories": {
+    "total": 150,
+    "instant": 100,
+    "selection": 30,
+    "deep": 20
+  },
+  "graphNodes": 45,
+  "lastConsolidation": 1714800000000,
+  "lastTraining": 1714800000000,
+  "lastTrainingDuration": 12.5,
+  "lastTrainingLoss": 0.023,
+  "interactionCount": 42
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `memories.total` | number | Total memory fragments |
+| `memories.instant` | number | Layer 1 (graph memory) |
+| `memories.selection` | number | Layer 2 (SPM curated) |
+| `memories.deep` | number | Layer 3 (consolidated) |
+| `graphNodes` | number | Graph memory nodes |
+| `lastConsolidation` | number \| null | Last consolidation timestamp |
+| `lastTraining` | number \| null | Last MLX training timestamp |
+| `lastTrainingDuration` | number \| null | Training duration in seconds |
+| `lastTrainingLoss` | number \| null | Final training loss |
+| `interactionCount` | number | Total interactions processed |
+
+---
+
+## `POST /api/consolidate`
+
+Force promotion of surprising memories from SELECTION to DEEP layer.
+
+**Auth:** Required in remote mode
+
+**Body:** None
+
+**Response:**
+
+```json
+{
+  "consolidated": true,
+  "memoriesProcessed": 12,
+  "timestamp": 1714800000000
+}
+```
+
+When no surprising memories:
+
+```json
+{
+  "consolidated": false,
+  "reason": "No surprising memories",
+  "memoriesChecked": 0
+}
+```
+
+---
+
+## `POST /api/train`
+
+Trigger MLX LoRA training on DEEP memories.
+
+**Auth:** Required in remote mode
+
+**Body:** None
+
+**Response:**
+
+```json
+{
+  "trained": true,
+  "fragmentCount": 20,
+  "duration": 45.2
+}
+```
+
+When no DEEP memories:
+
+```json
+{
+  "trained": false,
+  "reason": "No DEEP memories"
+}
+```
+
+---
+
+## `POST /api/ingest-file`
+
+Ingest files (PDF, images, documents) into the brain via drag-and-drop. Files are converted to markdown using MarkItDown (Python sidecar).
+
+**Auth:** Required in remote mode
+
+**Body:**
+
+```json
+{
+  "path": "/absolute/path/to/file.pdf"
+}
+```
+
+Or batch:
+
+```json
+{
+  "paths": ["/path/to/doc1.pdf", "/path/to/doc2.md"]
+}
+```
+
+**Guards:**
+- Maximum file size: 20 MB
+- Path traversal blocked (`..`)
+- Content deduplication (SHA-256)
+- Only absolute paths accepted
+
+**Response:**
+
+```json
+{
+  "ingested": 2,
+  "total": 2,
+  "results": [
+    { "path": "/path/to/doc1.pdf", "ingested": true, "bytes": 4500 },
+    { "path": "/path/to/doc2.md", "ingested": true, "bytes": 1200 }
+  ]
+}
+```
+
+Error example:
+
+```json
+{
+  "path": "/path/to/large.mp4",
+  "ingested": false,
+  "bytes": 0,
+  "error": "File too large (35.0 MB, max 20 MB)"
+}
+```
+
+---
+
+## `POST /api/ingest-interaction`
+
+Push a raw interaction (prompt + response pair) into the brain pipeline. Used by the push agent and external integrations.
+
+**Auth:** Required in remote mode
+
+**Body:**
+
+```json
+{
+  "interaction": {
+    "id": "optional-custom-id",
+    "timestamp": 1714800000000,
+    "prompt": "Write a React component",
+    "response": "Here is a functional component...",
+    "source": "my-custom-tool",
+    "metadata": {
+      "language": "TypeScript",
+      "project": "my-app"
+    }
+  }
+}
+```
+
+Minimum required fields: `prompt`, `source`.
+
+**Response:**
+
+```json
+{
+  "ingested": true,
+  "id": "ingest-1714800000000-YXBhY2hl"
+}
+```
+
+---
+
+## `GET /api/timeline`
+
+Paginated memory list, newest first.
+
+**Auth:** Required in remote mode
+
+**Query Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `offset` | number | `0` | Pagination offset |
+| `limit` | number | `20` | Page size (max: `100`) |
+| `layer` | string | — | Filter: `0` (INSTANT), `1` (SELECTION), `2` (DEEP), `all` |
+| `source` | string | — | Filter by source name (e.g. `cursor`, `claude-code`) |
+
+**Response:**
+
+```json
+{
+  "memories": [
+    {
+      "id": "m_abc123",
+      "layer": 2,
+      "content": "Prefer arrow functions over function declarations",
+      "surpriseScore": 0.85,
+      "timestamp": 1714800000000,
+      "source": "cursor",
+      "metadata": {}
+    }
+  ],
+  "hasMore": true,
+  "total": 150
+}
+```
+
+---
+
+## `GET /timeline`
+
+Returns an HTML single-page application showing the interactive memory timeline. Same data as the JSON API, rendered as a dark-theme infinite-scroll page.
+
+**Auth:** Required in remote mode
+
+**Response:** `text/html`

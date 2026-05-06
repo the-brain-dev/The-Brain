@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Built with Bun](https://img.shields.io/badge/Built%20with-Bun-orange)](https://bun.sh)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)](https://www.typescriptlang.org/)
-[![Coverage](https://img.shields.io/badge/coverage-86%25-green)](https://github.com/oskarschachta/the-brain)
+[![Coverage](https://img.shields.io/badge/coverage-86%25-green)](https://github.com/the-brain-dev/Brain)
 
 **the-brain** is an extensible, background orchestrator that observes your interactions with AI coding assistants and builds a persistent memory tailored specifically to **you**.
 
@@ -52,7 +52,7 @@ You can use our default built-in modules, swap them out for community plugins, o
 curl -fsSL https://the-brain.dev/install.sh | bash
 
 # Or install from source
-git clone https://github.com/oskarschachta/the-brain.git
+git clone https://github.com/the-brain-dev/Brain.git
 cd the-brain
 bun install
 bun run apps/cli/src/index.ts init

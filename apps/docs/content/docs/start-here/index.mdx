@@ -21,15 +21,17 @@ That's it. The daemon watches your IDE logs and builds your brain in the backgro
 
 ## Architecture at a Glance
 
-```
-Harvesters (Cursor, Claude Code, Windsurf)
-  ↓
-⚡ INSTANT — Graph Memory (immediate corrections)
-  ↓
-⚖️ SELECTION — SPM Curator (filters noise)
-  ↓
-🌌 DEEP — MLX LoRA Training (overnight consolidation)
-```
+<Mermaid chart={`
+graph LR
+    H["Harvesters"] --> I["⚡ INSTANT<br/>Graph Memory"]
+    I --> S["⚖️ SELECTION<br/>SPM Curator"]
+    S --> D["🌌 DEEP<br/>MLX LoRA Training"]
+
+    style H fill:#1e3a5f,stroke:#22d3ee
+    style I fill:#4a1942,stroke:#fb7185
+    style S fill:#4a3a0f,stroke:#fb923c
+    style D fill:#2d1b4e,stroke:#a78bfa
+`}/>
 
 ## What the-brain Learns
 

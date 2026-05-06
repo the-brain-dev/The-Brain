@@ -1,6 +1,6 @@
 {
   "title": "Customization",
   "root": false,
-  "pages": ["writing-plugins", "plugin-contracts", "harvesters", "mlx-training", "storage-backends", "identity-anchor", "extensions", "prompt-system"],
+  "pages": ["writing-plugins", "plugin-contracts", "harvesters", "mlx-training", "python-sidecar", "storage-backends", "identity-anchor", "extensions", "prompt-system"],
   "defaultOpen": false
 }

@@ -2,20 +2,197 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen bg-black text-white">
-      <h1 className="text-6xl font-bold tracking-tight mb-4">
-        🧠 the-brain
-      </h1>
-      <p className="text-xl text-zinc-400 mb-12 max-w-md text-center leading-relaxed">
-        Local-first, pluggable cognitive OS
-        for AI coding assistants.
-      </p>
-      <Link
-        href="/docs"
-        className="px-6 py-3 rounded-lg bg-white text-black font-medium hover:bg-zinc-200 transition-colors"
-      >
-        Read the docs
-      </Link>
+    <main className="min-h-screen bg-black text-white">
+      {/* Hero Section */}
+      <section className="flex flex-col items-center justify-center min-h-[70vh] px-4">
+        <div className="relative">
+          <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-violet-500 to-emerald-500 rounded-2xl blur-xl opacity-30" />
+          <div className="relative px-8 py-6 rounded-2xl bg-black/90 border border-zinc-800">
+            <h1 className="text-6xl font-bold tracking-tight mb-3 text-center">
+              🧠 the-brain
+            </h1>
+          </div>
+        </div>
+
+        <p className="text-xl text-zinc-400 mt-6 mb-4 max-w-2xl text-center leading-relaxed">
+          A <span className="text-white font-medium">local-first, pluggable cognitive operating system</span>{" "}
+          for AI coding assistants. Builds persistent memory from your IDE interactions
+          — with zero effort and zero cloud dependencies.
+        </p>
+
+        <p className="text-sm text-zinc-500 mb-10 text-center max-w-xl">
+          Corrections, preferences, and patterns are harvested automatically,
+          filtered by surprise-gated prediction error, and consolidated via local LoRA training.
+        </p>
+
+        <div className="flex gap-4">
+          <Link
+            href="/docs"
+            className="px-6 py-3 rounded-lg bg-white text-black font-medium hover:bg-zinc-200 transition-colors"
+          >
+            Read the docs →
+          </Link>
+          <a
+            href="https://github.com/the-brain-dev/Brain"
+            target="_blank"
+            className="px-6 py-3 rounded-lg border border-zinc-700 text-zinc-300 font-medium hover:bg-zinc-900 transition-colors"
+          >
+            GitHub
+          </a>
+        </div>
+
+        <div className="flex gap-6 mt-6 text-sm text-zinc-600">
+          <span>MIT License</span>
+          <span>Bun + TypeScript</span>
+          <span>Apple MLX</span>
+          <span>86% Test Coverage</span>
+        </div>
+      </section>
+
+      {/* Architecture Section */}
+      <section className="max-w-5xl mx-auto px-4 pb-24">
+        <h2 className="text-2xl font-semibold text-center mb-12">3-Layer Cognitive Architecture</h2>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6">
+            <div className="text-2xl mb-3">⚡</div>
+            <h3 className="text-lg font-semibold mb-2">Instant Layer</h3>
+            <p className="text-sm text-zinc-400 leading-relaxed mb-4">
+              Graph memory that detects corrections, preferences, and patterns in real-time.
+              Language-agnostic structural heuristics with weight decay.
+            </p>
+            <div className="text-xs text-zinc-600 font-mono">plugin-graph-memory</div>
+          </div>
+
+          <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6">
+            <div className="text-2xl mb-3">⚖️</div>
+            <h3 className="text-lg font-semibold mb-2">Selection Layer</h3>
+            <p className="text-sm text-zinc-400 leading-relaxed mb-4">
+              Surprise-Gated Prediction Error (SPM). Filters noise from signal using a
+              composite score of scalar, embedding, and novelty metrics.
+            </p>
+            <div className="text-xs text-zinc-600 font-mono">plugin-spm-curator</div>
+          </div>
+
+          <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6">
+            <div className="text-2xl mb-3">🌌</div>
+            <h3 className="text-lg font-semibold mb-2">Deep Layer</h3>
+            <p className="text-sm text-zinc-400 leading-relaxed mb-4">
+              Overnight LoRA training on consolidated memories via Apple MLX.
+              Fully private — data never leaves your machine.
+            </p>
+            <div className="text-xs text-zinc-600 font-mono">trainer-local-mlx</div>
+          </div>
+        </div>
+
+        <div className="mt-8 bg-zinc-900/30 border border-zinc-800 rounded-xl p-5 text-center">
+          <p className="text-sm text-zinc-400 font-mono">
+            Harvesters → ⚡ Instant → ⚖️ Selection → 🌌 Deep → Context Injection
+          </p>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section className="max-w-5xl mx-auto px-4 pb-24">
+        <h2 className="text-2xl font-semibold text-center mb-12">Key Features</h2>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <FeatureCard
+            icon="🔌"
+            title="Pluggable Architecture"
+            desc="Core is an empty data bus. Everything — harvesters, memory modules, trainers — is a swappable plugin via definePlugin()."
+          />
+          <FeatureCard
+            icon="🏠"
+            title="Local-First, Private"
+            desc="Data never leaves your machine. Default SQLite + local MLX training. No cloud dependencies, no telemetry."
+          />
+          <FeatureCard
+            icon="🌐"
+            title="Multi-IDE Support"
+            desc="Auto-harvests from Cursor, Claude Code, Gemini, and Windsurf. New harvesters via a simple plugin interface."
+          />
+          <FeatureCard
+            icon="🧩"
+            title="Plugin Ecosystem"
+            desc="Built-in plugins for graph memory, SPM filtering, identity anchoring, auto-wiki, MLX training, and LibSQL storage."
+          />
+          <FeatureCard
+            icon="📡"
+            title="Remote Mode"
+            desc="Run the daemon on a Linux server, connect from macOS. MCP server for Claude Desktop, Cursor, and Zed."
+          />
+          <FeatureCard
+            icon="🔄"
+            title="Context Injection"
+            desc="Relevant memories, corrections, and preferences injected into every AI prompt — automatically or on demand."
+          />
+        </div>
+      </section>
+
+      {/* Quick Start */}
+      <section className="max-w-3xl mx-auto px-4 pb-24">
+        <h2 className="text-2xl font-semibold text-center mb-8">Quick Start</h2>
+
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+          <pre className="text-sm text-zinc-300 font-mono leading-relaxed">
+            <span className="text-zinc-600"># Install in 60 seconds</span>
+            <br />
+            <span className="text-cyan-400">curl -fsSL https://the-brain.dev/install.sh | bash</span>
+            <br /><br />
+            <span className="text-zinc-600"># Initialize</span>
+            <br />
+            <span className="text-emerald-400">the-brain init</span>
+            <br /><br />
+            <span className="text-zinc-600"># Start background daemon</span>
+            <br />
+            <span className="text-emerald-400">the-brain daemon start</span>
+            <br /><br />
+            <span className="text-zinc-600"># Your brain is now learning</span>
+            <br />
+            <span className="text-zinc-400">the-brain inspect --stats</span>
+          </pre>
+        </div>
+
+        <div className="flex justify-center mt-8 gap-4">
+          <Link
+            href="/docs/start-here/installation"
+            className="px-5 py-2.5 rounded-lg bg-zinc-800 text-zinc-300 font-medium hover:bg-zinc-700 transition-colors text-sm"
+          >
+            Installation guide
+          </Link>
+          <Link
+            href="/docs/start-here/tutorial"
+            className="px-5 py-2.5 rounded-lg bg-zinc-800 text-zinc-300 font-medium hover:bg-zinc-700 transition-colors text-sm"
+          >
+            End-to-end tutorial
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-zinc-800 py-8 text-center text-sm text-zinc-600">
+        <p>MIT © 2026 Oskar Schachta</p>
+        <p className="mt-1">
+          <a href="https://github.com/the-brain-dev/Brain" target="_blank" className="hover:text-zinc-400 transition-colors">GitHub</a>
+          <span className="mx-2">·</span>
+          <a href="https://hermes-agent.nousresearch.com" target="_blank" className="hover:text-zinc-400 transition-colors">Built with Hermes Agent</a>
+        </p>
+      </footer>
     </main>
+  );
+}
+
+function FeatureCard({ icon, title, desc }: { icon: string; title: string; desc: string }) {
+  return (
+    <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5">
+      <div className="flex items-start gap-3">
+        <span className="text-xl mt-0.5">{icon}</span>
+        <div>
+          <h3 className="font-semibold mb-1">{title}</h3>
+          <p className="text-sm text-zinc-400 leading-relaxed">{desc}</p>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -95,15 +95,34 @@ Overnight LoRA training on curated memories. See [MLX Training](/docs/customizat
 
 ### Promotion Flow
 
-```
-Interaction → INSTANT (graph memory)
-  ↓ AFTER_RESPONSE
-SPM evaluation → composite surprise score
-  ↓ above threshold (default 0.82)
-SELECTION promotion → DEEP
-  ↓ DEEP_CONSOLIDATE (2 AM cron)
-MLX LoRA training → model weights
-```
+<Mermaid chart={`
+graph TB
+    subgraph INSTANT["⚡ INSTANT — Graph Memory"]
+        A1["AFTER_RESPONSE handler"]
+    end
+    subgraph SPM["⚖️ SPM Curator — Evaluation"]
+        B1["Composite surprise score"]
+        B2["above threshold (default 0.82)"]
+    end
+    subgraph SELECTION["⚖️ SELECTION — Promotion"]
+        C1["SELECTION_PROMOTE → DEEP"]
+    end
+    subgraph DEEP["🌌 DEEP — Consolidation"]
+        D1["DEEP_CONSOLIDATE (2 AM cron)"]
+        D2["MLX LoRA Training"]
+    end
+
+    A1 -->|"ON_INTERACTION"| B1
+    B1 -->|score > threshold| B2
+    B2 --> C1
+    C1 --> D1
+    D1 --> D2
+
+    style INSTANT fill:#4a1942,stroke:#fb7185
+    style SPM fill:#4a3a0f,stroke:#fb923c
+    style SELECTION fill:#4a3a0f,stroke:#fb923c
+    style DEEP fill:#2d1b4e,stroke:#a78bfa
+`}/>
 
 ## Layer Configuration
 

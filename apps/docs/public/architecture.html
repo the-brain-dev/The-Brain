@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>the-brain Architecture Diagram</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: #020617;
+      min-height: 100vh;
+      padding: 2rem;
+      color: white;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .header { margin-bottom: 2rem; }
+    .header-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
+    .pulse-dot {
+      width: 12px; height: 12px; background: #22d3ee; border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.025em; }
+    .subtitle { color: #94a3b8; font-size: 0.875rem; margin-left: 1.75rem; }
+    .diagram-container {
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 1rem;
+      border: 1px solid #1e293b;
+      padding: 1.5rem;
+      overflow-x: auto;
+    }
+    svg { width: 100%; min-width: 1000px; display: block; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 0.75rem;
+      border: 1px solid #1e293b;
+      padding: 1.25rem;
+    }
+    .card-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .card-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .card-dot.cyan { background: #22d3ee; }
+    .card-dot.emerald { background: #34d399; }
+    .card-dot.violet { background: #a78bfa; }
+    .card-dot.rose { background: #fb7185; }
+    .card-dot.amber { background: #fbbf24; }
+    .card h3 { font-size: 0.875rem; font-weight: 600; }
+    .card ul { list-style: none; color: #94a3b8; font-size: 0.75rem; }
+    .card li { margin-bottom: 0.375rem; }
+    .footer { text-align: center; margin-top: 1.5rem; color: #475569; font-size: 0.75rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-row">
+        <div class="pulse-dot"></div>
+        <h1>the-brain Architecture</h1>
+      </div>
+      <p class="subtitle">Pluggable 3-Layer Cognitive OS for AI Agents — Data Flow &amp; Component Overview</p>
+    </div>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1100 750">
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+          </marker>
+          <marker id="arrowhead-cyan" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee" />
+          </marker>
+          <marker id="arrowhead-emerald" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#34d399" />
+          </marker>
+          <marker id="arrowhead-violet" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#a78bfa" />
+          </marker>
+          <marker id="arrowhead-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#fb923c" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background Grid -->
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- ============ BOUNDARY: LOCAL MACHINE ============ -->
+        <rect x="20" y="40" width="1060" height="680" rx="12" fill="rgba(251, 191, 36, 0.04)" stroke="#fbbf24" stroke-width="1" stroke-dasharray="8,4"/>
+        <text x="32" y="58" fill="#fbbf24" font-size="10" font-weight="600">Local Machine (macOS / Linux)</text>
+
+        <!-- ============ INPUT LAYER: HARVESTERS ============ -->
+        <text x="550" y="90" fill="white" font-size="12" font-weight="600" text-anchor="middle">INPUT — Harvesters (Poll Every 30s)</text>
+
+        <!-- Harvester: Cursor -->
+        <rect x="40" y="100" width="130" height="55" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="105" y="120" fill="white" font-size="10" font-weight="600" text-anchor="middle">Cursor</text>
+        <text x="105" y="134" fill="#94a3b8" font-size="8" text-anchor="middle">SQLite / JSONL</text>
+        <text x="105" y="147" fill="#22d3ee" font-size="7" text-anchor="middle">state.vscdb, agent-transcripts</text>
+
+        <!-- Harvester: Claude -->
+        <rect x="190" y="100" width="130" height="55" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="255" y="120" fill="white" font-size="10" font-weight="600" text-anchor="middle">Claude Code</text>
+        <text x="255" y="134" fill="#94a3b8" font-size="8" text-anchor="middle">JSONL Sessions</text>
+        <text x="255" y="147" fill="#22d3ee" font-size="7" text-anchor="middle">~/.claude/history.jsonl</text>
+
+        <!-- Harvester: Gemini -->
+        <rect x="340" y="100" width="110" height="55" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="395" y="120" fill="white" font-size="10" font-weight="600" text-anchor="middle">Gemini</text>
+        <text x="395" y="134" fill="#94a3b8" font-size="8" text-anchor="middle">Log Files</text>
+        <text x="395" y="147" fill="#22d3ee" font-size="7" text-anchor="middle">~/.gemini/logs.json</text>
+
+        <!-- Harvester: Windsurf -->
+        <rect x="470" y="100" width="110" height="55" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="525" y="120" fill="white" font-size="10" font-weight="600" text-anchor="middle">Windsurf</text>
+        <text x="525" y="134" fill="#94a3b8" font-size="8" text-anchor="middle">JSON Files</text>
+        <text x="525" y="147" fill="#22d3ee" font-size="7" text-anchor="middle">~/.codeium/windsurf/</text>
+
+        <!-- Harvester: Drag & Drop -->
+        <rect x="600" y="100" width="130" height="55" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="665" y="120" fill="white" font-size="10" font-weight="600" text-anchor="middle">Drag &amp; Drop</text>
+        <text x="665" y="134" fill="#94a3b8" font-size="8" text-anchor="middle">API / Menu Bar</text>
+        <text x="665" y="147" fill="#22d3ee" font-size="7" text-anchor="middle">MarkItDown Conversion</text>
+
+        <!-- Harvester: Agent Push -->
+        <rect x="750" y="100" width="120" height="55" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="810" y="120" fill="white" font-size="10" font-weight="600" text-anchor="middle">Agent Push</text>
+        <text x="810" y="134" fill="#94a3b8" font-size="8" text-anchor="middle">Remote Poll</text>
+        <text x="810" y="147" fill="#22d3ee" font-size="7" text-anchor="middle">60s Interval</text>
+
+        <!-- Arrow: Harvesters → Daemon -->
+        <line x1="550" y1="155" x2="550" y2="175" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrowhead-cyan)"/>
+        <text x="565" y="169" fill="#22d3ee" font-size="8">HARVESTER_POLL</text>
+
+        <!-- ============ DAEMON ENGINE ============ -->
+        <rect x="220" y="180" width="660" height="60" rx="8" fill="rgba(6, 78, 59, 0.3)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="550" y="202" fill="white" font-size="11" font-weight="600" text-anchor="middle">Daemon Engine (Bun.serve)</text>
+        <text x="550" y="220" fill="#94a3b8" font-size="9" text-anchor="middle">REST API :9420 • MCP SSE :9422 • Plugin Manager • Content Cleaner • Dedup Pipeline</text>
+
+        <!-- Arrow: Daemon → Layer 1 -->
+        <line x1="550" y1="240" x2="550" y2="270" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowhead-emerald)"/>
+        <text x="565" y="258" fill="#34d399" font-size="8">HARVESTER_NEW_DATA</text>
+
+        <!-- ============ LAYER 1: INSTANT ============ -->
+        <rect x="40" y="278" width="500" height="130" rx="8" fill="rgba(136, 19, 55, 0.15)" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="55" y="296" fill="#fb7185" font-size="10" font-weight="600">⚡ Layer 1: INSTANT — Graph Memory (plugin-graph-memory)</text>
+
+        <!-- Graph Memory Box -->
+        <rect x="65" y="305" width="450" height="90" rx="6" fill="rgba(136, 19, 55, 0.25)" stroke="#fb7185" stroke-width="1.5"/>
+        <text x="290" y="323" fill="white" font-size="10" font-weight="600" text-anchor="middle">6-Stage Detection Pipeline</text>
+        <text x="290" y="340" fill="#94a3b8" font-size="8" text-anchor="middle">Correction → Preference → Pattern → Concept → Interconnect → Weight Decay</text>
+        <text x="290" y="358" fill="#94a3b8" font-size="8" text-anchor="middle">Before/After Prompt Hooks • Language-Agnostic Structural Heuristics</text>
+        <text x="290" y="376" fill="#22d3ee" font-size="8" text-anchor="middle">BEFORE_PROMPT: keyword extraction → graph search → context injection</text>
+        <text x="290" y="390" fill="#22d3ee" font-size="8" text-anchor="middle">AFTER_RESPONSE: detect signal → create/boost nodes → weight decay</text>
+
+        <!-- Arrow: INSTANT → SELECTION -->
+        <line x1="540" y1="340" x2="840" y2="340" stroke="#fb7185" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead)"/>
+        <text x="690" y="334" fill="#fb7185" font-size="8" text-anchor="middle">AFTER_RESPONSE → ON_INTERACTION</text>
+
+        <!-- ============ LAYER 2: SELECTION ============ -->
+        <rect x="560" y="278" width="500" height="130" rx="8" fill="rgba(251, 146, 60, 0.15)" stroke="#fb923c" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="575" y="296" fill="#fb923c" font-size="10" font-weight="600">⚖️ Layer 2: SELECTION — SPM Curator (plugin-spm-curator)</text>
+
+        <!-- SPM Box -->
+        <rect x="585" y="305" width="450" height="90" rx="6" fill="rgba(251, 146, 60, 0.25)" stroke="#fb923c" stroke-width="1.5"/>
+        <text x="810" y="323" fill="white" font-size="10" font-weight="600" text-anchor="middle">Surprise-Gated Prediction Error</text>
+        <text x="810" y="340" fill="#94a3b8" font-size="8" text-anchor="middle">Composite Score = 0.35×Scalar + 0.40×Embedding + 0.25×Novelty</text>
+        <text x="810" y="358" fill="#94a3b8" font-size="8" text-anchor="middle">Dual-Mode: TF-IDF (default) / EMA-Gaussian (fallback)</text>
+        <text x="810" y="376" fill="#22d3ee" font-size="8" text-anchor="middle">N-gram novelty • Duplicate detection (djb2) • Z-score clamping</text>
+        <text x="810" y="390" fill="#fb923c" font-size="8" text-anchor="middle">Threshold: 0.30 → promotes to DEEP if score &gt; threshold</text>
+
+        <!-- ============ MIDDLE SECTION: Arbiters etc ============ -->
+
+        <!-- Identity Anchor (top middle) -->
+        <rect x="320" y="420" width="260" height="50" rx="6" fill="rgba(76, 29, 149, 0.3)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="450" y="440" fill="white" font-size="10" font-weight="600" text-anchor="middle">Identity Anchor (plugin-identity-anchor)</text>
+        <text x="450" y="456" fill="#94a3b8" font-size="8" text-anchor="middle">Stable Self-Vector • Drift Detection • Training Boost</text>
+
+        <!-- Scheduler -->
+        <rect x="600" y="420" width="260" height="50" rx="6" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="730" y="440" fill="white" font-size="10" font-weight="600" text-anchor="middle">Scheduler (interval / cron)</text>
+        <text x="730" y="456" fill="#94a3b8" font-size="8" text-anchor="middle">Consolidation: hourly • Training: 2 AM nightly</text>
+
+        <!-- Arrow: SELECTION → DEEP -->
+        <line x1="810" y1="408" x2="810" y2="430" stroke="#a78bfa" stroke-width="2" marker-end="url(#arrowhead-violet)"/>
+        <text x="825" y="422" fill="#a78bfa" font-size="8">SELECTION_PROMOTE (if score &gt; threshold)</text>
+
+        <!-- Arrow: Scheduler → DEEP -->
+        <line x1="730" y1="470" x2="730" y2="490" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <text x="745" y="484" fill="#fbbf24" font-size="8">DEEP_CONSOLIDATE (cron)</text>
+
+        <!-- ============ LAYER 3: DEEP ============ -->
+        <rect x="40" y="498" width="1020" height="110" rx="8" fill="rgba(76, 29, 149, 0.15)" stroke="#a78bfa" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="55" y="516" fill="#a78bfa" font-size="10" font-weight="600">🌌 Layer 3: DEEP — Long-Term Consolidation</text>
+
+        <!-- MLX Training -->
+        <rect x="65" y="525" width="280" height="70" rx="6" fill="rgba(76, 29, 149, 0.35)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="205" y="545" fill="white" font-size="10" font-weight="600" text-anchor="middle">MLX LoRA Training (trainer-local-mlx)</text>
+        <text x="205" y="562" fill="#94a3b8" font-size="8" text-anchor="middle">Python sidecar • Apple Silicon</text>
+        <text x="205" y="578" fill="#22d3ee" font-size="8" text-anchor="middle">adapter.safetensors (~2–5 MB)</text>
+
+        <!-- Storage: SQLite -->
+        <rect x="380" y="525" width="280" height="70" rx="6" fill="rgba(76, 29, 149, 0.35)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="520" y="545" fill="white" font-size="10" font-weight="600" text-anchor="middle">Storage Backends</text>
+        <text x="520" y="562" fill="#94a3b8" font-size="8" text-anchor="middle">SQLite (default) • LibSQL/Turso (remote)</text>
+        <text x="520" y="578" fill="#22d3ee" font-size="8" text-anchor="middle">Drizzle ORM • Project Isolation</text>
+
+        <!-- Auto Wiki -->
+        <rect x="700" y="525" width="280" height="70" rx="6" fill="rgba(76, 29, 149, 0.35)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="840" y="545" fill="white" font-size="10" font-weight="600" text-anchor="middle">Auto-Wiki (plugin-auto-wiki)</text>
+        <text x="840" y="562" fill="#94a3b8" font-size="8" text-anchor="middle">Markdown Wiki Output</text>
+        <text x="840" y="578" fill="#22d3ee" font-size="8" text-anchor="middle">Weekly schedule • Global + per-project</text>
+
+        <!-- ============ OUTPUTS / ACCESS ============ -->
+        <rect x="40" y="620" width="1020" height="55" rx="8" fill="rgba(251, 146, 60, 0.1)" stroke="#fb923c" stroke-width="1.5"/>
+        <text x="550" y="640" fill="white" font-size="11" font-weight="600" text-anchor="middle">Interfaces &amp; Outputs</text>
+        <text x="550" y="658" fill="#94a3b8" font-size="9" text-anchor="middle">
+          CLI (the-brain)  •  MCP Server (Claude Desktop / Cursor / Zed)  •  Dashboard TUI  •  Timeline SPA  •  Menu Bar App  •  HTTP API
+        </text>
+
+        <!-- Arrow: Identity Anchor ← → DEEP -->
+        <line x1="450" y1="423" x2="450" y2="495" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrowhead-violet)"/>
+        <line x1="450" y1="495" x2="450" y2="423" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrowhead-violet)"/>
+        <text x="460" y="462" fill="#a78bfa" font-size="7">self-vector boost</text>
+
+        <!-- ============ LEGEND ============ -->
+        <rect x="860" y="620" width="200" height="97" rx="6" fill="rgba(30, 41, 59, 0.5)" stroke="#475569" stroke-width="1"/>
+        <text x="870" y="638" fill="white" font-size="10" font-weight="600">Legend</text>
+
+        <rect x="865" y="645" width="14" height="9" rx="2" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="884" y="653" fill="#94a3b8" font-size="7">Harvester / Input</text>
+
+        <rect x="865" y="658" width="14" height="9" rx="2" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="884" y="666" fill="#94a3b8" font-size="7">Engine / Core</text>
+
+        <rect x="865" y="671" width="14" height="9" rx="2" fill="rgba(136, 19, 55, 0.4)" stroke="#fb7185" stroke-width="1"/>
+        <text x="884" y="679" fill="#94a3b8" font-size="7">Instant Layer (Graph Memory)</text>
+
+        <rect x="865" y="684" width="14" height="9" rx="2" fill="rgba(251, 146, 60, 0.25)" stroke="#fb923c" stroke-width="1"/>
+        <text x="884" y="692" fill="#94a3b8" font-size="7">Selection Layer (SPM)</text>
+
+        <rect x="865" y="697" width="14" height="9" rx="2" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1"/>
+        <text x="884" y="705" fill="#94a3b8" font-size="7">Deep Layer (MLX/Storage/Wiki)</text>
+      </svg>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot cyan"></div>
+          <h3>Input (Harvesters)</h3>
+        </div>
+        <ul>
+          <li>• Cursor IDE — SQLite &amp; JSONL transcripts</li>
+          <li>• Claude Code — Session JSONL files</li>
+          <li>• Gemini CLI — Conversation logs</li>
+          <li>• Windsurf — JSON conversations</li>
+          <li>• Drag &amp; Drop — File ingest via Menu Bar</li>
+          <li>• Agent Push — Remote IDE polling</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot rose"></div>
+          <h3>Memory Pipeline</h3>
+        </div>
+        <ul>
+          <li>• Layer 1 (INSTANT) — Graph nodes created on corrections, preferences, patterns</li>
+          <li>• Layer 2 (SELECTION) — SPM filters noise via surprise gating</li>
+          <li>• Layer 3 (DEEP) — Consolidated to SQLite + LoRA training</li>
+          <li>• Identity Anchor — Stable self-vector with drift detection</li>
+          <li>• Auto-Wiki — Weekly markdown wiki generation</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot violet"></div>
+          <h3>Access &amp; Interfaces</h3>
+        </div>
+        <ul>
+          <li>• CLI — 14 commands (the-brain)</li>
+          <li>• MCP Server — Claude Desktop, Cursor, Zed</li>
+          <li>• HTTP API — REST on :9420</li>
+          <li>• Dashboard — Live TUI</li>
+          <li>• Timeline — Web SPA</li>
+          <li>• Menu Bar — macOS status icon</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="footer">
+      the-brain • MIT © 2026 • Built with Bun + TypeScript • Apple MLX for LoRA Training
+    </p>
+  </div>
+</body>
+</html>
