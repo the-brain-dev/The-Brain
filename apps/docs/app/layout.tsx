@@ -10,14 +10,14 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: {
     template: "%s — the-brain",
-    default: "the-brain — Cognitive OS for AI agents",
+    default: "the-brain — open memory platform for AI",
   },
   description:
-    "Local-first, pluggable memory system for AI coding assistants. 3-layer cognitive architecture with graph memory, surprise-gated filtering, and local LoRA training.",
+    "An open memory platform for AI, in the making. 3-layer cognitive architecture, local-first, entirely pluggable. Research project — contribute, fork, or build an extension.",
   metadataBase: new URL("https://the-brain.dev"),
   openGraph: {
-    title: "the-brain — Cognitive OS",
-    description: "Local-first memory system for AI agents",
+    title: "the-brain — open memory platform for AI",
+    description: "3-layer cognitive architecture. Local-first, pluggable. Research project.",
     url: "https://the-brain.dev",
     siteName: "the-brain",
   },
