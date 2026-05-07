@@ -1,9 +1,9 @@
 ---
-title: IDE Setup
-description: Configure your IDE to work with the-brain
+title: AI Tools
+description: Configure AI tools to work with the-brain
 ---
 
-the-brain auto-discovers interactions from these IDEs.
+the-brain auto-discovers interactions from these tools. For non-IDE sources (chat interfaces, web apps), write a custom harvester extension.
 
 ## Cursor IDE
 
@@ -30,6 +30,6 @@ Reads `~/.codeium/windsurf/conversations/*.json`.
 
 Reads `~/.gemini/logs.json`. Conversation history extracted from `content.blocks`.
 
-## Adding a New IDE
+## Adding a New Source
 
-See [Harvesters](/docs/customization/harvesters) for writing your own harvester plugin.
+See [Harvesters](/docs/customization/harvesters) for writing your own harvester plugin. works for any data format — SQLite, JSONL, JSON, CSV, or API endpoints.
