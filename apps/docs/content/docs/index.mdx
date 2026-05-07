@@ -5,13 +5,15 @@ description: Pluggable Cognitive Operating System for AI Agents
 
 # 🧠 the-brain
 
-**Pluggable Cognitive Operating System for AI Agents** — an extensible background orchestrator that builds persistent memory from your AI coding assistant interactions.
+**An open memory platform for AI** — in the making. 3-layer cognitive architecture with an extension-first philosophy. Runs locally, costs nothing, and lets you swap any component.
+
+> 🧪 **Active research project.** the-brain explores what persistent, private, 3-layer AI memory looks like. Interested in the concept? [Contribute on GitHub](https://github.com/the-brain-dev/Brain) or [build an extension](/docs/customization/extensions).
 
 ---
 
 ## Why the-brain?
 
-AI models forget everything between sessions. the-brain remembers — your coding patterns, preferences, corrections, and evolving style. It runs locally, costs nothing, and requires zero effort.
+AI forgets everything between sessions. the-brain remembers — across any AI tool you use. It harvests your conversations, filters noise from signal, and consolidates what matters. No cloud. No telemetry. Just a background daemon learning your patterns.
 
 <Mermaid chart={`
 graph LR
@@ -40,22 +42,22 @@ graph LR
 
 ## Architecture at a Glance
 
+Your AI tools feed into three plugin slots:
+
 ```
-Harvesters (Cursor, Claude Code, Windsurf, Gemini)
-  ↓
-⚡ INSTANT — Graph Memory (immediate corrections and preferences)
-  ↓
-⚖️ SELECTION — SPM Curator (filters noise from signal)
-  ↓
-🌌 DEEP — MLX LoRA Training (overnight consolidation)
+Any AI tool → ⚡ INSTANT slot — what happens now (default: graph-memory)
+            → ⚖️ SELECTION slot — what's worth keeping (default: spm-curator)
+            → 🌌 DEEP slot — permanent consolidation (default: mlx-lora)
 ```
+
+Each slot is replaceable. Drop a `.ts` file into `~/.the-brain/extensions/` and it loads automatically.
 
 ## What the-brain Learns
 
 - **Corrections** — "No, actually use `useCallback` here" → remembers for next time
-- **Preferences** — "I prefer arrow functions" → injected into every prompt
-- **Patterns** — Repeated tech choices → auto-suggests related concepts
-- **Projects** — Per-project memory isolation with cross-project promotion
+- **Preferences** — "I prefer arrow functions" → injected into every context
+- **Patterns** — Repeated choices across sessions → auto-suggests related concepts
+- **Identity** — Your stable preferences and style, maintained across retrains
 
 ## Documentation Sections
 
