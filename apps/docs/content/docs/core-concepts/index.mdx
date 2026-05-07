@@ -58,13 +58,15 @@ graph TB
 
 ## Design Principles
 
-**Local-First:** Data never leaves your machine. Local SQLite, local MLX training.
+**Extension-First:** Core is an empty data bus. Everything — harvesters, memory modules, trainers — is a swappable plugin via `definePlugin()`. Drop a `.ts` file into `~/.the-brain/extensions/` — no rebuild, no restart.
 
-**Pluggable Architecture:** Core is an empty data bus. Everything — harvesters, memory modules, trainers — is a swappable plugin via `definePlugin()`.
+**Local-First:** Data never leaves your machine unless you explicitly install a remote storage plugin. Defaults use local SQLite, local MLX training.
 
 **Selection over Accumulation:** The system actively rejects redundant information. SPM (Surprise-Gated Prediction Error) learns only from what surprises you.
 
 **Ambient UX:** Zero-effort background daemon. No manual input required.
+
+**Research-First:** Early stage. Concepts are solid, APIs may change. The platform is the playground — contribute or build your own layer plugin.
 
 ## Database
 
@@ -72,7 +74,7 @@ Three core tables via Drizzle ORM + `bun:sqlite`:
 
 - `memories` — harvested interactions with metadata
 - `graph_nodes` — relational memory nodes (Layer 1)
-- `sessions` — session tracking across IDE instances
+- `sessions` — session tracking across your AI tools
 
 ## Plugin Lifecycle
 
