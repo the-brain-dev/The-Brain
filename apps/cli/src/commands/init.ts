@@ -26,7 +26,7 @@ const DEFAULT_CONFIG: TheBrainConfig = {
     path: join(CONFIG_DIR, "global", "brain.db"),
   },
   mlx: {
-    enabled: true,
+    enabled: false,
     modelPath: "mlx-community/Meta-Llama-3.1-8B-Instruct-4bit",
     loraOutputDir: join(CONFIG_DIR, "global", "lora-checkpoints"),
     schedule: "0 2 * * *",
@@ -54,6 +54,44 @@ export async function initCommand(options: {
   team?: boolean;
 }) {
   consola.start("Initializing the-brain...");
+
+  // ── Auto-update tsconfig.json paths if inside a the-brain repo ──
+  try {
+    const tsconfigPath = join(process.cwd(), "tsconfig.json");
+    await access(tsconfigPath);
+    const tsconfigRaw = await readFile(tsconfigPath, "utf-8");
+    const tsconfig = JSON.parse(tsconfigRaw);
+    const paths = tsconfig.compilerOptions?.paths || {};
+
+    // Scan workspace packages
+    const fs = await import("node:fs/promises");
+    for (const pkgRoot of ["packages", "apps"]) {
+      const rootPath = join(process.cwd(), pkgRoot);
+      try {
+        const entries = await (await import("node:fs/promises")).readdir(rootPath, { withFileTypes: true });
+        for (const entry of entries) {
+          if (!entry.isDirectory()) continue;
+          try {
+            const pkgJsonPath = join(rootPath, entry.name, "package.json");
+            const pkgRaw = await readFile(pkgJsonPath, "utf-8");
+            const pkg = JSON.parse(pkgRaw);
+            const name = pkg.name;
+            if (!name || !name.startsWith("@the-brain/")) continue;
+            if (!paths[name]) {
+              paths[name] = [`./${pkgRoot}/${entry.name}/src`];
+              if (!paths[`${name}/*`]) {
+                paths[`${name}/*`] = [`./${pkgRoot}/${entry.name}/src/*`];
+              }
+            }
+          } catch { /* skip packages without package.json */ }
+        }
+      } catch { /* skip non-existent directories */ }
+    }
+
+    tsconfig.compilerOptions.paths = paths;
+    await writeFile(tsconfigPath, JSON.stringify(tsconfig, null, 2) + "\n", "utf-8");
+    consola.info(`tsconfig.json updated with ${Object.keys(paths).length} paths`);
+  } catch { /* not in a the-brain repo — skip */ }
 
   try {
     // Create directories
