@@ -1,0 +1,86 @@
+{
+  "claude-sonnet-4::mmlu::acc": {
+    "modelName": "claude-sonnet-4",
+    "benchmark": "mmlu",
+    "metric": "acc",
+    "mean": 0.8789999999999999,
+    "std": 0.021552262062252324,
+    "n": 5,
+    "lastUpdated": 1778172158478,
+    "values": [
+      0.892,
+      0.87,
+      0.895,
+      0.845,
+      0.893
+    ]
+  },
+  "claude-sonnet-4::mmlu::acc_norm": {
+    "modelName": "claude-sonnet-4",
+    "benchmark": "mmlu",
+    "metric": "acc_norm",
+    "mean": 0.8882,
+    "std": 0.020583974348992975,
+    "n": 5,
+    "lastUpdated": 1778172158478,
+    "values": [
+      0.901,
+      0.879,
+      0.903,
+      0.856,
+      0.902
+    ]
+  },
+  "claude-sonnet-4::gsm8k::exact_match": {
+    "modelName": "claude-sonnet-4",
+    "benchmark": "gsm8k",
+    "metric": "exact_match",
+    "mean": 0.9438000000000001,
+    "std": 0.0013038404810405309,
+    "n": 5,
+    "lastUpdated": 1778172158478,
+    "values": [
+      0.945,
+      0.942,
+      0.944,
+      0.943,
+      0.945
+    ]
+  },
+  "claude-opus-4::mmlu::acc": {
+    "modelName": "claude-opus-4",
+    "benchmark": "mmlu",
+    "metric": "acc",
+    "mean": 0.878,
+    "std": 0,
+    "n": 1,
+    "lastUpdated": 1778172158478,
+    "values": [
+      0.878
+    ]
+  },
+  "claude-opus-4::mmlu::acc_norm": {
+    "modelName": "claude-opus-4",
+    "benchmark": "mmlu",
+    "metric": "acc_norm",
+    "mean": 0.889,
+    "std": 0,
+    "n": 1,
+    "lastUpdated": 1778172158478,
+    "values": [
+      0.889
+    ]
+  },
+  "claude-opus-4::gsm8k::exact_match": {
+    "modelName": "claude-opus-4",
+    "benchmark": "gsm8k",
+    "metric": "exact_match",
+    "mean": 0.938,
+    "std": 0,
+    "n": 1,
+    "lastUpdated": 1778172158478,
+    "values": [
+      0.938
+    ]
+  }
+}

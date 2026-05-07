@@ -89,6 +89,56 @@ Reads from `~/.hermes/state.db` (Hermes Agent's SQLite database).
 }
 ```
 
+## lm-eval Harvester
+
+Reads lm-evaluation-harness JSON result files for benchmark tracking and regression fingerprinting. Enables the-brain to serve as a cognitive layer for meta-harness systems.
+
+### Supported Source Format
+
+| Source | Format | Source ID | Details |
+|--------|--------|-----------|---------|
+| `~/.the-brain/eval-results/*.json` | JSON | `lm-eval` | Standard lm-eval output with `results`, `config`, `task_hashes` |
+
+**Watch directory**: Configurable via `LM_EVAL_WATCH_DIR` env var. Auto-created on first daemon start.
+
+### Deduplication
+
+- Run-level: FNV-1a hash of `model + task_hashes`
+- Processed hashes persisted in state file (capped at 1000)
+
+### Fingerprinting
+
+- **Per-model per-benchmark per-metric** running statistics via Welford's online algorithm
+- **Anomaly detection**: >2σ deviation from baseline (>3 samples required)
+- **Confidence**: grows with sample count, caps at 0.95
+- **Drift detection**: sliding window Z-score against historical baseline
+
+### State File
+
+`~/.the-brain/lm-eval-harvester-state.json`
+
+```json
+{
+  "lastPollTimestamp": 1714800000000,
+  "processedHashes": ["a1b2c3d4"],
+  "fingerprints": {
+    "claude-sonnet-4::mmlu::acc": {
+      "modelName": "claude-sonnet-4",
+      "benchmark": "mmlu",
+      "metric": "acc",
+      "mean": 0.892,
+      "std": 0.012,
+      "n": 15,
+      "values": [0.88, 0.89, 0.90, ...]
+    }
+  }
+}
+```
+
+### Integration with Identity Anchor
+
+The lm-eval harvester feeds into the identity anchor's `HarnessFingerprintStore`. On each `ON_INTERACTION` event, fingerprints are auto-updated. Custom hooks (`identity-anchor:predictRegression`, `identity-anchor:assessSurprise`) expose predictions to meta-harness consumers via MCP.
+
 ## Creating a Custom Harvester
 
 ### Required Behaviors

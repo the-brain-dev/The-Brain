@@ -96,6 +96,13 @@ Data collection — poll IDE logs and push interactions into the brain pipeline.
 - **Status:** Built-in
 - **Description:** Polls Hermes Agent's SQLite state.db for user↔assistant chat interactions.
 
+### @the-brain/plugin-harvester-lm-eval
+
+- **Version:** v0.1.0
+- **Type:** Harvester
+- **Status:** Built-in
+- **Description:** Harvests lm-evaluation-harness benchmark results. Computes per-model per-benchmark fingerprints with anomaly detection (>2σ). Enables the-brain as cognitive layer for meta-harness systems (AHE, Meta-Harness).
+
 ## 🔧 Infrastructure
 
 Core framework, integrations, and storage backends.
@@ -112,7 +119,7 @@ Core framework, integrations, and storage backends.
 - **Version:** v0.1.0
 - **Type:** Integration
 - **Status:** Built-in
-- **Description:** MCP (Model Context Protocol) server — exposes the-brain as a memory backend for Claude Desktop, Cursor, Zed. 20 tools + 11 resources + SSE subscriptions.
+- **Description:** MCP (Model Context Protocol) server — exposes the-brain as a memory backend for Claude Desktop, Cursor, Zed. 26 tools + 11 resources + SSE subscriptions + meta-harness integration tools.
 
 ### @the-brain/storage-libsql
 
@@ -129,7 +136,8 @@ Core framework, integrations, and storage backends.
 cursor          graph-memory         spm-curator             trainer-local-mlx     MCP Server
 claude                                (surprise filter)      identity-anchor       Claude Desktop
 gemini                                                       auto-wiki             Cursor, Zed
-hermes
+hermes                                                       lm-eval harvester     AHE, Meta-Harness
+lm-eval                                                      (benchmark data)      (via MCP tools)
 ```
 
 ## Building Your Own Plugin

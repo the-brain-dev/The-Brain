@@ -1,0 +1,9 @@
+{
+  "cycle": 3,
+  "harness": "fix-caching",
+  "description": "Fix cache invalidation bug. Prediction: +2% accuracy recovery expected.",
+  "edit_id": "edit-cache-fix-02",
+  "edit_component": "middleware",
+  "prediction": "+2% accuracy recovery",
+  "result_file": "cycle-03-fix-caching.json"
+}
