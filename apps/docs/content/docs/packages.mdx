@@ -1,11 +1,13 @@
 ---
-title: Package Catalog
-description: Browse and install the-brain packages — memory plugins, harvesters, trainers, and integrations
+title: Extension Catalog
+description: Browse the-brain extensions — harvesters, memory modules, trainers, and integrations
 ---
 
-# Package Catalog
+# Extension Catalog
 
-Extensions, memory plugins, harvesters, and integrations for the-brain. Built-in packages ship with every installation. Community packages can be installed from npm.
+Extensions for the-brain — swap any layer, harvest from any AI tool, train however you want. Mix and match.
+
+> 🧪 The extensions below are our **research starter pack** — what ships today. Community extensions coming. [Build yours →](/docs/customization/extensions)
 
 ## 🔍 Browse by Layer
 
@@ -25,7 +27,7 @@ Real-time context injection — corrections, preferences, and patterns detected 
 
 - **Version:** v0.1.0
 - **Type:** Memory
-- **Status:** Built-in
+- **Status:** Starter pack
 - **Description:** Creates fast relational nodes of recent corrections. Language-agnostic structural heuristics with weight boost on match and weight decay for stale nodes.
 
 ## ⚖️ Selection Layer
@@ -36,7 +38,7 @@ The Gatekeeper — filters noise from signal. Only surprising, high-value memori
 
 - **Version:** v0.1.0
 - **Type:** Memory
-- **Status:** Built-in
+- **Status:** Starter pack
 - **Description:** Surprise-Gated Prediction Error filter. Composite surprise score using scalar, embedding, and novelty metrics. Configurable threshold (default: 0.30).
 
 ## 🌌 Deep Layer
@@ -47,60 +49,60 @@ Permanent consolidation — overnight LoRA training, identity anchoring, and kno
 
 - **Version:** v0.1.0
 - **Type:** Trainer
-- **Status:** Built-in (macOS only)
+- **Status:** Starter pack (macOS only)
 - **Description:** Runs overnight at 2 AM. Trains LoRA adapters on consolidated DEEP memories. Fully local — data never leaves your machine. Requires Apple Silicon + uv.
 
 ### @the-brain/plugin-identity-anchor
 
 - **Version:** v0.1.0
 - **Type:** Memory
-- **Status:** Built-in
+- **Status:** Starter pack
 - **Description:** Maintains a stable self-vector across LoRA retrains. Detects drift in coding style and preferences.
 
 ### @the-brain/plugin-auto-wiki
 
 - **Version:** v0.1.0
 - **Type:** Output
-- **Status:** Built-in
+- **Status:** Starter pack
 - **Description:** Weekly static wiki output from consolidated knowledge. Interlinked markdown pages with concept nodes and entity pages.
 
 ## 📥 Harvesters
 
-Data collection — poll IDE logs and push interactions into the brain pipeline.
+Harvesters — collect interactions from any AI tool and push them into the pipeline.
 
 ### @the-brain/plugin-harvester-cursor
 
 - **Version:** v0.1.0
 - **Type:** Harvester
-- **Status:** Built-in
+- **Status:** Starter pack
 - **Description:** Reads Cursor's local SQLite workspace database. Auto-detects project context via workDir matching.
 
 ### @the-brain/plugin-harvester-claude
 
 - **Version:** v0.1.0
 - **Type:** Harvester
-- **Status:** Built-in
+- **Status:** Starter pack
 - **Description:** Reads Claude Code's local JSONL conversation logs. Tracks offset/checkpoint to avoid re-processing.
 
 ### @the-brain/plugin-harvester-gemini
 
 - **Version:** v0.1.0
 - **Type:** Harvester
-- **Status:** Built-in
+- **Status:** Starter pack
 - **Description:** Polls Gemini CLI's local JSON logs for new interactions.
 
 ### @the-brain/plugin-harvester-hermes
 
 - **Version:** v0.1.0
 - **Type:** Harvester
-- **Status:** Built-in
+- **Status:** Starter pack
 - **Description:** Polls Hermes Agent's SQLite state.db for user↔assistant chat interactions.
 
 ### @the-brain/plugin-harvester-lm-eval
 
 - **Version:** v0.1.0
 - **Type:** Harvester
-- **Status:** Built-in
+- **Status:** Starter pack
 - **Description:** Harvests lm-evaluation-harness benchmark results. Computes per-model per-benchmark fingerprints with anomaly detection (>2σ). Enables the-brain as cognitive layer for meta-harness systems (AHE, Meta-Harness).
 
 ## 🔧 Infrastructure
@@ -111,21 +113,21 @@ Core framework, integrations, and storage backends.
 
 - **Version:** v0.1.0
 - **Type:** Core
-- **Status:** Built-in
+- **Status:** Starter pack
 - **Description:** Empty data bus — everything else is a plugin via `definePlugin()`. Includes hook system, BrainDB (Drizzle ORM + sqlite), LayerRouter, ProjectManager, ContentCleaner, AuthDB (multi-user auth), and PermissionResolver.
 
 ### @the-brain/mcp-server
 
 - **Version:** v0.1.0
 - **Type:** Integration
-- **Status:** Built-in
+- **Status:** Starter pack
 - **Description:** MCP (Model Context Protocol) server — exposes the-brain as a memory backend for Claude Desktop, Cursor, Zed. 26 tools + 11 resources + SSE subscriptions + meta-harness integration tools.
 
 ### @the-brain/storage-libsql
 
 - **Version:** v0.1.0
 - **Type:** Storage
-- **Status:** Built-in (optional)
+- **Status:** Starter pack (optional)
 - **Description:** Alternative to SQLite. Enables shared database across multiple servers for team deployments via Turso.
 
 ## Architecture Overview
