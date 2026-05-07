@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-const PASSWORD_HASH = "299e614fedf501c69cba35d390c539155669b90d138e67a26a174722bcb7e309";
+const PASSWORD_HASH = "867afee2651c45f0e8bf8b5e68abea3ea7dcb4acbc6bf2c1dcb469bb279081ca";
 
 async function sha256(input: string): Promise<string> {
   const encoder = new TextEncoder();
