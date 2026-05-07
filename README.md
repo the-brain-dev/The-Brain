@@ -1,17 +1,17 @@
-     1|# 🧠 the-brain — Pluggable Cognitive OS for AI Agents
-     2|
-     3|**[the-brain.dev](https://the-brain.dev)**
-     4|
-     5|> ⚠️ **Active Development** — This project is under heavy construction. APIs may change, features may be incomplete, and documentation may lag behind. Use at your own risk. Contributions and feedback welcome, but don't expect production stability yet.
-     6|
-     7|[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-     8|[![Built with Bun](https://img.shields.io/badge/Built%20with-Bun-orange)](https://bun.sh)
-     9|[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)](https://www.typescriptlang.org/)
-    10|[![Coverage](https://img.shields.io/badge/coverage-86%25-green)](https://github.com/the-brain-dev/Brain)
-    11|
-    12|**the-brain** is an extensible, background orchestrator that observes your interactions with AI coding assistants and builds a persistent memory tailored specifically to **you**.
-    13|
-    14|We don't force a single memory type. Instead, the-brain acts as a **central nervous system**, connecting various memory modules (Graph, Vector, LoRA) into one cohesive pipeline.
+# 🧠 the-brain — open memory platform for AI
+
+**[the-brain.dev](https://the-brain.dev)**
+
+> 🧪 **Active research project.** the-brain explores what happens when AI has persistent, private, 3-layer memory. It works today for coding assistants. We're building the platform for everything else. Interested? [Contribute](CONTRIBUTING.md) or [build an extension](https://the-brain.dev/docs/customization/extensions).
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Built with Bun](https://img.shields.io/badge/Built%20with-Bun-orange)](https://bun.sh)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)](https://www.typescriptlang.org/)
+[![Coverage](https://img.shields.io/badge/coverage-86%25-green)](https://github.com/the-brain-dev/Brain)
+
+**the-brain** is an extension-first platform that observes your interactions with AI tools and builds a persistent, private memory tailored to **you**.
+
+We don't force a single memory type. Instead, the-brain acts as a **pluggable cognitive host**, connecting various memory modules (Graph, Vector, LoRA) into one cohesive pipeline — all replaceable, all local.
     15|
     16|## Table of Contents
     17|
