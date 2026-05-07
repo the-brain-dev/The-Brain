@@ -236,6 +236,8 @@ export interface TheBrainConfig {
   // Multi-project support
   activeContext: string;                    // "global" or project name
   contexts: Record<string, ProjectContext>; // Map of context name → config
+  /** Explicitly enabled extension names (empty = none loaded by default) */
+  extensions?: string[];
 }
 
 // ── Zod Schemas (runtime validation) ────────
@@ -306,6 +308,54 @@ export function generateAuthToken(): string {
   crypto.getRandomValues(bytes);
   const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("");
   return `mb_${hex}`;
+}
+
+// ── Meta-Harness Integration Types ──────────────────────────────
+
+/** Per-model per-benchmark performance fingerprint (Phase 2: Regression Fingerprinting) */
+export interface BenchmarkFingerprintData {
+  modelName: string;
+  benchmark: string;
+  metric: string;
+  mean: number;
+  std: number;
+  n: number;
+  lastUpdated: number;
+  values: number[];
+}
+
+/** Prediction for how a harness edit should affect benchmark scores */
+export interface RegressionPrediction {
+  modelName: string;
+  benchmark: string;
+  metric: string;
+  /** Predicted score range (±2σ) */
+  predictedRange: [number, number];
+  /** Confidence in prediction (0-1, grows with sample count) */
+  confidence: number;
+  /** Is this model+benchmark new (no baseline yet)? */
+  isColdStart: boolean;
+  /** Standard deviation of the baseline */
+  baselineStd: number;
+}
+
+/** Result of comparing actual score against prediction */
+export interface SurpriseAssessment {
+  prediction: RegressionPrediction;
+  observed: number;
+  zScore: number;
+  isAnomalous: boolean;
+  /** Surprise score (0-1) for SPM curator */
+  surpriseScore: number;
+}
+
+/** Harness edit metadata attached to interactions */
+export interface HarnessEditMetadata {
+  editId: string;
+  description: string;
+  component: "tools" | "middleware" | "memory" | "system_prompt" | "other";
+  prediction?: RegressionPrediction;
+  previousScore?: number;
 }
 
 /** Safe parse — returns result object with success/error, never throws. */

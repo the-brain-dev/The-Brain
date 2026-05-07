@@ -56,6 +56,10 @@ async function main() {
   const hermesMod = await import("@the-brain/plugin-harvester-hermes");
   await pm.load(hermesMod.default || hermesMod);
 
+  // Load lm-eval Harvester
+  const lmEvalMod = await import("@the-brain/plugin-harvester-lm-eval");
+  await pm.load(lmEvalMod.default || lmEvalMod);
+
   // Harvest
   console.log("Harvesting Claude Code data...");
   console.time("harvest");

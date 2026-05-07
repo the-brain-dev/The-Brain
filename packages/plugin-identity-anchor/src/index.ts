@@ -15,6 +15,12 @@ import type { Memory, InteractionContext, ConsolidationContext, MemoryFragment }
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
+import { HarnessFingerprintStore } from "./fingerprint-store";
+import type {
+  RegressionPrediction,
+  SurpriseAssessment,
+  HarnessEditMetadata,
+} from "@the-brain/core";
 
 interface IdentityAnchorConfig {
   /** Minimum surprise score to consider an identity-relevant fragment */
@@ -68,6 +74,9 @@ export function createIdentityAnchorPlugin(
   const userFragments: Map<string, Memory[]> = new Map();
   /** Currently active user (set via identity-anchor:switchUser hook or interaction metadata) */
   let currentUserId: string | null = null;
+
+  // ── Fingerprint store (Phase 2: Regression Fingerprinting) ──
+  const fingerprintStore = new HarnessFingerprintStore();
 
   // ── State path resolution ───────────────────────────────────
 
@@ -463,9 +472,93 @@ export function createIdentityAnchorPlugin(
       hooks.hook("identity-anchor:computeDrift" as any, async (newFragments: MemoryFragment[]) =>
         computeDrift(newFragments)
       );
+
+      // ── Phase 2: Regression Fingerprinting hooks ────────────
+
+      // Auto-update fingerprints from lm-eval interactions
+      hooks.hook(HookEvent.ON_INTERACTION, async (ctx: InteractionContext) => {
+        const interaction = ctx.interaction;
+        if (interaction.source !== "lm-eval") return;
+
+        const metadata = interaction.metadata as Record<string, unknown> | undefined;
+        if (!metadata?.tasks) return;
+
+        const tasks = metadata.tasks as Array<{
+          name: string;
+          scores: Array<{ metric: string; value: number }>;
+        }>;
+
+        for (const task of tasks) {
+          for (const score of task.scores) {
+            fingerprintStore.update(
+              interaction.source === "lm-eval"
+                ? (metadata.model as string) || "unknown"
+                : "unknown",
+              task.name,
+              score.metric,
+              score.value,
+            );
+          }
+        }
+
+        // Save after batch update
+        if (fingerprintStore.isDirty()) {
+          fingerprintStore.save();
+        }
+      });
+
+      // Custom: predict regression for a model+benchmark pair
+      hooks.hook("identity-anchor:predictRegression" as any, async (opts: {
+        model: string;
+        benchmark: string;
+      }): Promise<RegressionPrediction[]> => {
+        return fingerprintStore.predictAll(opts.model, opts.benchmark);
+      });
+
+      // Custom: assess surprise for an observed score
+      hooks.hook("identity-anchor:assessSurprise" as any, async (opts: {
+        model: string;
+        benchmark: string;
+        metric: string;
+        observed: number;
+      }): Promise<SurpriseAssessment | null> => {
+        return fingerprintStore.assess(
+          opts.model,
+          opts.benchmark,
+          opts.metric,
+          opts.observed,
+        );
+      });
+
+      // Custom: get all fingerprints
+      hooks.hook("identity-anchor:getFingerprints" as any, async () => {
+        return fingerprintStore.getAll();
+      });
+
+      // Custom: detect model drift
+      hooks.hook("identity-anchor:detectDrift" as any, async (opts: {
+        model: string;
+        benchmark: string;
+        windowSize?: number;
+      }) => {
+        return fingerprintStore.detectDrift(
+          opts.model,
+          opts.benchmark,
+          opts.windowSize,
+        );
+      });
+
+      // Custom: get fingerprint summary
+      hooks.hook("identity-anchor:fingerprintSummary" as any, async () => {
+        return fingerprintStore.summary();
+      });
     },
 
     teardown() {
+      // Save fingerprints before clearing
+      if (fingerprintStore.isDirty()) {
+        fingerprintStore.save();
+      }
       saveState(); // Persist before clearing
       anchorFragments = [];
     },

@@ -263,12 +263,18 @@ describe("MCP Protocol", () => {
     });
 
     const tools = (result.result as Record<string, unknown>).tools as Array<Record<string, unknown>>;
-    expect(tools.length).toBe(20);
+    expect(tools.length).toBe(26);
     const names = tools.map((t) => t.name).sort();
     expect(names).toContain("pipeline_ingest");
     expect(names).toContain("pipeline_status");
     expect(names).toEqual([
+      "brain_compare_agents",
       "brain_config",
+      "brain_get_fingerprint",
+      "brain_get_regression_graph",
+      "brain_get_surprise_feed",
+      "brain_predict_regression",
+      "brain_record_run",
       "brain_stats",
       "graph_add_node",
       "graph_connect",

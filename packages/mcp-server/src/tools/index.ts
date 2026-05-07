@@ -1218,6 +1218,124 @@ const pipelineStatusHandler: ToolHandler = async (_params, ctx) => {
 
 // ── Registration ────────────────────────────────────────────
 
+// ────────────────────────────────────────────────────────────
+// Phase 3: Meta-Harness Regression Tools
+// ────────────────────────────────────────────────────────────
+
+const brainPredictRegressionDef: ToolDef = {
+  name: "brain_predict_regression",
+  description: "Predict expected benchmark score ranges using historical fingerprints. Use BEFORE harness edits.",
+  inputSchema: { type: "object", properties: { model: { type: "string" }, benchmark: { type: "string" } }, required: ["model", "benchmark"] },
+};
+const brainPredictRegressionHandler: ToolHandler = async (params, _ctx) => {
+  const { HarnessFingerprintStore } = await import("../../../plugin-identity-anchor/src/fingerprint-store");
+  const store = new HarnessFingerprintStore();
+  const p = store.predictAll(params.model as string, params.benchmark as string);
+  if (!p.length) return { content: [{ type: "text", text: "Cold start." }] };
+  return { content: [{ type: "text", text: p.map((x) => `${x.metric}: ${x.predictedRange[0].toFixed(4)}–${x.predictedRange[1].toFixed(4)} (${(x.confidence*100).toFixed(0)}%)`).join("\n") }] };
+};
+
+const brainRecordRunDef: ToolDef = {
+  name: "brain_record_run",
+  description: "Record benchmark results and get surprise assessment. Use AFTER evaluations.",
+  inputSchema: { type: "object", properties: { model: { type: "string" }, benchmark: { type: "string" }, scores: { type: "object" }, edit_id: { type: "string" } }, required: ["model", "benchmark", "scores"] },
+};
+const brainRecordRunHandler: ToolHandler = async (params, _ctx) => {
+  const { HarnessFingerprintStore } = await import("../../../plugin-identity-anchor/src/fingerprint-store");
+  const store = new HarnessFingerprintStore();
+  const scores = params.scores as Record<string, number>;
+  for (const [m, v] of Object.entries(scores)) store.update(params.model as string, params.benchmark as string, m, v);
+  store.save();
+  const a = store.assessAll(params.model as string, params.benchmark as string, scores);
+  if (!a.length) return { content: [{ type: "text", text: "First run." }] };
+  const anom = a.filter((x) => x.isAnomalous);
+  const lines = [`${anom.length}/${a.length} anomalous.`];
+  for (const x of anom) lines.push(`⚠️ ${x.prediction.metric}: ${x.observed.toFixed(4)} vs ${x.prediction.predictedRange[0].toFixed(4)}–${x.prediction.predictedRange[1].toFixed(4)} z=${x.zScore.toFixed(2)}`);
+  return { content: [{ type: "text", text: lines.join("\n") }] };
+};
+
+const brainGetFingerprintDef: ToolDef = {
+  name: "brain_get_fingerprint",
+  description: "Get per-model per-benchmark performance fingerprints.",
+  inputSchema: { type: "object", properties: { model: { type: "string" }, benchmark: { type: "string" } } },
+};
+const brainGetFingerprintHandler: ToolHandler = async (params, _ctx) => {
+  const { HarnessFingerprintStore } = await import("../../../plugin-identity-anchor/src/fingerprint-store");
+  const store = new HarnessFingerprintStore();
+  let fps = store.getAll();
+  if (params.model) fps = fps.filter((f) => f.modelName === params.model);
+  if (params.benchmark) fps = fps.filter((f) => f.benchmark === params.benchmark);
+  if (!fps.length) return { content: [{ type: "text", text: "No fingerprints." }] };
+  return { content: [{ type: "text", text: fps.map((f) => `${f.modelName}/${f.benchmark}/${f.metric}: μ=${f.mean.toFixed(4)} σ=${f.std.toFixed(4)} n=${f.n}`).join("\n") }] };
+};
+
+const brainGetRegressionGraphDef: ToolDef = {
+  name: "brain_get_regression_graph",
+  description: "Get causal graph of harness edits → regressions from graph memory.",
+  inputSchema: { type: "object", properties: { model: { type: "string" }, benchmark: { type: "string" }, limit: { type: "number" } } },
+};
+const brainGetRegressionGraphHandler: ToolHandler = async (params, ctx) => {
+  const limit = Math.min((params.limit as number) ?? 20, 50);
+  const all = await ctx.db.getAllGraphNodes(200);
+  const nodes = all.filter((n) => ["correction","pattern","preference"].includes(n.type) && /regression|anomaly|surprise/i.test(n.content));
+  let f = nodes;
+  if (params.model) { const mf = f.filter((n) => n.content.toLowerCase().includes((params.model as string).toLowerCase())); if (mf.length) f = mf; }
+  if (params.benchmark) { const bf = f.filter((n) => n.content.toLowerCase().includes((params.benchmark as string).toLowerCase())); if (bf.length) f = bf; }
+  const sliced = f.slice(0, limit);
+  if (!sliced.length) return { content: [{ type: "text", text: "No regression patterns yet." }] };
+  return { content: [{ type: "text", text: sliced.map((n,i) => `${i+1}. [${n.type}] ${n.content.slice(0,200)}`).join("\n\n") }] };
+};
+
+const brainGetSurpriseFeedDef: ToolDef = {
+  name: "brain_get_surprise_feed",
+  description: "Get anomalous results feed for HITL review (>2σ deviations).",
+  inputSchema: { type: "object", properties: { min_surprise: { type: "number" }, limit: { type: "number" } } },
+};
+const brainGetSurpriseFeedHandler: ToolHandler = async (params, _ctx) => {
+  const { HarnessFingerprintStore } = await import("../../../plugin-identity-anchor/src/fingerprint-store");
+  const store = new HarnessFingerprintStore();
+  const minS = (params.min_surprise as number) ?? 0.5;
+  const limit = Math.min((params.limit as number) ?? 10, 50);
+  const all = store.getAll();
+  const surps: Array<{model:string;bench:string;metric:string;z:number}> = [];
+  for (const fp of all) {
+    if (fp.values.length < 4) continue;
+    const last = fp.values[fp.values.length-1];
+    const bl = fp.values.slice(0,-1);
+    const blMean = bl.reduce((a,b)=>a+b,0)/bl.length;
+    const z = fp.std>0 ? Math.abs(last-blMean)/fp.std : 0;
+    if (Math.min(1,z/3) >= minS) surps.push({model:fp.modelName,bench:fp.benchmark,metric:fp.metric,z});
+  }
+  surps.sort((a,b)=>b.z-a.z);
+  const sliced = surps.slice(0,limit);
+  if (!sliced.length) return { content: [{ type: "text", text: "No surprises." }] };
+  return { content: [{ type: "text", text: sliced.map((s,i)=>`${i+1}. ${s.model}/${s.bench}/${s.metric}: z=${s.z.toFixed(2)}`).join("\n") }] };
+};
+
+const brainCompareAgentsDef: ToolDef = {
+  name: "brain_compare_agents",
+  description: "Compare multiple models on a benchmark using fingerprints.",
+  inputSchema: { type: "object", properties: { models: { type: "array", items: { type: "string" } }, benchmark: { type: "string" } }, required: ["models","benchmark"] },
+};
+const brainCompareAgentsHandler: ToolHandler = async (params, _ctx) => {
+  const { HarnessFingerprintStore } = await import("../../../plugin-identity-anchor/src/fingerprint-store");
+  const store = new HarnessFingerprintStore();
+  const models = params.models as string[];
+  const bench = params.benchmark as string;
+  const metrics = new Set<string>();
+  const data: Record<string,Record<string,{mean:number;std:number;n:number}>> = {};
+  for (const m of models) { data[m]={}; for (const fp of store.getByModel(m)) { if (fp.benchmark===bench) { metrics.add(fp.metric); data[m][fp.metric]={mean:fp.mean,std:fp.std,n:fp.n}; } } }
+  if (!metrics.size) return { content: [{ type: "text", text: "No data." }] };
+  const lines = [`## ${bench}`, ""];
+  for (const metric of [...metrics].sort()) {
+    lines.push(`**${metric}**`);
+    const ranks = models.filter((m)=>data[m]?.[metric]).map((m)=>({model:m,...data[m][metric]})).sort((a,b)=>b.mean-a.mean);
+    for (const r of ranks) lines.push(`  ${r.model}: ${r.mean.toFixed(4)}±${r.std.toFixed(4)} n=${r.n}${r.mean===ranks[0].mean?" 🥇":""}`);
+    lines.push("");
+  }
+  return { content: [{ type: "text", text: lines.join("\n") }] };
+};
+
 export interface ToolRegistry {
   memorySearch: { def: ToolDef; handler: ToolHandler };
   memoryStore: { def: ToolDef; handler: ToolHandler };
@@ -1239,9 +1357,16 @@ export interface ToolRegistry {
   schedulerCancel: { def: ToolDef; handler: ToolHandler };
   pipelineIngest: { def: ToolDef; handler: ToolHandler };
   pipelineStatus: { def: ToolDef; handler: ToolHandler };
+  // Phase 3 — Meta-harness integration
+  brainPredictRegression: { def: ToolDef; handler: ToolHandler };
+  brainRecordRun: { def: ToolDef; handler: ToolHandler };
+  brainGetFingerprint: { def: ToolDef; handler: ToolHandler };
+  brainGetRegressionGraph: { def: ToolDef; handler: ToolHandler };
+  brainGetSurpriseFeed: { def: ToolDef; handler: ToolHandler };
+  brainCompareAgents: { def: ToolDef; handler: ToolHandler };
 }
 
-/** All 20 tools (MVP + Phase 2 + Phase 3 + Phase 4), ready to register on an McpServer */
+/** All 26 tools (MVP + Phase 2 + Phase 3 + Phase 4), ready to register on an McpServer */
 export const allTools: ToolRegistry = {
   memorySearch: { def: memorySearchDef, handler: memorySearchHandler },
   memoryStore: { def: memoryStoreDef, handler: memoryStoreHandler },
@@ -1263,6 +1388,13 @@ export const allTools: ToolRegistry = {
   schedulerCancel: { def: schedulerCancelDef, handler: schedulerCancelHandler },
   pipelineIngest: { def: pipelineIngestDef, handler: pipelineIngestHandler },
   pipelineStatus: { def: pipelineStatusDef, handler: pipelineStatusHandler },
+  // Phase 3 — Meta-harness integration
+  brainPredictRegression: { def: brainPredictRegressionDef, handler: brainPredictRegressionHandler },
+  brainRecordRun: { def: brainRecordRunDef, handler: brainRecordRunHandler },
+  brainGetFingerprint: { def: brainGetFingerprintDef, handler: brainGetFingerprintHandler },
+  brainGetRegressionGraph: { def: brainGetRegressionGraphDef, handler: brainGetRegressionGraphHandler },
+  brainGetSurpriseFeed: { def: brainGetSurpriseFeedDef, handler: brainGetSurpriseFeedHandler },
+  brainCompareAgents: { def: brainCompareAgentsDef, handler: brainCompareAgentsHandler },
 };
 
 /** @deprecated Use allTools instead */

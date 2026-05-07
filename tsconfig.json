@@ -74,6 +74,12 @@
       ],
       "@the-brain/cli/*": [
         "./apps/cli/src/*"
+      ],
+      "@the-brain/plugin-harvester-lm-eval": [
+        "./packages/plugin-harvester-lm-eval/src"
+      ],
+      "@the-brain/plugin-harvester-lm-eval/*": [
+        "./packages/plugin-harvester-lm-eval/src/*"
       ]
     }
   },
