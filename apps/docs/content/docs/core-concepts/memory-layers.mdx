@@ -98,7 +98,7 @@ Two complementary outputs from consolidated memories:
 | `trainer-local-mlx` | LoRA fine-tunes a base model on your patterns | `adapter.safetensors` (~2-5 MB) |
 | `plugin-auto-wiki` | Generates interlinked Markdown knowledge graph | `~/wiki/` (Karpathy-style wiki) |
 
-> **Important — LoRA adapters are model-bound.** An adapter trained on `mlx-community/gemma-4-e4b-it-OptiQ-4bit` only works with that exact base model. It's not a standalone model. Think of it as a set of weights that *bias* a specific model toward your style — the adapter is useless without the model it was trained on. See [MLX Training](/docs/customization/mlx-training) for a concrete Ollama/Gemma example.
+> **Important — LoRA adapters are model-bound.** Adapter trained on `mlx-community/gemma-4-e4b-it-4bit` only works with that exact base model. Not standalone.
 
 ### How they work together
 
