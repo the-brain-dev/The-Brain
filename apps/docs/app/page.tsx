@@ -3,8 +3,29 @@ import Link from "next/link";
 export default function Home() {
   return (
     <main className="min-h-screen bg-black text-white">
+      {/* Research Status Banner */}
+      <section className="w-full bg-amber-900/30 border-b border-amber-800/50">
+        <div className="max-w-5xl mx-auto px-4 py-3 text-center">
+          <p className="text-sm text-amber-200/80">
+            🧪 <span className="font-medium">Active research project.</span>{" "}
+            <span className="text-amber-300/70">
+              the-brain explores what happens when AI has persistent, private, 3-layer memory.
+              Interested in the concept?{" "}
+            </span>
+            <a href="https://github.com/the-brain-dev/Brain" target="_blank" className="text-amber-300 underline hover:text-amber-200 transition-colors font-medium">
+              Contribute
+            </a>
+            <span className="text-amber-300/70"> or </span>
+            <Link href="/docs/customization/extensions" className="text-amber-300 underline hover:text-amber-200 transition-colors font-medium">
+              build an extension
+            </Link>
+            <span className="text-amber-300/70">.</span>
+          </p>
+        </div>
+      </section>
+
       {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center min-h-[70vh] px-4">
+      <section className="flex flex-col items-center justify-center min-h-[60vh] px-4">
         <div className="relative">
           <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-violet-500 to-emerald-500 rounded-2xl blur-xl opacity-30" />
           <div className="relative px-8 py-6 rounded-2xl bg-black/90 border border-zinc-800">
@@ -14,15 +35,14 @@ export default function Home() {
           </div>
         </div>
 
-        <p className="text-xl text-zinc-400 mt-6 mb-4 max-w-2xl text-center leading-relaxed">
-          A <span className="text-white font-medium">local-first, pluggable cognitive operating system</span>{" "}
-          for AI coding assistants. Builds persistent memory from your IDE interactions
-          — with zero effort and zero cloud dependencies.
+        <p className="text-xl text-zinc-400 mt-6 mb-3 max-w-2xl text-center leading-relaxed">
+          An <span className="text-white font-medium">open memory platform for AI</span>{" "}
+          — in the making. Local-first, 3-layer cognitive architecture, entirely pluggable.
         </p>
 
         <p className="text-sm text-zinc-500 mb-10 text-center max-w-xl">
-          Corrections, preferences, and patterns are harvested automatically,
-          filtered by surprise-gated prediction error, and consolidated via local LoRA training.
+          Swap any component. Bring your own harvester, memory strategy, or trainer.
+          Works with any AI tool — coding assistants, chat, custom agents, MCP.
         </p>
 
         <div className="flex gap-4">
@@ -31,6 +51,12 @@ export default function Home() {
             className="px-6 py-3 rounded-lg bg-white text-black font-medium hover:bg-zinc-200 transition-colors"
           >
             Read the docs →
+          </Link>
+          <Link
+            href="/docs/customization/extensions"
+            className="px-6 py-3 rounded-lg border border-zinc-700 text-zinc-300 font-medium hover:bg-zinc-900 transition-colors"
+          >
+            Build an extension →
           </Link>
           <a
             href="https://github.com/the-brain-dev/Brain"
