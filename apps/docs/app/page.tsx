@@ -77,56 +77,78 @@ export default function Home() {
 
       {/* Architecture Section */}
       <section className="max-w-5xl mx-auto px-4 pb-24">
-        <h2 className="text-2xl font-semibold text-center mb-12">3-Layer Cognitive Architecture</h2>
+        <h2 className="text-2xl font-semibold text-center mb-3">3-layer cognitive architecture</h2>
+        <p className="text-sm text-zinc-500 text-center mb-12">
+          Every layer is a plugin slot. We ship defaults — swap anything with a community extension.
+        </p>
 
         <div className="grid md:grid-cols-3 gap-6">
           <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6">
             <div className="text-2xl mb-3">⚡</div>
-            <h3 className="text-lg font-semibold mb-2">Instant Layer</h3>
+            <h3 className="text-lg font-semibold mb-1">Instant Layer</h3>
+            <p className="text-xs text-zinc-500 mb-3">What happens right now</p>
             <p className="text-sm text-zinc-400 leading-relaxed mb-4">
-              Graph memory that detects corrections, preferences, and patterns in real-time.
+              Detects corrections, preferences, and patterns in real time.
               Language-agnostic structural heuristics with weight decay.
             </p>
-            <div className="text-xs text-zinc-600 font-mono">plugin-graph-memory</div>
+            <div className="text-xs text-zinc-600 font-mono bg-zinc-800/50 rounded px-2 py-1 inline-block">
+              Default: graph-memory
+            </div>
+            <span className="text-xs text-zinc-600 ml-2">— swap it</span>
           </div>
 
           <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6">
             <div className="text-2xl mb-3">⚖️</div>
-            <h3 className="text-lg font-semibold mb-2">Selection Layer</h3>
+            <h3 className="text-lg font-semibold mb-1">Selection Layer</h3>
+            <p className="text-xs text-zinc-500 mb-3">What's worth keeping</p>
             <p className="text-sm text-zinc-400 leading-relaxed mb-4">
-              Surprise-Gated Prediction Error (SPM). Filters noise from signal using a
-              composite score of scalar, embedding, and novelty metrics.
+              Surprise-Gated Prediction Error (SPM). Filters noise from signal.
+              Composite score of scalar, embedding, and novelty metrics.
             </p>
-            <div className="text-xs text-zinc-600 font-mono">plugin-spm-curator</div>
+            <div className="text-xs text-zinc-600 font-mono bg-zinc-800/50 rounded px-2 py-1 inline-block">
+              Default: spm-curator
+            </div>
+            <span className="text-xs text-zinc-600 ml-2">— swap it</span>
           </div>
 
           <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6">
             <div className="text-2xl mb-3">🌌</div>
-            <h3 className="text-lg font-semibold mb-2">Deep Layer</h3>
+            <h3 className="text-lg font-semibold mb-1">Deep Layer</h3>
+            <p className="text-xs text-zinc-500 mb-3">Permanent consolidation</p>
             <p className="text-sm text-zinc-400 leading-relaxed mb-4">
               Overnight LoRA training on consolidated memories via Apple MLX.
               Fully private — data never leaves your machine.
             </p>
-            <div className="text-xs text-zinc-600 font-mono">trainer-local-mlx</div>
+            <div className="text-xs text-zinc-600 font-mono bg-zinc-800/50 rounded px-2 py-1 inline-block">
+              Default: mlx-lora
+            </div>
+            <span className="text-xs text-zinc-600 ml-2">— bring your own</span>
           </div>
         </div>
 
         <div className="mt-8 bg-zinc-900/30 border border-zinc-800 rounded-xl p-5 text-center">
-          <p className="text-sm text-zinc-400 font-mono">
-            Harvesters → ⚡ Instant → ⚖️ Selection → 🌌 Deep → Context Injection
+          <p className="text-sm text-zinc-400 font-mono mb-1">
+            Your AI tool → ⚡ Instant → ⚖️ Selection → 🌌 Deep → Smarter conversations
+          </p>
+          <p className="text-xs text-zinc-600">
+            Every arrow is a hook. Every box is a plugin. The core is just the data bus.
           </p>
         </div>
       </section>
 
       {/* Features Grid */}
       <section className="max-w-5xl mx-auto px-4 pb-24">
-        <h2 className="text-2xl font-semibold text-center mb-12">Key Features</h2>
+        <h2 className="text-2xl font-semibold text-center mb-12">Research Starter Pack</h2>
+        <p className="text-sm text-zinc-500 text-center -mt-8 mb-10">
+          What ships today. Everything else comes from the{" "}
+          <Link href="/docs/packages" className="text-zinc-300 underline hover:text-white">extension ecosystem</Link>.
+        </p>
 
         <div className="grid md:grid-cols-2 gap-4">
           <FeatureCard
             icon="🔌"
-            title="Pluggable Architecture"
-            desc="Core is an empty data bus. Everything — harvesters, memory modules, trainers — is a swappable plugin via definePlugin()."
+            title="Extension-First"
+            desc="Core is an empty data bus. Everything — harvesters, memory modules, trainers — is a swappable plugin. Drop a .ts file and it loads."
           />
           <FeatureCard
             icon="🏠"
@@ -134,24 +156,24 @@ export default function Home() {
             desc="Data never leaves your machine. Default SQLite + local MLX training. No cloud dependencies, no telemetry."
           />
           <FeatureCard
-            icon="🌐"
-            title="Multi-IDE Support"
-            desc="Auto-harvests from Cursor, Claude Code, Gemini, and Windsurf. New harvesters via a simple plugin interface."
+            icon="🧠"
+            title="3-Layer Cognitive Memory"
+            desc="Instant corrections, surprise-gated filtering, overnight consolidation. Inspired by human memory. Any layer is replaceable."
           />
           <FeatureCard
-            icon="🧩"
-            title="Plugin Ecosystem"
-            desc="Built-in plugins for graph memory, SPM filtering, identity anchoring, auto-wiki, MLX training, and LibSQL storage."
+            icon="📥"
+            title="Works with Any AI"
+            desc="Harvesters for Cursor, Claude Code, Gemini, Hermes, and more. Build a harvester for any AI tool or chat in 20 lines."
           />
           <FeatureCard
             icon="📡"
-            title="Remote Mode"
-            desc="Run the daemon on a Linux server, connect from macOS. MCP server for Claude Desktop, Cursor, and Zed."
+            title="MCP Server + Remote"
+            desc="26 MCP tools for Claude Desktop, Cursor, and Zed. Run the daemon on a Linux server, connect from anywhere."
           />
           <FeatureCard
-            icon="🔄"
-            title="Context Injection"
-            desc="Relevant memories, corrections, and preferences injected into every AI prompt — automatically or on demand."
+            icon="🔧"
+            title="Active Research"
+            desc="Early stage. APIs may change. Concepts are solid. Come for the idea — contribute, fork, or build an extension."
           />
         </div>
       </section>
