@@ -1,13 +1,13 @@
 ---
 title: Overview
-description: the-brain — Pluggable Cognitive Operating System for AI Agents
+description: the-brain — an open memory platform for AI with 3-layer cognitive architecture
 ---
 
-the-brain is an extensible background orchestrator that observes your interactions with AI coding assistants and builds a persistent memory tailored to you.
+the-brain is an extensible background daemon that observes your interactions with AI tools and builds a persistent memory tailored to **you**.
 
 ## Why the-brain?
 
-AI models forget everything between sessions. the-brain remembers — your coding patterns, preferences, corrections, and evolving style. It runs locally, costs nothing, and requires zero effort.
+AI forgets everything between sessions. the-brain remembers — your patterns, preferences, corrections, and evolving style. It runs locally, costs nothing, and requires zero effort.
 
 ## Quick Start
 
@@ -17,7 +17,7 @@ the-brain init
 the-brain daemon start
 ```
 
-That's it. The daemon watches your IDE logs and builds your brain in the background.
+That's it. The daemon watches your AI tools and builds your brain in the background.
 
 ## Architecture at a Glance
 
@@ -37,8 +37,9 @@ graph LR
 
 - **Corrections**: "No, actually use `useCallback` here" → remembers for next time
 - **Preferences**: "I prefer arrow functions" → injected into every prompt
-- **Patterns**: Repeated tech choices → auto-suggests related concepts
+- **Patterns**: Repeated choices → auto-suggests related concepts
 - **Projects**: Per-project memory isolation with cross-project promotion
+- **Identity**: Your stable self-vector, maintained across retrains
 
 ## Sections
 
