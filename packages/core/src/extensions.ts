@@ -22,6 +22,7 @@
 import { existsSync, readdirSync, readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
+import { Database } from "bun:sqlite";
 import type {
   PluginHooks,
   HookEventName,
@@ -59,6 +60,13 @@ export interface BrainAPI {
 
   /** Register a CLI command that extensions can invoke */
   registerCommand(name: string, handler: (args: string[]) => Promise<void> | void): void;
+
+  /**
+   * Open an external SQLite database (read-only by default).
+   * Uses bun:sqlite — only works when daemon runs under Bun.
+   * The caller is responsible for closing the database.
+   */
+  openDatabase(path: string, readonly?: boolean): Database;
 }
 
 export interface ExtensionContext {
@@ -166,6 +174,10 @@ export class ExtensionLoader {
       registerCommand(cmdName: string, handler: (args: string[]) => Promise<void> | void) {
         extensionCommands.set(cmdName, handler);
         console.log(`[ExtensionLoader] Registered command: "${cmdName}" (from ${name})`);
+      },
+
+      openDatabase(dbPath: string, readonly: boolean = true): Database {
+        return new Database(dbPath, { readonly });
       },
     };
 

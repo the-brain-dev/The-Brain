@@ -44,17 +44,20 @@ Extensions receive a `BrainAPI` object with full engine access:
 | `brain.scheduler` | `SchedulerPlugin` (readonly) | Task scheduler |
 | `brain.config` | `TheBrainConfig` (readonly) | Full configuration |
 | `brain.extensionName` | `string` | Name of the extension file |
-| `brain.registerCommand(name, handler)` | `(string, fn) => Promise<void>` | Register CLI command |
+| `brain.registerCommand(name, handler)` | `(string, fn) => Promise<void>` | Register CLI command (daemon-only) |
+| `brain.openDatabase(path, readonly?)` | `(string, boolean) => Database` | Open external SQLite DB (bun:sqlite) |
 
 ## CLI Commands
 
 ```bash
-# Run a registered extension command
+# Run a registered extension command (daemon process only)
 the-brain ext <command> [args...]
 
 # List all available extension commands
-the-brain ext    # (empty = lists available)
+the-brain ext
 ```
+
+> **Note:** `the-brain ext` runs in the CLI process, but extensions live in the daemon process. For extensions that need CLI access, use a standalone runner (see Hermes extension example below).
 
 ## Loading Mechanism
 
@@ -67,6 +70,72 @@ the-brain ext    # (empty = lists available)
 
 Extensions can hook into any event from the hook system:
 `beforePrompt`, `afterResponse`, `onInteraction`, `harvester:poll`, `harvester:newData`, `selection:evaluate`, `selection:promote`, `deep:consolidate`, `training:start`, `training:complete`, `daemon:start`, `daemon:stop`
+
+## Example: Hermes Agent Extension
+
+A real-world extension that harvests interactions from Hermes Agent's `state.db` and injects them into the-brain pipeline.
+
+**Source:** `~/.the-brain/extensions/hermes.ts`
+
+**What it does:**
+- **Auto-harvester** — hooks `harvester:poll` (every 30s), reads `~/.hermes/state.db`, pairs user→assistant messages, emits `harvester:newData` into the pipeline
+- **On-interaction tagging** — tags memories with `hermesChannel`, `hermesModel`, and token counts
+- **CLI commands** — accessible via a standalone runner
+
+**CLI usage (standalone):**
+
+```bash
+# Stats — shows harvested count, session breakdown, live DB stats
+~/.the-brain/bin/hermes-ext stats
+
+# Manual harvest — forces a scan of Hermes state.db
+~/.the-brain/bin/hermes-ext harvest
+
+# Context export — enhanced brain context for Hermes memory injection
+~/.the-brain/bin/hermes-ext context
+~/.the-brain/bin/hermes-ext context --json
+```
+
+**Key techniques demonstrated:**
+
+```typescript
+export default function (brain) {
+  // 1. Persist state between daemon restarts
+  async function loadState() {
+    try { return JSON.parse(await Bun.file(STATE_FILE).text()); }
+    catch (_) { return defaults; }
+  }
+
+  // 2. Open external SQLite databases (brain.openDatabase)
+  function openDb() {
+    return brain.openDatabase("/path/to/external.db", true); // read-only
+  }
+
+  // 3. Auto-harvest on every daemon poll cycle
+  brain.hook("harvester:poll", async function () {
+    var interactions = doHarvest(state);
+    if (!interactions.length) return;
+
+    var emitted = await emitAll(interactions);  // -> harvester:newData
+    saveState(updatedState);
+  });
+
+  // 4. Register CLI commands (via standalone runner)
+  brain.registerCommand("hermes", async function (args) { ... });
+}
+```
+
+**Persistence pattern:**
+```json
+// ~/.the-brain/hermes-state.json
+{
+  "lastMessageId": 5911,
+  "totalInteractions": 67,
+  "totalSessions": 333
+}
+```
+
+**Why a standalone runner?** `brain.registerCommand()` registers commands in the daemon process's memory. The CLI process (`the-brain ext`) has its own copy. The standalone runner (`~/.the-brain/bin/hermes-ext`) loads the extension with a minimal BrainAPI and dispatches directly — no daemon dependency for quick queries.
 
 ## Example: Auto-tag Memories
 
