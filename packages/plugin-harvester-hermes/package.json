@@ -1,0 +1,11 @@
+{
+  "name": "@the-brain/plugin-harvester-hermes",
+  "version": "0.1.0",
+  "description": "Data Harvester for Hermes Agent — polls ~/.hermes/state.db for conversation interactions",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@the-brain/core": "workspace:*"
+  }
+}

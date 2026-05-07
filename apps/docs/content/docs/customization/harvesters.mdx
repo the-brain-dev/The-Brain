@@ -58,6 +58,37 @@ Reads from `~/.claude/projects/` and `~/.claude/history.jsonl`.
 
 `~/.the-brain/claude-harvester-state.json`
 
+## Hermes Harvester
+
+Reads from `~/.hermes/state.db` (Hermes Agent's SQLite database).
+
+### Supported Source Format
+
+| Source | Format | Source ID | Details |
+|--------|--------|-----------|---------|
+| `state.db` | SQLite (read-only) | `hermes-agent` | `sessions` + `messages` tables, user↔assistant pairs |
+
+**Filters**: Excludes `session_meta` and `tool` role messages.
+
+### Deduplication
+
+- SHA-256 of `prompt + "\\n" + response`, truncated to 16 hex
+- Incremental via `lastId` offset (messages table AUTOINCREMENT id)
+
+### State File
+
+`~/.the-brain/hermes-state.json`
+
+```json
+{
+  "lastId": 42,
+  "lastAt": 1714800000000,
+  "sessions": ["session-1"],
+  "totalIx": 15,
+  "totalSes": 3
+}
+```
+
 ## Creating a Custom Harvester
 
 ### Required Behaviors

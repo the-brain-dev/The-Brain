@@ -115,6 +115,13 @@
         "@the-brain/core": "workspace:*",
       },
     },
+    "packages/plugin-harvester-hermes": {
+      "name": "@the-brain/plugin-harvester-hermes",
+      "version": "0.1.0",
+      "dependencies": {
+        "@the-brain/core": "workspace:*",
+      },
+    },
     "packages/plugin-identity-anchor": {
       "name": "@the-brain/plugin-identity-anchor",
       "version": "0.1.0",
@@ -479,6 +486,8 @@
     "@the-brain/plugin-harvester-cursor": ["@the-brain/plugin-harvester-cursor@workspace:packages/plugin-harvester-cursor"],
 
     "@the-brain/plugin-harvester-gemini": ["@the-brain/plugin-harvester-gemini@workspace:packages/plugin-harvester-gemini"],
+
+    "@the-brain/plugin-harvester-hermes": ["@the-brain/plugin-harvester-hermes@workspace:packages/plugin-harvester-hermes"],
 
     "@the-brain/plugin-identity-anchor": ["@the-brain/plugin-identity-anchor@workspace:packages/plugin-identity-anchor"],
 

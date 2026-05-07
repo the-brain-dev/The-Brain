@@ -52,6 +52,10 @@ async function main() {
   const claudeMod = await import("@the-brain/plugin-harvester-claude");
   await pm.load(claudeMod.default || claudeMod);
 
+  // Load Hermes Harvester
+  const hermesMod = await import("@the-brain/plugin-harvester-hermes");
+  await pm.load(hermesMod.default || hermesMod);
+
   // Harvest
   console.log("Harvesting Claude Code data...");
   console.time("harvest");

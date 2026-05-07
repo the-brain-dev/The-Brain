@@ -89,6 +89,13 @@ Data collection — poll IDE logs and push interactions into the brain pipeline.
 - **Status:** Built-in
 - **Description:** Polls Gemini CLI's local JSON logs for new interactions.
 
+### @the-brain/plugin-harvester-hermes
+
+- **Version:** v0.1.0
+- **Type:** Harvester
+- **Status:** Built-in
+- **Description:** Polls Hermes Agent's SQLite state.db for user↔assistant chat interactions.
+
 ## 🔧 Infrastructure
 
 Core framework, integrations, and storage backends.
@@ -122,6 +129,7 @@ Core framework, integrations, and storage backends.
 cursor          graph-memory         spm-curator             trainer-local-mlx     MCP Server
 claude                                (surprise filter)      identity-anchor       Claude Desktop
 gemini                                                       auto-wiki             Cursor, Zed
+hermes
 ```
 
 ## Building Your Own Plugin

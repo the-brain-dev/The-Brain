@@ -110,7 +110,10 @@ async function loadPlugins(hooks: ReturnType<typeof createHookSystem>, db: Brain
   const mlxMod = await import("@the-brain/trainer-local-mlx");
   const mlxTrainer = mlxMod.createMlxTrainer();
 
-  return { graphMemory, spmCurator, cursorHarvester, claudeHarvester, identityAnchor, autoWiki, mlxTrainer };
+  const hermesMod = await import("@the-brain/plugin-harvester-hermes");
+  const hermesHarvester = hermesMod.default ?? hermesMod;
+
+  return { graphMemory, spmCurator, cursorHarvester, claudeHarvester, hermesHarvester, identityAnchor, autoWiki, mlxTrainer };
 }
 
 // ── Event handlers (shared state) ──────────────────────────────
