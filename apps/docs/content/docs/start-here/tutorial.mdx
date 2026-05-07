@@ -48,7 +48,7 @@ This creates an isolated context for your project:
 the-brain daemon start
 ```
 
-The daemon runs in the background, polling your IDE logs every 30 seconds. Verify:
+The daemon runs in the background, polling your AI tools every 30 seconds. Verify:
 
 ```bash
 the-brain health
@@ -57,7 +57,7 @@ the-brain health
 
 ## Step 4: Work Normally
 
-Now use your AI coding assistant (Cursor, Claude Code, or Windsurf) inside `~/code/my-react-app`. Every interaction gets harvested:
+Now use your AI coding assistant (Cursor, Claude Code, or Windsurf) or any AI chat inside `~/code/my-react-app`. Every interaction gets harvested:
 
 - Corrections you make ("no, use `useCallback` instead")
 - Preferences you express ("I prefer arrow functions")
@@ -67,7 +67,7 @@ Now use your AI coding assistant (Cursor, Claude Code, or Windsurf) inside `~/co
 
 ```bash
 # Every 30 seconds, the daemon:
-# 1. Reads new interactions from IDE logs
+# 1. Reads new interactions from AI data sources
 # 2. SHA-256 deduplication prevents duplicates
 # 3. Layer 1 (Graph Memory) detects corrections, preferences, patterns
 # 4. Layer 2 (SPM Curator) scores each interaction for surprise
@@ -202,7 +202,7 @@ Now your brain is always running, always learning.
 | Install | `curl ... \| bash` | Bun + CLI + LaunchAgents |
 | Init | `the-brain init --project X` | Creates isolated context |
 | Start | `the-brain daemon start` | Background daemon starts |
-| Work | Use Cursor/Claude Code | IDE interactions harvested |
+|| Work | Use AI tools | Interactions harvested |
 | Inspect | `the-brain inspect --stats` | See what was learned |
 | Inject | `the-brain context --prompt "..."` | Get relevant context |
 | Consolidate | `the-brain consolidate --now` | Promote to DEEP |
