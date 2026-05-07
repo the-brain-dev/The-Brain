@@ -89,9 +89,22 @@ hooks.callHook("spm-curator:getInstance", (instance) => {
 
 ## 🌌 Layer 3: DEEP (Long-Term)
 
-**Plugin**: `trainer-local-mlx`
+**Plugins**: `trainer-local-mlx` + `plugin-auto-wiki`
 
-Overnight LoRA training on curated memories. See [MLX Training](/docs/customization/mlx-training).
+Two complementary outputs from consolidated memories:
+
+| Plugin | What it does | Output |
+|--------|-------------|--------|
+| `trainer-local-mlx` | LoRA fine-tunes a base model on your patterns | `adapter.safetensors` (~2-5 MB) |
+| `plugin-auto-wiki` | Generates interlinked Markdown knowledge graph | `~/wiki/` (Karpathy-style wiki) |
+
+> **Important — LoRA adapters are model-bound.** An adapter trained on `mlx-community/Gemma-4-4B` only works with that exact base model. It's not a standalone model. Think of it as a set of weights that *bias* a specific model toward your style — the adapter is useless without the model it was trained on. See [MLX Training](/docs/customization/mlx-training) for a concrete Ollama/Gemma example.
+
+### How they work together
+
+After overnight consolidation (2 AM cron), two things happen in parallel:
+1. **MLX LoRA**: Promoted DEEP memories → training data → `adapter.safetensors`. Reloading this adapter in Ollama/LM Studio makes the model consistently follow your preferences.
+2. **Auto-Wiki**: Promoted DEEP memories → extracted concepts → interlinked `.md` pages with entity nodes, cross-references, and a searchable index.
 
 ### Promotion Flow
 
@@ -110,6 +123,7 @@ graph TB
     subgraph DEEP["🌌 DEEP — Consolidation"]
         D1["DEEP_CONSOLIDATE (2 AM cron)"]
         D2["MLX LoRA Training"]
+        D3["Auto-Wiki Generation"]
     end
 
     A1 -->|"ON_INTERACTION"| B1
@@ -117,6 +131,7 @@ graph TB
     B2 --> C1
     C1 --> D1
     D1 --> D2
+    D1 --> D3
 
     style INSTANT fill:#4a1942,stroke:#fb7185
     style SPM fill:#4a3a0f,stroke:#fb923c
