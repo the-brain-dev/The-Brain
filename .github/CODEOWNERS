@@ -1,0 +1,11 @@
+# Repository owners review all workflow and security-critical files
+
+# CI/CD workflows — require owner review for any change
+.github/workflows/*         @the-brain-dev/maintainers
+
+# Contributor approval gate — protect against unauthorized additions
+.github/APPROVED_CONTRIBUTORS @the-brain-dev/maintainers
+
+# Release scripts — protect against supply-chain compromise
+scripts/release.ts          @the-brain-dev/maintainers
+install.sh                  @the-brain-dev/maintainers
