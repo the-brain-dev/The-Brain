@@ -23,7 +23,7 @@ interface TrainerConfig {
 }
 
 const DEFAULT_CONFIG: TrainerConfig = {
-  modelPath: "mlx-community/gemma-4-e4b-it-4bit",
+  modelPath: process.env.THE_BRAIN_MLX_MODEL || "mlx-community/gemma-4-e4b-it-4bit",
   loraOutputDir: join(process.env.HOME || "~", ".the-brain", "lora-checkpoints"),
   pythonSidecarPath: join(
     import.meta.dir,
@@ -125,36 +125,44 @@ export function createMlxTrainer(config: Partial<TrainerConfig> = {}) {
     const startTime = Date.now();
 
     try {
+      // Extra uv --with deps from THE_BRAIN_MLX_DEPS (semicolon-separated)
+      const extraDeps = (process.env.THE_BRAIN_MLX_DEPS || "")
+        .split(";")
+        .filter(Boolean);
+
+      const uvArgs = ["run", "--with", "mlx-lm"];
+      // Default: mlx-vlm for Gemma 4 quantized model support
+      if (!extraDeps.includes("mlx-vlm")) {
+        uvArgs.push("--with", "mlx-vlm");
+      }
+      for (const dep of extraDeps) {
+        uvArgs.push("--with", dep);
+      }
+      uvArgs.push("python3", cfg.pythonSidecarPath);
+
       const result = await new Promise<string>((resolve, reject) => {
-        const child = spawn(
-          "uv",
-          [
-            "run",
-            "--with",
-            "mlx-lm",
-            "--with",
-            "mlx-vlm",
-            "python3",
-            cfg.pythonSidecarPath,
-            "--model-path",
-            cfg.modelPath,
-            "--lora-output-dir",
-            cfg.loraOutputDir,
-            "--learning-rate",
-            String(cfg.learningRate),
-            "--lora-rank",
-            String(cfg.loraRank),
-            "--lora-alpha",
-            String(cfg.loraAlpha),
-            "--batch-size",
-            String(cfg.batchSize),
-            "--max-seq-length",
-            String(cfg.maxSeqLength),
-            "--iterations",
-            String(cfg.iterations),
-            "--data",
-            dataFile,
-          ],
+        const allArgs = [
+          ...uvArgs,
+          "--model-path",
+          cfg.modelPath,
+          "--lora-output-dir",
+          cfg.loraOutputDir,
+          "--learning-rate",
+          String(cfg.learningRate),
+          "--lora-rank",
+          String(cfg.loraRank),
+          "--lora-alpha",
+          String(cfg.loraAlpha),
+          "--batch-size",
+          String(cfg.batchSize),
+          "--max-seq-length",
+          String(cfg.maxSeqLength),
+          "--iterations",
+          String(cfg.iterations),
+          "--data",
+          dataFile,
+        ];
+        const child = spawn("uv", allArgs,
           {
             stdio: ["pipe", "pipe", "pipe"],
           }

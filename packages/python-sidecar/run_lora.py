@@ -42,7 +42,7 @@ if not check_mlx_available():
     print("[the-brain] ERROR: MLX not available!")
     sys.exit(1)
 
-model_path = "mlx-community/gemma-4-e4b-it-4bit"
+model_path = os.environ.get("THE_BRAIN_MLX_MODEL", "mlx-community/gemma-4-e4b-it-4bit")
 learning_rate = 1e-4
 lora_rank = 16
 lora_alpha = 32
