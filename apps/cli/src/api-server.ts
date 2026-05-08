@@ -11,10 +11,10 @@
 import type { DaemonEngine } from "./engine";
 import { MemoryLayer, HookEvent, AuthDB } from "@the-brain/core";
 import { registerUserRoutes } from "./api-users";
-import { readFileSync, existsSync } from "node:fs";
-import { basename, join as pathJoin, join } from "node:path";
+import { readFileSync, existsSync, realpathSync, writeFileSync } from "node:fs";
+import { basename, join as pathJoin, join, resolve } from "node:path";
 import { homedir } from "node:os";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { spawnSync } from "node:child_process";
 
 const PORT = 9420;
@@ -56,6 +56,51 @@ export function startAPIServer(engine: DaemonEngine, state: APIState, serverCfg?
   const ingestedHashesOrder: string[] = []; // LRU tracking
   const MAX_INGESTED_HASHES = 1000; // Prevent unbounded memory growth
 
+  // ── Local auth token ──────────────────────────────
+  // Generate a random token for local API access (defense-in-depth against browser attacks)
+  const apiTokenPath = join(homedir(), ".the-brain", ".api-token");
+  let localAuthToken: string;
+  try {
+    if (existsSync(apiTokenPath)) {
+      localAuthToken = readFileSync(apiTokenPath, "utf-8").trim();
+    } else {
+      localAuthToken = randomUUID();
+      writeFileSync(apiTokenPath, localAuthToken, { mode: 0o600 });
+      console.log(`[API] Generated local auth token: ${apiTokenPath}`);
+    }
+  } catch {
+    localAuthToken = randomUUID();
+    console.warn("[API] Could not persist local auth token; using ephemeral token");
+  }
+
+  // Allowed roots for file ingest (realpath-canonicalized)
+  const allowedIngestRoots: string[] = (() => {
+    const home = homedir();
+    const roots = [home];
+    try {
+      const configPath = join(home, ".the-brain", "config.json");
+      if (existsSync(configPath)) {
+        const config = JSON.parse(readFileSync(configPath, "utf-8"));
+        if (config.database?.path) roots.push(resolve(config.database.path, ".."));
+        if (config.wiki?.outputDir) roots.push(resolve(config.wiki.outputDir));
+        if (config.daemon?.logDir) roots.push(resolve(config.daemon.logDir));
+        if (config.contexts) {
+          for (const ctx of Object.values(config.contexts) as any[]) {
+            if (ctx?.dbPath) roots.push(resolve(ctx.dbPath, ".."));
+            if (ctx?.wikiDir) roots.push(resolve(ctx.wikiDir));
+          }
+        }
+      }
+    } catch {}
+    // Deduplicate and resolve all to canonical paths
+    const canonical = new Set<string>();
+    for (const r of roots) {
+      try { canonical.add(realpathSync(r)); } catch { canonical.add(resolve(r)); }
+    }
+    console.log(`[API] Allowed ingest roots: ${[...canonical].join(", ")}`);
+    return [...canonical];
+  })();
+
   const server = Bun.serve({
     port: actualPort,
     hostname: cfg.bindAddress,
@@ -75,7 +120,7 @@ export function startAPIServer(engine: DaemonEngine, state: APIState, serverCfg?
           if (auth !== expected) {
             return new Response(
               JSON.stringify({ error: "Unauthorized", hint: "Pass Authorization: Bearer <token>" }),
-              { status: 401, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
+              { status: 401, headers: { "Content-Type": "application/json", ...getCorsHeaders(req) } }
             );
           }
         }
@@ -86,7 +131,7 @@ export function startAPIServer(engine: DaemonEngine, state: APIState, serverCfg?
           if (!auth || !auth.startsWith("Bearer ")) {
             return new Response(
               JSON.stringify({ error: "Unauthorized", hint: "Pass Authorization: Bearer <user-token>" }),
-              { status: 401, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
+              { status: 401, headers: { "Content-Type": "application/json", ...getCorsHeaders(req) } }
             );
           }
           const token = auth.slice(7);
@@ -94,19 +139,15 @@ export function startAPIServer(engine: DaemonEngine, state: APIState, serverCfg?
           if (!result) {
             return new Response(
               JSON.stringify({ error: "Unauthorized — invalid or revoked token" }),
-              { status: 401, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
+              { status: 401, headers: { "Content-Type": "application/json", ...getCorsHeaders(req) } }
             );
           }
           resolvedUserId = result.user.id;
         }
       }
 
-      // ── CORS ──
-      const corsHeaders = {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-      };
+      // ── CORS per-request ──
+      const corsHeaders = getCorsHeaders(req);
 
       if (method === "OPTIONS") {
         return new Response(null, { status: 204, headers: corsHeaders });
@@ -257,6 +298,24 @@ export function startAPIServer(engine: DaemonEngine, state: APIState, serverCfg?
                 }
                 if (!existsSync(filePath)) {
                   results.push({ path: filePath, ingested: false, bytes: 0, error: "File not found" });
+                  continue;
+                }
+
+                // Canonicalize with realpath and check against allowed roots
+                let canonicalPath: string;
+                try {
+                  canonicalPath = realpathSync(filePath);
+                } catch {
+                  results.push({ path: filePath, ingested: false, bytes: 0, error: "Cannot resolve real path" });
+                  continue;
+                }
+
+                const isAllowed = allowedIngestRoots.some((root) => canonicalPath.startsWith(root));
+                if (!isAllowed) {
+                  results.push({
+                    path: filePath, ingested: false, bytes: 0,
+                    error: `File not in allowed ingest directories. Allowed roots: ${allowedIngestRoots.join(", ")}`,
+                  });
                   continue;
                 }
 
@@ -496,6 +555,51 @@ export function startAPIServer(engine: DaemonEngine, state: APIState, serverCfg?
   }
 
   return server;
+}
+
+// ── CORS helper ──────────────────────────────────────────────────
+
+/**
+ * Returns CORS headers appropriate for the request origin.
+ * - No Origin header (native apps, curl, CLI): allow, echo a safe default
+ * - Known local origins (localhost, 127.0.0.1): echo the origin back
+ * - Unknown origins: omit CORS headers → browser blocks reading the response
+ */
+function getCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("origin");
+  const safeLocal = "http://localhost:9420";
+
+  if (!origin) {
+    // Non-browser client — no CORS needed
+    return {
+      "Access-Control-Allow-Origin": safeLocal,
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      Vary: "Origin",
+    };
+  }
+
+  // Trusted local origins
+  const trustedOrigins = [
+    "http://localhost",
+    "http://127.0.0.1",
+    "capacitor://localhost",
+    "file://",
+    "app://",
+  ];
+
+  const isTrusted = trustedOrigins.some((t) => origin.startsWith(t) || origin === t);
+  if (isTrusted) {
+    return {
+      "Access-Control-Allow-Origin": origin,
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      Vary: "Origin",
+    };
+  }
+
+  // Unknown origin — no CORS access granted
+  return { Vary: "Origin" };
 }
 
 // ── Helpers ──────────────────────────────────────────────────────

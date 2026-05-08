@@ -277,7 +277,7 @@ describe("API Server", () => {
     it("handles OPTIONS preflight (CORS)", async () => {
       const res = await fetch(`${baseUrl}/api/health`, { method: "OPTIONS" });
       expect(res.status).toBe(204);
-      expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
+      expect(res.headers.get("Access-Control-Allow-Origin")).toBe("http://localhost:9420");
       expect(res.headers.get("Access-Control-Allow-Methods")).toContain("GET");
     });
   });
