@@ -58,6 +58,7 @@ function mockScheduler(): SchedulerPlugin {
 
 function mockConfig(): TheBrainConfig {
   return {
+    extensions: ["hello", "arrow", "broken"],
     plugins: [],
     daemon: { pollIntervalMs: 30000, logDir: "/tmp" },
     database: { path: ":memory:" },

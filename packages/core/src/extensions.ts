@@ -119,6 +119,16 @@ export class ExtensionLoader {
   async loadAll(): Promise<ExtensionContext[]> {
     ExtensionLoader.ensureExtensionsDir(this.extensionsDir);
 
+    // Read enabled extensions from config — extensions are DISABLED by default
+    const enabledExtensions: string[] = Array.isArray((this.config as any).extensions)
+      ? (this.config as any).extensions
+      : [];
+
+    if (enabledExtensions.length === 0) {
+      console.log("[ExtensionLoader] No extensions enabled. Add \"extensions\": [\"name\"] to config.json to enable.");
+      return [];
+    }
+
     const results: ExtensionContext[] = [];
     const files = readdirSync(this.extensionsDir).filter((f) => f.endsWith(".ts"));
 
@@ -128,6 +138,12 @@ export class ExtensionLoader {
 
       // Skip sample.ts
       if (name === "sample") continue;
+
+      // Skip if not in config's enabledExtensions list
+      if (!enabledExtensions.includes(name)) {
+        console.log(`[ExtensionLoader] Skipping \"${name}\" — not in config's extensions list. Add \"${name}\" to config.json to enable.`);
+        continue;
+      }
 
       try {
         const ctx = await this.loadExtension(name, fullPath);
