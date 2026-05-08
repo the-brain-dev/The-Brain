@@ -1,0 +1,50 @@
+#!/usr/bin/env bun
+/**
+ * CLI runner for Hermes extension commands.
+ * Bridges the gap between `the-brain ext` (daemon-only) and CLI.
+ *
+ * Usage: ./hermes-ext <context|harvest|stats> [options]
+ *        or: bun ~/.the-brain/bin/hermes-ext stats
+ */
+var HOME = process.env.HOME || "~";
+
+try {
+  // Load the extension module (Bun transpiles .ts on-the-fly)
+  var mod = require(HOME + "/.the-brain/extensions/hermes.ts");
+  var ext = mod.default || mod;
+
+  // Build minimal BrainAPI for CLI mode
+  var commands = {};
+  var brain = {
+    registerCommand: function (name, fn) { commands[name] = fn; },
+    openDatabase: function (path, readonly) {
+      return new (require("bun:sqlite").Database)(path, { readonly: readonly !== false });
+    },
+    hook: function () {},
+    emit: async function () {},
+    extensionName: "hermes",
+    get db() { throw new Error("DB not available in CLI mode"); },
+    get storage() { throw new Error("Storage not available in CLI mode"); },
+    get scheduler() { throw new Error("Scheduler not available in CLI mode"); },
+    get config() { return { activeContext: "global" }; },
+  };
+
+  // Install and run
+  ext(brain);
+  var hermesCmd = commands.hermes;
+  if (!hermesCmd) { console.error("hermes command not registered"); process.exit(1); }
+
+  var subCmd = process.argv[2] || "help";
+  var subArgs = process.argv.slice(3);
+  hermesCmd([subCmd].concat(subArgs)).then(function () {
+    process.exit(0);
+  }).catch(function (err) {
+    console.error("[hermes-ext] Error:", err.message || String(err));
+    process.exit(1);
+  });
+
+} catch (err) {
+  console.error("[hermes-ext] Failed:", err.message || String(err));
+  if (process.env.DEBUG) console.error(err.stack);
+  process.exit(1);
+}
