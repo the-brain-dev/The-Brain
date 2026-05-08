@@ -32,7 +32,7 @@
     "croner": "^10.0.1",
     "drizzle-orm": "^0.45.2",
     "hookable": "^6.1.1",
-    "zod": "^4.4.2"
+    "zod": "^4.4.3"
   },
   "overrides": {
     "postcss": ">=8.5.10"
