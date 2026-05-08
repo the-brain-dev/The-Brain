@@ -21,7 +21,7 @@ Location: `packages/python-sidecar/`
 
 ```bash
 # MLX dependencies (Apple Silicon only)
-uv run --with mlx-lm python3 -c "import mlx.core; print('MLX ready')"
+uv run --with mlx-lm --with mlx-vlm python3 -c "import mlx.core; print('MLX ready')"
 
 # File conversion (optional — for drag-and-drop ingest)
 uv run --with markitdown python3 -c "from markitdown import MarkItDown; print('MarkItDown ready')"
@@ -32,12 +32,12 @@ uv run --with markitdown python3 -c "from markitdown import MarkItDown; print('M
 **Usage:**
 
 ```bash
-uv run --with mlx-lm python3 packages/python-sidecar/train.py \
-  --model-path mlx-community/SmolLM2-360M-Instruct \
+uv run --with mlx-lm --with mlx-vlm python3 packages/python-sidecar/train.py \
+  --model-path mlx-community/gemma-4-e4b-it-4bit \
   --lora-output-dir ~/.the-brain/lora-checkpoints \
   --learning-rate 1e-4 \
   --lora-rank 16 \
-  --iterations 50 \
+  --iterations 200 \
   --data '[{"text": "Example training sample"}]'
 ```
 
@@ -50,9 +50,9 @@ uv run --with mlx-lm python3 packages/python-sidecar/train.py \
 | `--learning-rate` | `1e-4` | Learning rate |
 | `--lora-rank` | `16` | LoRA rank |
 | `--lora-alpha` | `32` | Scaling factor |
-| `--batch-size` | `2` | Batch size |
-| `--iterations` | `50` | Training steps |
-| `--max-seq-length` | `512` | Max sequence length |
+| `--batch-size` | `4` | Batch size |
+| `--iterations` | `200` | Training steps |
+| `--max-seq-length` | `1024` | Max sequence length |
 
 **Training flow:**
 

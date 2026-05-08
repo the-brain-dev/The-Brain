@@ -6,8 +6,8 @@ Called by @the-brain/trainer-local-mlx to consolidate curated memories
 into model weights using Apple's MLX framework.
 
 Usage:
-  uv run --with mlx-lm python3 train.py \
-    --model-path mlx-community/Meta-Llama-3.1-8B-Instruct-4bit \
+  uv run --with mlx-lm --with mlx-vlm python3 train.py \
+    --model-path mlx-community/gemma-4-e4b-it-4bit \
     --lora-output-dir ~/.the-brain/lora-checkpoints \
     --learning-rate 1e-4 \
     --lora-rank 16 \
@@ -81,6 +81,57 @@ def prepare_training_data(fragments: list[dict], output_path: str) -> tuple[int,
     return len(samples), str(data_path)
 
 
+def _load_model_and_tokenizer(model_path: str):
+    """
+    Load model and tokenizer, with fallback for Gemma 4 quantized models.
+    
+    mlx-lm 0.31.3 cannot load some 4-bit Gemma 4 models due to GPTQ-style
+    quantization format (biases/scales). mlx-vlm handles them correctly.
+    """
+    import mlx_lm
+    
+    # Try mlx-lm first (works for most models)
+    try:
+        print(f"[MLX] Loading model via mlx-lm: {model_path}")
+        model, tokenizer = mlx_lm.load(model_path)
+        print(f"[MLX] Loaded: {type(model).__name__}")
+        return model, tokenizer, False  # is_vlm=False
+    except ValueError as e:
+        if "Missing parameters" not in str(e) and "biases" not in str(e):
+            raise
+        print(f"[MLX] mlx-lm failed (quantization format), trying mlx-vlm...")
+    
+    # Fallback: use mlx-vlm for Gemma 4 / quantized VLM models
+    try:
+        from mlx_vlm import load as vlm_load
+        model, processor = vlm_load(model_path)
+        # Extract language_model for LoRA training
+        if hasattr(model, "language_model"):
+            lm = model.language_model
+            tokenizer = processor.tokenizer if hasattr(processor, "tokenizer") else processor
+            print(f"[MLX] Loaded via mlx-vlm: {type(lm).__name__} (inner: {type(lm.model).__name__})")
+            
+            # Wrap __call__ to return raw logits (not LanguageModelOutput)
+            # mlx-lm training loss expects raw tensor, not dataclass.
+            # Must patch on the class — MLX Module.__call__ is special.
+            _orig_call = lm.__class__.__call__
+            def _logits_call(self, *args, **kwargs):
+                output = _orig_call(self, *args, **kwargs)
+                return output.logits if hasattr(output, "logits") else output
+            lm.__class__.__call__ = _logits_call
+            
+            return lm, tokenizer, True  # is_vlm=True
+        else:
+            tokenizer = processor
+            print(f"[MLX] Loaded via mlx-vlm: {type(model).__name__}")
+            return model, tokenizer, True
+    except ImportError:
+        raise RuntimeError(
+            "Model requires mlx-vlm to load. Install it with:\n"
+            "  uv run --with mlx-vlm python3 ..."
+        )
+
+
 def train_lora(
     model_path: str,
     data_path: str,
@@ -95,16 +146,16 @@ def train_lora(
     """
     Run LoRA fine-tuning using MLX-LM.
     
+    Supports Gemma 4 quantized models via mlx-vlm fallback.
+    
     Returns training metrics dict.
     """
     import mlx.core as mx
     import mlx.optimizers as optim
-    from mlx_lm import load, generate
     from mlx_lm.tuner import train, TrainingArgs
     from mlx_lm.tuner.utils import linear_to_lora_layers
     
-    print(f"[MLX] Loading model: {model_path}")
-    model, tokenizer = load(model_path)
+    model, tokenizer, is_vlm = _load_model_and_tokenizer(model_path)
     
     print(f"[MLX] Preparing LoRA layers (rank={lora_rank}, alpha={lora_alpha})")
     lora_config = {

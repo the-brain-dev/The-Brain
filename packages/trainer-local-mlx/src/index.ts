@@ -23,7 +23,7 @@ interface TrainerConfig {
 }
 
 const DEFAULT_CONFIG: TrainerConfig = {
-  modelPath: "mlx-community/SmolLM2-135M-Instruct",
+  modelPath: "mlx-community/gemma-4-e4b-it-4bit",
   loraOutputDir: join(process.env.HOME || "~", ".the-brain", "lora-checkpoints"),
   pythonSidecarPath: join(
     import.meta.dir,
@@ -37,9 +37,9 @@ const DEFAULT_CONFIG: TrainerConfig = {
   learningRate: 1e-4,
   loraRank: 16,
   loraAlpha: 32,
-  batchSize: 2,
-  maxSeqLength: 512,
-  iterations: 50,
+  batchSize: 4,
+  maxSeqLength: 1024,
+  iterations: 200,
   minFragments: 3,
 };
 
@@ -111,14 +111,16 @@ export function createMlxTrainer(config: Partial<TrainerConfig> = {}) {
       `[MLX Trainer] Starting LoRA training with ${fragments.length} fragments (data: ${dataFile})...`
     );
 
-    await hooks.callHook(HookEvent.TRAINING_START, {
-      fragmentCount: fragments.length,
-      config: {
-        modelPath: cfg.modelPath,
-        loraRank: cfg.loraRank,
-        iterations: cfg.iterations,
-      },
-    });
+    if (hooks) {
+      await hooks.callHook(HookEvent.TRAINING_START, {
+        fragmentCount: fragments.length,
+        config: {
+          modelPath: cfg.modelPath,
+          loraRank: cfg.loraRank,
+          iterations: cfg.iterations,
+        },
+      });
+    }
 
     const startTime = Date.now();
 
@@ -130,6 +132,8 @@ export function createMlxTrainer(config: Partial<TrainerConfig> = {}) {
             "run",
             "--with",
             "mlx-lm",
+            "--with",
+            "mlx-vlm",
             "python3",
             cfg.pythonSidecarPath,
             "--model-path",
@@ -184,18 +188,22 @@ export function createMlxTrainer(config: Partial<TrainerConfig> = {}) {
       const duration = (Date.now() - startTime) / 1000;
       console.log(`[MLX Trainer] Training complete in ${duration.toFixed(1)}s`);
 
-      await hooks.callHook(HookEvent.TRAINING_COMPLETE, {
-        duration,
-        output: result,
-        checkpointPath: cfg.loraOutputDir,
-      });
+      if (hooks) {
+        await hooks.callHook(HookEvent.TRAINING_COMPLETE, {
+          duration,
+          output: result,
+          checkpointPath: cfg.loraOutputDir,
+        });
+      }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
       console.error(`[MLX Trainer] Error: ${errorMsg}`);
-      await hooks.callHook(HookEvent.TRAINING_ERROR, {
-        error: errorMsg,
-        fragmentCount: fragments.length,
-      });
+      if (hooks) {
+        await hooks.callHook(HookEvent.TRAINING_ERROR, {
+          error: errorMsg,
+          fragmentCount: fragments.length,
+        });
+      }
     }
   }
 

@@ -27,7 +27,7 @@ Here's a full workflow using Google's Gemma 4 4B as the base model:
 ### 2. What happens
 
 - **During the day**: You work with Cursor, Claude Code, or any AI tool. the-brain harvests your interactions — corrections ("no, use `useCallback`"), preferences ("arrow functions"), patterns ("always Jest + Testing Library").
-- **At 2 AM**: SPM has promoted the surprising, high-value memories to the DEEP layer. MLX training runs — ~50 iterations on your consolidated memories — producing `adapter.safetensors`.
+- **At 2 AM**: SPM has promoted the surprising, high-value memories to the DEEP layer. MLX training runs — ~200 iterations on your consolidated memories — producing `adapter.safetensors`.
 - **Result**: A 2-5 MB adapter file that, when loaded with Gemma 4, makes the model consistently follow your patterns. It will default to arrow functions, suggest Jest over Vitest, and remember your preferred architecture style.
 
 ### 3. Loading the adapter in Ollama
@@ -75,7 +75,7 @@ The adapter learned that *you* write React a specific way — without you ever c
 {
   "mlx": {
     "enabled": true,
-    "modelPath": "mlx-community/SmolLM2-360M-Instruct",
+    "modelPath": "mlx-community/gemma-4-e4b-it-4bit",
     "loraOutputDir": "~/.the-brain/lora-checkpoints",
     "schedule": "0 2 * * *"
   }
@@ -102,8 +102,8 @@ the-brain train --iterations 200
 | `learningRate` | 1e-4 | Learning rate |
 | `loraRank` | 16 | LoRA rank |
 | `loraAlpha` | 32 | Scaling factor |
-| `batchSize` | 2 | Batch size |
-| `iterations` | 50 | Steps per run |
+| `batchSize` | 4 | Batch size |
+| `iterations` | 200 | Steps per run |
 | `minFragments` | 3 | Min memories to trigger |
 
 ## Output
@@ -121,9 +121,9 @@ the-brain train --iterations 200
 # LM Studio: add adapter path in model settings
 
 # CLI inference
-uv run --with mlx-lm python3 -c "
+uv run --with mlx-lm --with mlx-vlm python3 -c "
 from mlx_lm import load, generate
-model, tokenizer = load('mlx-community/SmolLM2-360M-Instruct',
+model, tokenizer = load('mlx-community/gemma-4-e4b-it-4bit',
                          adapter_path='~/.the-brain/lora-checkpoints')
 print(generate(model, tokenizer, prompt='Write a React component'))
 "

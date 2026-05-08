@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Runner that reads fragments from file and calls train.py functions."""
+"""Runner that reads fragments from file and calls train.py functions.
+
+Usage:
+  uv run --with mlx-lm --with mlx-vlm python3 run_lora.py [fragments_path] [output_dir]
+"""
 import json
 import sys
 import os
@@ -38,13 +42,13 @@ if not check_mlx_available():
     print("[the-brain] ERROR: MLX not available!")
     sys.exit(1)
 
-model_path = "mlx-community/SmolLM2-135M-Instruct"
+model_path = "mlx-community/gemma-4-e4b-it-4bit"
 learning_rate = 1e-4
 lora_rank = 16
 lora_alpha = 32
-batch_size = 2
-max_seq_length = 512
-iterations = 50
+batch_size = 4
+max_seq_length = 1024
+iterations = 200
 
 # Step 1: Prepare data
 try:

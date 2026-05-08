@@ -83,11 +83,11 @@ describe("MLX Trainer — end-to-end pipeline", () => {
     const { createMlxTrainer } = await import("../index");
 
     const plugin = createMlxTrainer({
-      modelPath: "mlx-community/SmolLM2-135M-Instruct",
-      iterations: 50,
+      modelPath: "mlx-community/gemma-4-e4b-it-4bit",
+      iterations: 200,
       minFragments: 3,
-      batchSize: 2,
-      maxSeqLength: 512,
+      batchSize: 4,
+      maxSeqLength: 1024,
     });
 
     expect(plugin.name).toBe("@the-brain/trainer-local-mlx");
