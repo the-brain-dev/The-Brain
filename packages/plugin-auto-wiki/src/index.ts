@@ -126,7 +126,9 @@ function entityDirForType(type: string, baseDir: string): string {
 }
 
 function wikilink(slug: string, label?: string): string {
-  return label ? `[[entities/${slug}|${label}]]` : `[[entities/${slug}]]`;
+  // Escape characters that break wikilink syntax: |, ], [
+  const safeLabel = label?.replace(/[\|\[\]]/g, "-") ?? slug;
+  return label ? `[[entities/${slug}|${safeLabel}]]` : `[[entities/${slug}]]`;
 }
 
 // ── SCHEMA.md — one-time bootstrap ──────────────────────────────

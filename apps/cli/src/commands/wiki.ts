@@ -124,6 +124,7 @@ async function serveWiki(wikiDir: string, port: number) {
   // Simple static file server using Bun
   const server = Bun.serve({
     port,
+    hostname: "127.0.0.1", // Bind to localhost only — not LAN
     async fetch(req) {
       const url = new URL(req.url);
       let filePath = join(wikiDir, url.pathname === "/" ? "index.md" : url.pathname);
@@ -178,7 +179,13 @@ function renderMarkdownToHTML(md: string, baseDir: string): string {
     // Wikilinks → hyperlinks
     .replace(/\[\[([^\]]+)\]\]/g, (_: string, link: string) => {
       const [slug, label] = link.includes("|") ? link.split("|") : [link, link];
-      return `<a href="/${slug}.md">${label}</a>`;
+      const escapedLabel = label
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+      const encodedSlug = slug.replace(/ /g, "%20").replace(/#/g, "%23");
+      return `<a href="/${encodedSlug}.md">${escapedLabel}</a>`;
     })
     // Blockquotes
     .replace(/^> (.+)$/gm, "<blockquote>$1</blockquote>")
