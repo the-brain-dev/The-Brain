@@ -50,10 +50,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
 
         // Attach menu to status item (via the custom view's mouse handling)
         dropView.onClick = { [weak self] in
-            guard let self else { return }
-            self.statusItem?.menu = menu
-            self.statusItem?.button?.performClick(nil)
-            self.statusItem?.menu = nil  // Reset so next click still works
+            guard let self, let item = self.statusItem, let view = item.view else { return }
+            menu.popUp(positioning: nil, at: NSPoint(x: 0, y: view.bounds.height + 5), in: view)
         }
 
         // Poll health every 5 seconds
