@@ -63,10 +63,19 @@ export async function mcpCommand(action: string, options: McpServeOptions): Prom
   if (transport === "sse") {
     const port = options.port ?? config.server?.mcpPort ?? 9422;
     const host = config.server?.bindAddress ?? "127.0.0.1";
+    const authToken = config.server?.authToken;
+
+    if (!authToken) {
+      consola.warn("No authToken configured for MCP SSE transport.");
+      consola.warn("SSE transport is insecure without auth — pass --unsafe to start anyway.");
+      consola.warn("Set server.authToken in config.json or pass the token via environment.");
+      process.exit(1);
+    }
+
     const bunServer = startSseServer(server, {
       port,
       host,
-      authToken: config.server?.authToken,
+      authToken,
     });
     log(`SSE transport listening on http://localhost:${port}`);
     log(`  SSE endpoint: http://localhost:${port}/sse`);

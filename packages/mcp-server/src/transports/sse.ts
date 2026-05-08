@@ -25,6 +25,8 @@ interface SseServerOptions {
   tlsCert?: string;
   /** TLS key path (for HTTPS) */
   tlsKey?: string;
+  /** Allow starting without auth token (unsafe). Default: false */
+  allowUnsafe?: boolean;
 }
 
 /**
@@ -65,18 +67,62 @@ export function startSseServer(
     async fetch(req) {
       const url = new URL(req.url);
 
-      // ── Auth check (remote mode) ──
-      if (options.authToken) {
-        // Health check endpoint is public
+      // ── CORS helper (per-request) ──
+      function corsHeaders(): Record<string, string> {
+        const origin = req.headers.get("origin");
+        const safeLocal = `http://localhost:${port}`;
+        if (!origin) {
+          return {
+            "Access-Control-Allow-Origin": safeLocal,
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+            Vary: "Origin",
+          };
+        }
+        const trustedOrigins = [
+          "http://localhost",
+          "http://127.0.0.1",
+        ];
+        const isTrusted = trustedOrigins.some((t) => origin.startsWith(t) || origin === t);
+        if (isTrusted) {
+          return {
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+            Vary: "Origin",
+          };
+        }
+        return { Vary: "Origin" };
+      }
+
+      // ── Auth check (required unless allowUnsafe) ──
+      const isUnauthenticated = !options.authToken && !options.allowUnsafe;
+      const hasValidAuth = options.authToken
+        && req.headers.get("authorization") === `Bearer ${options.authToken}`;
+
+      if (isUnauthenticated) {
+        // SSE requires auth by default — refuse unsafe startup
         if (url.pathname !== "/") {
-          const auth = req.headers.get("authorization");
-          const expected = `Bearer ${options.authToken}`;
-          if (auth !== expected) {
-            return new Response(
-              JSON.stringify({ error: "Unauthorized", hint: "Pass Authorization: Bearer <token>" }),
-              { status: 401, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
-            );
-          }
+          return new Response(
+            JSON.stringify({
+              error: "SSE transport requires auth token. Pass --unsafe to disable, or set server.authToken in config.",
+            }),
+            {
+              status: 401,
+              headers: { "Content-Type": "application/json", ...corsHeaders() },
+            },
+          );
+        }
+      } else if (options.authToken && !hasValidAuth) {
+        // Auth token configured but not provided
+        if (url.pathname !== "/") {
+          return new Response(
+            JSON.stringify({ error: "Unauthorized", hint: "Pass Authorization: Bearer <token>" }),
+            {
+              status: 401,
+              headers: { "Content-Type": "application/json", ...corsHeaders() },
+            },
+          );
         }
       }
 
@@ -114,7 +160,7 @@ export function startSseServer(
             "Content-Type": "text/event-stream",
             "Cache-Control": "no-cache",
             Connection: "keep-alive",
-            "Access-Control-Allow-Origin": "*",
+            ...corsHeaders(),
           },
         });
       }
@@ -153,7 +199,7 @@ export function startSseServer(
           // Acknowledge receipt with HTTP 202
           return new Response(null, {
             status: 202,
-            headers: { "Access-Control-Allow-Origin": "*" },
+            headers: corsHeaders(),
           });
         } catch (err) {
           return new Response(
@@ -166,7 +212,7 @@ export function startSseServer(
               status: 400,
               headers: {
                 "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*",
+                ...corsHeaders(),
               },
             },
           );
@@ -177,11 +223,7 @@ export function startSseServer(
       if (req.method === "OPTIONS") {
         return new Response(null, {
           status: 204,
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type",
-          },
+          headers: corsHeaders(),
         });
       }
 
@@ -197,11 +239,13 @@ export function startSseServer(
               message: `http://${host}:${port}/message?sessionId=<id>`,
             },
             sessions: sessions.size,
+            auth: options.authToken ? "configured" : "none (unsafe mode)",
+            unsafeAllowed: options.allowUnsafe === true,
           }),
           {
             headers: {
               "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
+              ...corsHeaders(),
             },
           },
         );
