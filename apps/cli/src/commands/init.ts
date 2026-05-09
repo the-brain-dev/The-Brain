@@ -7,10 +7,16 @@ import { join } from "node:path";
 import { BrainDB, generateAuthToken, AuthDB, UserRole, safeParseConfig } from "@the-brain/core";
 import type { TheBrainConfig, ProjectContext } from "@the-brain/core";
 
-const CONFIG_DIR = join(process.env.HOME || "~", ".the-brain");
-const CONFIG_PATH = join(CONFIG_DIR, "config.json");
+function getConfigDir() {
+  return join(process.env.HOME || "~", ".the-brain");
+}
+function getConfigPath() {
+  return join(getConfigDir(), "config.json");
+}
 
-const DEFAULT_CONFIG: TheBrainConfig = {
+function getDefaultConfig(): TheBrainConfig {
+  const brainDir = getConfigDir();
+  return {
   plugins: [
     { name: "@the-brain/plugin-graph-memory", enabled: true },
     { name: "@the-brain/plugin-spm-curator", enabled: true, config: { threshold: 0.30 } },
@@ -20,20 +26,20 @@ const DEFAULT_CONFIG: TheBrainConfig = {
   ],
   daemon: {
     pollIntervalMs: 30000,
-    logDir: join(CONFIG_DIR, "logs"),
+    logDir: join(brainDir, "logs"),
   },
   database: {
-    path: join(CONFIG_DIR, "global", "brain.db"),
+    path: join(brainDir, "global", "brain.db"),
   },
   mlx: {
     enabled: false,
     modelPath: "mlx-community/Meta-Llama-3.1-8B-Instruct-4bit",
-    loraOutputDir: join(CONFIG_DIR, "global", "lora-checkpoints"),
+    loraOutputDir: join(brainDir, "global", "lora-checkpoints"),
     schedule: "0 2 * * *",
   },
   wiki: {
     enabled: true,
-    outputDir: join(CONFIG_DIR, "global", "wiki"),
+    outputDir: join(brainDir, "global", "wiki"),
     schedule: "0 9 * * 0",
   },
   server: {
@@ -42,7 +48,8 @@ const DEFAULT_CONFIG: TheBrainConfig = {
   },
   activeContext: "global",
   contexts: {},
-};
+  };
+}
 
 export async function initCommand(options: {
   force?: boolean;
@@ -94,26 +101,29 @@ export async function initCommand(options: {
   } catch { /* not in a the-brain repo — skip */ }
 
   try {
+    const configDir = getConfigDir();
+    const configPath = getConfigPath();
+
     // Create directories
-    await mkdir(CONFIG_DIR, { recursive: true });
-    await mkdir(join(CONFIG_DIR, "logs"), { recursive: true });
-    await mkdir(join(CONFIG_DIR, "global"), { recursive: true });
+    await mkdir(configDir, { recursive: true });
+    await mkdir(join(configDir, "logs"), { recursive: true });
+    await mkdir(join(configDir, "global"), { recursive: true });
 
     // Load or create config
     let config: TheBrainConfig;
     let configExists = false;
     try {
-      await access(CONFIG_PATH);
-      const raw = await readFile(CONFIG_PATH, "utf-8");
+      await access(configPath);
+      const raw = await readFile(configPath, "utf-8");
       const parsed = safeParseConfig(JSON.parse(raw));
-      config = parsed.success ? parsed.data : { ...DEFAULT_CONFIG };
+      config = parsed.success ? parsed.data : { ...getDefaultConfig() };
       configExists = parsed.success;
 
       // Upgrade old configs that don't have multi-project fields
       if (!config.activeContext) config.activeContext = "global";
       if (!config.contexts) config.contexts = {};
     } catch {
-      config = { ...DEFAULT_CONFIG };
+      config = { ...getDefaultConfig() };
     }
 
     // ── Remote mode ────────────────────────────────────
@@ -144,7 +154,7 @@ export async function initCommand(options: {
       };
 
       // Initialize auth database with default admin user
-      const authDbPath = join(CONFIG_DIR, "auth.db");
+      const authDbPath = join(configDir, "auth.db");
       const authDB = new AuthDB(authDbPath);
 
       const adminUser = await authDB.createUser(
@@ -178,7 +188,7 @@ export async function initCommand(options: {
     // ── Project context ──────────────────────────────────
     if (options.project) {
       const projectName = options.project;
-      const projectDir = join(CONFIG_DIR, "projects", projectName);
+      const projectDir = join(configDir, "projects", projectName);
       const projectDbPath = join(projectDir, "brain.db");
 
       const projectCtx: ProjectContext = {
@@ -218,8 +228,8 @@ export async function initCommand(options: {
     gdb.close();
 
     // Save config
-    await writeFile(CONFIG_PATH, JSON.stringify(config, null, 2), "utf-8");
-    consola.success(`Config written to ${CONFIG_PATH}`);
+    await writeFile(configPath, JSON.stringify(config, null, 2), "utf-8");
+    consola.success(`Config written to ${configPath}`);
 
     // Wiki directory for active context
     const activeCtx = config.activeContext === "global"
@@ -231,7 +241,7 @@ export async function initCommand(options: {
     const boxLines = [
       `🧠 the-brain initialized successfully!`,
       ``,
-      `  Config:  ${CONFIG_PATH}`,
+      `  Config:  ${configPath}`,
       `  Active:  ${config.activeContext}`,
       `  Global:  ${globalDbPath}`,
     ];

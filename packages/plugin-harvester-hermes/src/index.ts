@@ -11,7 +11,7 @@
  *   HermesHarvesterConfig — config type
  */
 
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { homedir } from "node:os";
@@ -69,6 +69,7 @@ interface HarvesterState {
   lastId: number;
   lastAt: number;
   sessions: string[];
+  interactions: string[];
   totalIx: number;
   totalSes: number;
 }
@@ -77,6 +78,7 @@ const DEFAULT_STATE: HarvesterState = {
   lastId: 0,
   lastAt: 0,
   sessions: [],
+  interactions: [],
   totalIx: 0,
   totalSes: 0,
 };
@@ -319,10 +321,9 @@ export function createHermesHarvester(
 
       try {
         const state = await loadState(homeDir);
-        const seen = new Set(state.sessions);
         const sessions = loadSessions(db);
 
-        // Track new sessions
+        // Track new sessions (by UUID)
         const newSessions: string[] = [];
         const sessionIdSet = new Set(state.sessions);
         for (const id of sessions.keys()) {
@@ -332,8 +333,8 @@ export function createHermesHarvester(
           }
         }
 
-        // Dedup interactions by ID hash (separate from session tracking)
-        const dedup = new Set(state.sessions);
+        // Dedup interactions by SHA hash (separate from session tracking)
+        const dedup = new Set(state.interactions);
 
         const msgs = getNewMessages(db, state.lastId);
         if (msgs.length === 0 && newSessions.length === 0) return [];
@@ -365,11 +366,12 @@ export function createHermesHarvester(
           promoteToDeep() {},
         }));
 
-        // Save state
+        // Save state — persist both session UUIDs and interaction SHA hashes
         const updated: HarvesterState = {
           lastId: maxId > 0 ? maxId : state.lastId,
           lastAt: Date.now(),
           sessions: Array.from(sessionIdSet),
+          interactions: Array.from(dedup),
           totalIx: state.totalIx + items.length,
           totalSes: state.totalSes + newSessions.length,
         };
@@ -385,11 +387,10 @@ export function createHermesHarvester(
     },
 
     getState(): HarvesterState {
-      // Note: returns current in-memory state (may not reflect latest disk write)
-      // For perfect accuracy, callers should re-read from disk.
-      // This is kept sync for convenience — the state was just saved in poll().
       try {
-        const raw = require("node:fs").readFileSync(stateFile(homeDir), "utf-8");
+        const f = stateFile(homeDir);
+        if (!existsSync(f)) return { ...DEFAULT_STATE };
+        const raw = readFileSync(f, "utf-8");
         return { ...DEFAULT_STATE, ...JSON.parse(raw) };
       } catch {
         return { ...DEFAULT_STATE };
@@ -409,7 +410,8 @@ export default definePlugin({
 
   setup(hooks: PluginHooks): void {
     const harvester = createHermesHarvester(hooks);
-    (hooks as any)[PLUGIN_NAME] = harvester;
+    // Store reference for teardown / external access
+    (hooks as Record<string, unknown>)[PLUGIN_NAME] = harvester;
 
     hooks.hook(HookEvent.DAEMON_START, async () => {
       harvester.start();
