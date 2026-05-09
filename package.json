@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "dev": "bun run --watch apps/cli/src/index.ts",
-    "build": "bun run packages/core/build.ts && bun run apps/cli/build.ts",
+    "build": "echo 'the-brain runs directly on Bun — no build step needed'",
     "test": "bun test",
     "test:coverage": "bun test --coverage",
     "test:watch": "bun test --watch",

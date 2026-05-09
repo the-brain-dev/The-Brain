@@ -80,7 +80,7 @@ async function main() {
   // Get all memories for training  
   const memories = d.query(
     "SELECT content, source, layer FROM memories ORDER BY timestamp DESC LIMIT 50"
-  ).all() as any[];
+  ).all() as MemoryRow[];
 
   // Convert to instruction-response format
   const trainingSamples: Array<{ instruction: string; response: string }> = [];
