@@ -185,10 +185,9 @@ See [docs/plugins.md](docs/plugins.md) for the full plugin authoring guide.
 
 ## 📚 Documentation
 
-- [Architecture & Data Flow](docs/architecture.md) — How the 3-layer system works
-- [Writing Plugins](docs/plugins.md) — Build your own memory modules
-- [Configuration](docs/configuration.md) — Full `config.yaml` reference
-- [MLX Training](docs/mlx-training.md) — Local LoRA setup on Apple Silicon
+Full documentation at **[the-brain.dev](https://the-brain.dev)**.
+
+- [the-brain.dev/docs](https://the-brain.dev/docs) — Full documentation (architecture, plugins, configuration, MLX training)
 - [AGENTS.md](AGENTS.md) — Rules for AI agents working on this project
 - [CONTRIBUTING.md](CONTRIBUTING.md) — Contribution guidelines
 - [SECURITY.md](SECURITY.md) — Security policy
