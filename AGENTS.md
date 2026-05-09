@@ -299,54 +299,151 @@ Before submitting, verify:
 - [ ] README.md documents log paths for all supported platforms
 - [ ] CHANGELOG.md entry under `[Unreleased]` → `### Added`
 
-## Git Rules for Parallel Agents
+## Branch Workflow
 
-Multiple agents may work on different files simultaneously. Follow these rules:
+All work happens on feature branches. **Direct pushes to `main` are forbidden**
+(enforced by GitHub branch protection). `main` contains only reviewed, merged, and tested code.
 
-### Committing
-- **ONLY commit files YOU changed in THIS session**
-- NEVER use `git add -A` or `git add .` — sweeps up changes from other agents
-- ALWAYS use `git add <specific-file-paths>` listing only files you modified
-- Before committing, run `git status` and verify you are only staging YOUR files
-- Track which files you created/modified/deleted during the session
+### GitHub Branch Protection
 
-### Forbidden Git Operations
-These commands can destroy other agents' work:
-- `git reset --hard` — destroys uncommitted changes
-- `git checkout .` — destroys uncommitted changes
-- `git clean -fd` — deletes untracked files
-- `git stash` — stashes ALL changes including other agents' work
-- `git add -A` / `git add .` — stages other agents' uncommitted work
+Branch protection is enforced via a GitHub Ruleset `main` (targeting `~DEFAULT_BRANCH`):
 
-### Safe Workflow
+| Rule | Purpose |
+|------|---------|
+| `deletion` | Prevent deleting the `main` branch |
+| `non_fast_forward` | Block force pushes (`git push -f`) |
+| `update` | Block direct pushes to `main` (`git push origin main`) |
+| `code_quality` | Require code quality checks (severity: errors) |
+| `code_scanning` | Require CodeQL security scan (alerts: errors, security: high+) |
+| `pull_request` | Require 1 approving review, stale reviews dismissed, last push approved, all threads resolved |
+
+**CodeQL** runs on every PR and push to `main` via `.github/workflows/codeql.yml`.
+It uses `security-extended` and `security-and-quality` query suites.
+Weekly scheduled scan on Mondays at 08:00 UTC.
+
+### Branch Naming
+
+| Prefix | Purpose | Example |
+|--------|---------|---------|
+| `feat/` | New features, plugins, harvesters | `feat/harvester-gemini` |
+| `fix/` | Bug fixes | `fix/double-evaluation-spm` |
+| `refactor/` | Code restructuring (no behavior change) | `refactor/daemon-engine-separation` |
+| `docs/` | Documentation only | `docs/api-reference-update` |
+| `chore/` | CI, build, deps, tooling | `chore/update-bun` |
+| `release/` | Release preparation (rare; release script handles this) | `release/v1.24.0` |
+
+Branch names are **lowercase, hyphen-separated, max 50 chars**.
+
+### Agent Workflow
+
+When an AI coding agent (Cursor, Claude Code, Gemini CLI, Hermes, or the self-evolution harness)
+works on the-brain, it follows this flow:
+
+**Step 1 — Create branch:**
 ```bash
-# 1. Check status first
-git status
-# 2. Add ONLY your specific files
-git add packages/plugin-harvester-claude/src/index.ts
-# 3. Commit
-git commit -m "feat(claude): add Claude Code harvester plugin"
-# 4. Push (pull --rebase if needed, but NEVER reset/checkout)
-git pull --rebase && git push
+git checkout main
+git pull origin main
+git checkout -b <prefix>/<description>
 ```
 
-### If Rebase Conflicts Occur
-- Resolve conflicts in YOUR files only
-- If conflict is in a file you didn't modify, abort and ask the user
-- NEVER force push
+**Step 2 — Work:** Make changes following AGENTS.md rules (tests, docs, changelog entries).
+
+**Step 3 — Verify:**
+```bash
+bun test && bun run lint
+```
+Both must pass. Coverage ≥80% for new code.
+
+**Step 4 — Commit:**
+```bash
+git status                     # See what you changed
+git add <specific-files>       # ONLY files YOU modified this session
+git commit -m "type(scope): description"
+```
+Use conventional commits. NEVER `git add -A` or `git add .`.
+
+**Step 5 — Push:**
+```bash
+git push origin <branch-name>
+```
+
+**Step 6 — Create PR:** Open a pull request against `main` with:
+- Concise title in conventional commit format
+- Description: what, why, testing done, screenshots if UI change
+
+**Step 7 — HITL Review:** A human reviews and merges.
+- The agent MUST NOT merge its own PR
+- After merge, delete the remote branch (GitHub PR settings can auto-delete)
+
+### Multi-Session Branches
+
+When an agent works on the same feature across multiple sessions:
+
+```bash
+# Session start — sync with main
+git checkout <my-branch>
+git pull origin main --rebase
+
+# ... work, commit, push as usual ...
+git push origin <my-branch>
+```
+
+**Before opening a PR:**
+- Rebase on latest `main`: `git pull origin main --rebase`
+- Resolve conflicts ONLY in files you authored
+- If conflicts appear in files you didn't touch — **abort and ask the human**
+- NEVER force push (`git push -f`)
+
+### Forbidden Operations (any branch)
+
+These can destroy work or bypass review:
+- `git push origin main` — blocked by branch protection
+- `git push --force` / `git push -f` — rewriting shared history
+- `git reset --hard` — destroys uncommitted work
+- `git checkout .` — destroys uncommitted work
+- `git clean -fd` — deletes untracked files without review
+- `git stash` / `git stash pop` — can clobber other agents' changes when used carelessly
+- `git add -A` / `git add .` — sweeps up changes from other agents
+
+### Commit Convention
+
+```
+type(scope?): concise description
+
+Optional body with more details.
+Footer: BREAKING CHANGE: description (if applicable)
+
+Types: feat, fix, refactor, docs, chore, test, perf
+Examples:
+  feat(harvester): add Gemini CLI harvester plugin
+  fix(spm): prevent double-evaluation during promote()
+  refactor(daemon): separate engine init from infinite loop
+  docs: update CLI reference with new --reprocess flag
+  chore: bump Bun to 1.2.0
+```
 
 ## Releasing
 
-**Lockstep versioning**: All packages always share the same version number.
+**Lockstep versioning**: All packages share the same version number.
 
 **Version semantics**:
-- `patch`: Bug fixes and new features
-- `minor`: API breaking changes
+- `patch`: Bug fixes and new features (no API break)
+- `minor`: API breaking changes (plugin contracts, hook signatures, exported types)
+- `major`: Fundamental architecture overhaul (core rewrite, storage migration, protocol change)
 
-### Steps
-1. **Update CHANGELOGs**: Ensure all changes since last release are documented
-2. **Run release script**: `bun run scripts/release.ts patch|minor|<x.y.z>`
-3. The script handles: version bump, CHANGELOG finalization, commit, tag, publish, and new `[Unreleased]` sections
+### Release Steps
+
+1. **Ensure `main` is clean**: All PRs merged, CI passing, no pending work
+2. **Check CHANGELOGs**: Verify all changes since last release are documented under `[Unreleased]`
+3. **Run release script**: `bun run scripts/release.ts patch|minor|major|<x.y.z>`
+4. The script handles: version bump, targeted CHANGELOG finalization, commit, tag, npm publish, new `[Unreleased]` sections, and push to `main`
+
+**Note:** The release script pushes directly to `main`. This requires admin access to bypass branch protection, or a temporary rule exemption. The script uses targeted `git add` (only `package.json`, `bun.lock`, and changelogs) — it never uses `git add .`.
+
+### Post-Release
+
+- Verify the tag exists on GitHub: https://github.com/the-brain-dev/Brain/tags
+- Verify the docs site rebuilds successfully (Cloudflare Pages auto-deploys from `main`)
 
 ## User override
 

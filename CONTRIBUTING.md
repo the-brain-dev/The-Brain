@@ -41,6 +41,17 @@ If the issue is real and written well, a maintainer may reopen it, reply `lgtmi`
 If you ignore this document twice, or if you spam the tracker with agent-generated issues,
 your GitHub account will be permanently blocked.
 
+## Branch Workflow
+
+All work happens on feature branches. **Direct pushes to `main` are forbidden.**
+
+1. Create a branch: `feat/`, `fix/`, `refactor/`, `docs/`, or `chore/` prefix
+2. Work, test, commit
+3. Push and open a PR against `main`
+4. Maintainer reviews and merges
+
+See [AGENTS.md](AGENTS.md) for full branch naming rules, agent workflow, and commit conventions.
+
 ## Before Submitting a PR
 
 Do not open a PR unless you have already been approved with `lgtm`.

@@ -6,14 +6,20 @@
  * Usage:
  *   bun run scripts/release.ts <major|minor|patch|x.y.z>
  *
+ * Prerequisites:
+ *   - Working directory clean (no uncommitted changes)
+ *   - On `main` branch
+ *   - GitHub branch protection rules allow pushes to main
+ *     (requires admin access or a temporary rule exemption)
+ *
  * Steps:
  * 1. Check for uncommitted changes
- * 2. Bump version in all packages
+ * 2. Bump version in root package.json
  * 3. Update CHANGELOG.md files: [Unreleased] -> [version] - date
- * 4. Commit and tag
+ * 4. Commit (targeted add: package.json, bun.lock, changelogs) and tag
  * 5. Publish to npm (if public)
  * 6. Add new [Unreleased] section to changelogs
- * 7. Commit and push
+ * 7. Commit and push to main
  */
 
 import { $ } from "bun";
@@ -115,7 +121,7 @@ async function main() {
 
   // 4. Commit and tag
   console.log("Committing and tagging...");
-  await $`git add .`;
+  await $`git add package.json bun.lock packages/*/CHANGELOG.md apps/*/CHANGELOG.md`;
   await $`git commit -m "Release v${newVersion}"`;
   await $`git tag v${newVersion}`;
   console.log();
