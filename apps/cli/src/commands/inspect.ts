@@ -175,6 +175,16 @@ async function searchGraph(db: BrainDB, query: string) {
   }
 }
 
+// ── Graph Node Types ─────────────────────────────────────────
+
+interface GraphNodeRow {
+  type?: string;
+  weight: number;
+  label: string;
+  source?: string;
+  timestamp?: number;
+}
+
 async function showTop(db: BrainDB, type: string, dbPath: string) {
   const validTypes = ["concept", "correction", "preference", "pattern", "all"];
   const filterType = type.toLowerCase();
@@ -188,15 +198,15 @@ async function showTop(db: BrainDB, type: string, dbPath: string) {
   const sqlite = (await import("bun:sqlite")).Database;
   const d = new sqlite(dbPath);
 
-  let rows;
+  let rows: GraphNodeRow[];
   if (filterType === "all") {
     rows = d.query(
       "SELECT type, weight, substr(label, 1, 80) as label, source, timestamp FROM graph_nodes ORDER BY weight DESC LIMIT 15"
-    ).all() as any[];
+    ).all() as GraphNodeRow[];
   } else {
     rows = d.query(
       "SELECT weight, substr(label, 1, 80) as label, source, timestamp FROM graph_nodes WHERE type = ? ORDER BY weight DESC LIMIT 15"
-    ).all(filterType) as any[];
+    ).all(filterType) as GraphNodeRow[];
   }
 
   d.close();

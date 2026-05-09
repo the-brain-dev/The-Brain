@@ -356,7 +356,7 @@ export function createSpmCurator(configOverrides: Partial<SpmCuratorConfig> = {}
       hooks.hook(HookEvent.SELECTION_EVALUATE, async (ctx: InteractionContext) => {
         const result = await instance.evaluate(ctx);
         // Publish the result so other plugins / the LayerRouter can see it
-        await hooks.callHook(HookEvent.SELECTION_EVALUATE + ":result" as any, result, ctx);
+        await hooks.callHook(HookEvent.SELECTION_EVALUATE + ":result", result, ctx);
       });
 
       hooks.hook(HookEvent.SELECTION_PROMOTE, async (ctx: InteractionContext) => {
@@ -375,7 +375,7 @@ export function createSpmCurator(configOverrides: Partial<SpmCuratorConfig> = {}
 
       // Expose the instance via a well‑known hook so the daemon / config UI
       // can inspect stats and adjust the threshold at runtime.
-      hooks.hook("spm-curator:getInstance" as any, () => instance);
+      hooks.hook("spm-curator:getInstance", () => instance);
     },
 
     teardown() {

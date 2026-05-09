@@ -345,7 +345,7 @@ export function createIdentityAnchorPlugin(
         let changed = false;
 
         // Detect user from interaction metadata (set by auth layer in team mode)
-        const userId = (ctx.interaction?.metadata as any)?.userId as string | undefined;
+        const userId = ctx.interaction?.metadata?.userId as string | undefined;
 
         for (const fragment of ctx.fragments) {
           if (
@@ -390,7 +390,7 @@ export function createIdentityAnchorPlugin(
         const selfVector = computeSelfVector();
         const drift = computeDrift(ctx.fragments);
 
-        (ctx as any).identityAnchor = {
+        ctx.identityAnchor = {
           fragmentCount: anchorFragments.length,
           selfVector,
           drift: drift.drift,
@@ -411,17 +411,17 @@ export function createIdentityAnchorPlugin(
           );
 
           const boosted = getIdentityTrainingFragments();
-          (ctx as any).identityAnchor.boostedFragments = boosted;
+          ctx.identityAnchor.boostedFragments = boosted;
         }
       });
 
       // ── Custom hooks for external consumers ────────────────────
 
-      hooks.hook("identity-anchor:switchUser" as any, async (userId: string) => {
+      hooks.hook("identity-anchor:switchUser", async (userId: string) => {
         switchUser(userId);
       });
 
-      hooks.hook("identity-anchor:getState" as any, async (opts?: { userId?: string }) => {
+      hooks.hook("identity-anchor:getState", async (opts?: { userId?: string }) => {
         // If userId is provided and different from current, temporarily load that user
         const targetId = opts?.userId ?? currentUserId;
         if (targetId && targetId !== currentUserId && cfg.userStatesDir) {
@@ -465,11 +465,11 @@ export function createIdentityAnchorPlugin(
         };
       });
 
-      hooks.hook("identity-anchor:getBoostedFragments" as any, async () =>
+      hooks.hook("identity-anchor:getBoostedFragments", async () =>
         getIdentityTrainingFragments()
       );
 
-      hooks.hook("identity-anchor:computeDrift" as any, async (newFragments: MemoryFragment[]) =>
+      hooks.hook("identity-anchor:computeDrift", async (newFragments: MemoryFragment[]) =>
         computeDrift(newFragments)
       );
 
@@ -508,7 +508,7 @@ export function createIdentityAnchorPlugin(
       });
 
       // Custom: predict regression for a model+benchmark pair
-      hooks.hook("identity-anchor:predictRegression" as any, async (opts: {
+      hooks.hook("identity-anchor:predictRegression", async (opts: {
         model: string;
         benchmark: string;
       }): Promise<RegressionPrediction[]> => {
@@ -516,7 +516,7 @@ export function createIdentityAnchorPlugin(
       });
 
       // Custom: assess surprise for an observed score
-      hooks.hook("identity-anchor:assessSurprise" as any, async (opts: {
+      hooks.hook("identity-anchor:assessSurprise", async (opts: {
         model: string;
         benchmark: string;
         metric: string;
@@ -531,12 +531,12 @@ export function createIdentityAnchorPlugin(
       });
 
       // Custom: get all fingerprints
-      hooks.hook("identity-anchor:getFingerprints" as any, async () => {
+      hooks.hook("identity-anchor:getFingerprints", async () => {
         return fingerprintStore.getAll();
       });
 
       // Custom: detect model drift
-      hooks.hook("identity-anchor:detectDrift" as any, async (opts: {
+      hooks.hook("identity-anchor:detectDrift", async (opts: {
         model: string;
         benchmark: string;
         windowSize?: number;
@@ -549,7 +549,7 @@ export function createIdentityAnchorPlugin(
       });
 
       // Custom: get fingerprint summary
-      hooks.hook("identity-anchor:fingerprintSummary" as any, async () => {
+      hooks.hook("identity-anchor:fingerprintSummary", async () => {
         return fingerprintStore.summary();
       });
     },

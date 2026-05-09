@@ -254,10 +254,12 @@ function extractTextFromBlocks(blocks: GeminiContentBlock[]): string {
   const parts: string[] = [];
   for (const block of blocks) {
     if (!block || typeof block !== "object") continue;
-    if (block.type === "text" && (block as any).text) {
-      parts.push((block as any).text);
+    if (block.type === "text") {
+      const textBlock = block as { type: "text"; text: string };
+      parts.push(textBlock.text);
     } else if (block.type === "tool_use") {
-      const name = (block as any).name || "unknown";
+      const toolBlock = block as { type: "tool_use"; name: string };
+      const name = toolBlock.name || "unknown";
       parts.push(`[tool:${name}]`);
     } else if (block.type === "thinking") {
       // Skip thinking blocks (internal, not user-facing)
@@ -623,7 +625,7 @@ export default definePlugin({
     });
 
     // Store harvester reference for testing
-    (hooks as any)._geminiHarvester = harvester;
+    (hooks as Record<string, unknown>)._geminiHarvester = harvester;
   },
 
   teardown() {

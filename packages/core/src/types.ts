@@ -38,7 +38,9 @@ export const HookEvent = {
   TRAINING_ERROR: "training:error",
 } as const;
 
-export type HookEventName = (typeof HookEvent)[keyof typeof HookEvent];
+export type HookEventName =
+  | (typeof HookEvent)[keyof typeof HookEvent]
+  | (string & {});
 
 // ── Core Types ──────────────────────────────────────────────────
 
@@ -108,6 +110,8 @@ export interface ConsolidationContext {
   targetLayer: MemoryLayer;
   fragments: MemoryFragment[];
   results: ConsolidationResult;
+  /** Runtime plugin data — plugins can attach extra context during hooks */
+  [key: string]: unknown;
 }
 
 // ── Plugin Definition ───────────────────────────────────────────

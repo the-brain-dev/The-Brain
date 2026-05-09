@@ -712,9 +712,9 @@ export function createAutoWikiPlugin(
       hooks.hook(HookEvent.CONSOLIDATE_COMPLETE, async () => {
         try {
           const { filepath, filename } = await generateWiki();
-          await hooks.callHook("wiki:generated" as any, { filepath, filename });
+          await hooks.callHook("wiki:generated", { filepath, filename });
         } catch (err) {
-          await hooks.callHook("plugin:error" as any, {
+          await hooks.callHook("plugin:error", {
             name: "@the-brain/plugin-auto-wiki",
             error: err instanceof Error ? err.message : String(err),
           });
@@ -722,7 +722,7 @@ export function createAutoWikiPlugin(
       });
 
       // Allow manual trigger via hook
-      hooks.hook("wiki:generate" as any, async () => {
+      hooks.hook("wiki:generate", async () => {
         return await generateWiki();
       });
     },

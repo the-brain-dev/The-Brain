@@ -86,7 +86,7 @@ export function createMlxTrainer(config: Partial<TrainerConfig> = {}) {
     // ── Identity Anchor integration ──────────────────────────
     // If identity anchor detected drift, it injects boosted fragments
     // to prevent catastrophic forgetting of core user preferences.
-    const identityAnchor = (ctx as any).identityAnchor;
+    const identityAnchor = ctx.identityAnchor as { fragmentCount?: number; selfVector?: number[]; drift?: number; needsBoost?: boolean; fragments?: MemoryFragment[]; boostedFragments?: MemoryFragment[] } | undefined;
     const boostedFragments: Array<{ text: string; metadata: Record<string, unknown> }> =
       identityAnchor?.boostedFragments ?? [];
 
@@ -233,7 +233,7 @@ export function createMlxTrainer(config: Partial<TrainerConfig> = {}) {
       });
 
       // Allow manual trigger
-      h.hook("training:run" as any, async (ctx: ConsolidationContext) => {
+      h.hook("training:run", async (ctx: ConsolidationContext) => {
         await runTraining(ctx);
       });
     },

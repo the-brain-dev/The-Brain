@@ -85,9 +85,9 @@ export function startAPIServer(engine: DaemonEngine, state: APIState, serverCfg?
         if (config.wiki?.outputDir) roots.push(resolve(config.wiki.outputDir));
         if (config.daemon?.logDir) roots.push(resolve(config.daemon.logDir));
         if (config.contexts) {
-          for (const ctx of Object.values(config.contexts) as any[]) {
-            if (ctx?.dbPath) roots.push(resolve(ctx.dbPath, ".."));
-            if (ctx?.wikiDir) roots.push(resolve(ctx.wikiDir));
+          for (const ctx of Object.values(config.contexts)) {
+            roots.push(resolve(ctx.dbPath, ".."));
+            roots.push(resolve(ctx.wikiDir));
           }
         }
       }
@@ -215,7 +215,7 @@ export function startAPIServer(engine: DaemonEngine, state: APIState, serverCfg?
             };
 
             await engine.layerRouter.runDeep(ctx);
-            await engine.hooks.callHook("DEEP_CONSOLIDATE" as any, ctx);
+            await engine.hooks.callHook("deep:consolidate", ctx);
 
             state.lastConsolidationAt = Date.now();
 
@@ -261,7 +261,7 @@ export function startAPIServer(engine: DaemonEngine, state: APIState, serverCfg?
               },
             };
 
-            await engine.hooks.callHook("training:run" as any, trainCtx);
+            await engine.hooks.callHook("training:run", trainCtx);
 
             const duration = (Date.now() - startTime) / 1000;
             state.lastTraining = Date.now();
