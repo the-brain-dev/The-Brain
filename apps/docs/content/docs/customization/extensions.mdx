@@ -3,7 +3,9 @@ title: Extension System
 description: Extend the-brain with custom scripts loaded at runtime
 ---
 
-the-brain supports zero-config extensions — drop a `.ts` file into `~/.the-brain/extensions/` and it loads automatically on daemon start.
+the-brain supports zero-config extensions — drop a `.ts` file into `~/.the-brain/extensions/`, add its name to `config.json`'s `extensions` array, and it loads on the next daemon restart.
+
+> ⚠️ **Extensions are disabled by default** for security. You must explicitly enable each extension in `config.json`: `"extensions": ["my-extension"]`.
 
 > 💡 **Extensions are the product.** the-brain's core is a thin event bus + plugin manager. Everything that makes it useful — harvesters, memory strategies, trainers, notifications — is an extension. The built-in starter pack are extensions too. Build yours and grow the ecosystem.
 
@@ -65,8 +67,13 @@ the-brain ext
 
 - **Directory**: `~/.the-brain/extensions/`
 - **Format**: `.ts` files exporting a default function `(brain: BrainAPI) => void`
-- **Reload**: `ExtensionLoader.reload(name)` hot-reloads an extension
+- **Security**: Extensions are **disabled by default**. To enable one, add its name to `config.json`:
+  ```json
+  { "extensions": ["hermes", "my-extension"] }
+  ```
+  Without this, `loadAll()` skips all extension files and logs a warning.
 - **Skip**: `sample.ts` is never loaded
+- **Reload**: `ExtensionLoader.reload(name)` hot-reloads an extension
 
 ## Available Hooks
 

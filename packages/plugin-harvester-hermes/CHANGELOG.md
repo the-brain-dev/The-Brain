@@ -1,7 +1,7 @@
-# Changelog
+# @the-brain/plugin-harvester-hermes
 
 ## [Unreleased]
 
 ### Added
 
-- Initial release: harvester for Hermes Agent — polls `~/.hermes/state.db` and feeds user↔assistant interactions into the the-brain pipeline.
+- Initial release — Hermes Agent state.db harvester plugin.

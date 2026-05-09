@@ -13,6 +13,7 @@ description: JSON schema reference for ~/.the-brain/config.json
   "mlx": {},
   "wiki": {},
   "server": {},
+  "extensions": [],
   "backends": {},
   "activeContext": "global",
   "contexts": {}
@@ -80,6 +81,14 @@ Array of plugin configs.
   "mcpPort": 9422
 }
 ```
+
+### `extensions`
+
+```json
+["hermes", "my-extension"]
+```
+
+List of extension names (without `.ts` suffix) to load from `~/.the-brain/extensions/`. **Extensions are disabled by default** — if omitted or empty, no extensions are loaded. Add extension filenames here to enable them.
 
 ### `backends`
 

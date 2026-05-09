@@ -249,6 +249,8 @@ export async function initDaemon(config: DaemonConfig): Promise<DaemonEngine> {
     ["harvester-claude", () => pluginManager.load(plugins.claudeHarvester)],
     ["identity-anchor", () => pluginManager.load(plugins.identityAnchor)],
     ["auto-wiki", () => pluginManager.load(plugins.autoWiki)],
+    ["harvester-hermes", () => pluginManager.load(plugins.hermesHarvester)],
+    ["harvester-lm-eval", () => pluginManager.load(plugins.lmEvalHarvester)],
   ] as const) {
     try {
       await p();

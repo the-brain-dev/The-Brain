@@ -290,6 +290,7 @@ export const TheBrainConfigSchema = z.object({
     port: z.number().int().positive().optional(),
     mcpPort: z.number().int().positive().optional(),
   }).default({}),
+  extensions: z.array(z.string()).optional(),
   activeContext: z.string().default("global"),
   contexts: z.record(ProjectContextSchema).default({}),
 });

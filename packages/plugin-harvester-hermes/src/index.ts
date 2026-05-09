@@ -1,36 +1,71 @@
 /**
  * @the-brain/plugin-harvester-hermes
  *
- * Data harvester that polls Hermes Agent's local state.db
- * (~/.hermes/state.db) and feeds new interactions into the
- * the-brain pipeline.
+ * Polls Hermes Agent's SQLite state.db (~/.hermes/state.db),
+ * pairs user→assistant messages into Interaction objects,
+ * and emits them into the-brain pipeline.
  *
- * Hermes Agent stores conversations in a SQLite database with:
- *   - sessions: id, source, model, created_at
- *   - messages: id, session_id, role, content, timestamp, token_count
- *
- * Message roles:
- *   - user: prompt from the developer
- *   - assistant: AI response
- *   - session_meta: session metadata (skipped)
- *   - tool: tool call records (skipped)
+ * Exports:
+ *   default — definePlugin for automatic loading
+ *   createHermesHarvester() — factory for direct use / tests
+ *   HermesHarvesterConfig — config type
  */
-import { existsSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
+
+import { existsSync, mkdirSync } from "node:fs";
+import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { createHash } from "node:crypto";
 import { Database } from "bun:sqlite";
-import type {
-  Interaction,
-  InteractionContext,
-  MemoryFragment,
-  PluginHooks,
+import {
+  definePlugin,
+  HookEvent,
+  type PluginHooks,
 } from "@the-brain/core";
-import { HookEvent, MemoryLayer, definePlugin } from "@the-brain/core";
 
-// ── Types ────────────────────────────────────────────────────────
+// ── Types ──────────────────────────────────────────────────────────
 
-interface HermesState {
+export interface HermesHarvesterConfig {
+  /** Path to the Hermes state.db (default: ~/.hermes/state.db) */
+  hermesDbPath?: string;
+  /** Home directory override (for testing) */
+  homeDir?: string;
+  /** Poll interval in ms */
+  pollIntervalMs?: number;
+  /** Max prompt/response length (default: 2000) */
+  maxContentLength?: number;
+}
+
+interface HermesDbMessage {
+  id: number;
+  session_id: string;
+  role: string;
+  content: string | null;
+  timestamp: number | null;
+  token_count: number | null;
+}
+
+interface HermesDbSession {
+  id: string;
+  source: string | null;
+  model: string | null;
+}
+
+interface PairedInteraction {
+  id: string;
+  timestamp: number;
+  prompt: string;
+  response: string;
+  channel: string;
+  model: string;
+  tokens: number;
+}
+
+// ── Defaults ───────────────────────────────────────────────────────
+
+const SOURCE = "hermes-agent";
+
+interface HarvesterState {
   lastId: number;
   lastAt: number;
   sessions: string[];
@@ -38,267 +73,310 @@ interface HermesState {
   totalSes: number;
 }
 
-interface HermesMessage {
-  id: number;
-  session_id: string;
-  role: string;
-  content: string;
-  timestamp: number;
-  token_count: number | null;
-}
-
-interface HermesSession {
-  id: string;
-  source: string;
-  model: string;
-}
-
-interface HermesHarvesterConfig {
-  /** Polling interval in ms (default: 30000) */
-  pollIntervalMs: number;
-  /** Override the Hermes DB path */
-  dbPath?: string;
-  /** Override the home directory (for testing) */
-  homeDir?: string;
-  /** Maximum interactions per poll */
-  maxInteractionsPerPoll: number;
-}
-
-// ── Config ───────────────────────────────────────────────────────
-
-const DEFAULT_CONFIG: HermesHarvesterConfig = {
-  pollIntervalMs: 30000,
-  maxInteractionsPerPoll: 100,
+const DEFAULT_STATE: HarvesterState = {
+  lastId: 0,
+  lastAt: 0,
+  sessions: [],
+  totalIx: 0,
+  totalSes: 0,
 };
 
-// ── Path Resolution ──────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────
 
-function getHomeDir(config: HermesHarvesterConfig): string {
-  return config.homeDir ?? process.env.HOME ?? homedir();
+function sha256(text: string): string {
+  return createHash("sha256").update(text).digest("hex");
 }
 
-function getHermesDbPath(config: HermesHarvesterConfig): string {
-  return config.dbPath ?? join(getHomeDir(config), ".hermes", "state.db");
+function stateFile(homeDir: string): string {
+  return join(homeDir, ".the-brain", "hermes-state.json");
 }
 
-function getStatePath(config: HermesHarvesterConfig): string {
-  return join(getHomeDir(config), ".the-brain", "hermes-state.json");
+function dbPath(homeDir: string, custom?: string): string {
+  return custom ?? join(homeDir, ".hermes", "state.db");
 }
 
-// ── State Persistence ────────────────────────────────────────────
+// ── State I/O ──────────────────────────────────────────────────────
 
-function loadState(config: HermesHarvesterConfig): HermesState {
-  const path = getStatePath(config);
+async function loadState(homeDir: string): Promise<HarvesterState> {
   try {
-    const raw = readFileSync(path, "utf-8");
-    return JSON.parse(raw) as HermesState;
+    const raw = await readFile(stateFile(homeDir), "utf-8");
+    return { ...DEFAULT_STATE, ...JSON.parse(raw) };
   } catch {
-    return { lastId: 0, lastAt: 0, sessions: [], totalIx: 0, totalSes: 0 };
+    return { ...DEFAULT_STATE };
   }
 }
 
-function saveState(state: HermesState, config: HermesHarvesterConfig): void {
-  const path = getStatePath(config);
-  const dir = join(path, "..");
-  try { mkdirSync(dir, { recursive: true }); } catch {}
-  writeFileSync(path, JSON.stringify(state, null, 2), "utf-8");
+async function saveState(homeDir: string, s: HarvesterState): Promise<void> {
+  const f = stateFile(homeDir);
+  const dir = join(homeDir, ".the-brain");
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  await writeFile(f, JSON.stringify(s, null, 2));
 }
 
-// ── Database Access ──────────────────────────────────────────────
+// ── DB Access ──────────────────────────────────────────────────────
 
-function openHermesDb(config: HermesHarvesterConfig): Database | null {
-  const dbPath = getHermesDbPath(config);
-  if (!existsSync(dbPath)) return null;
-  return new Database(dbPath, { readonly: true });
+function openDb(path: string): Database | null {
+  if (!existsSync(path)) return null;
+  try {
+    return new Database(path, { readonly: true });
+  } catch {
+    return null;
+  }
 }
 
-function loadSessions(db: Database): Record<string, HermesSession> {
-  const out: Record<string, HermesSession> = {};
+function loadSessions(db: Database): Map<string, HermesDbSession> {
+  const map = new Map<string, HermesDbSession>();
   try {
     const rows = db
       .query("SELECT id, source, model FROM sessions")
-      .all() as HermesSession[];
-    for (const row of rows) {
-      out[row.id] = { id: row.id, source: row.source || "unknown", model: row.model || "unknown" };
-    }
-  } catch {}
-  return out;
+      .all() as HermesDbSession[];
+    for (const r of rows) map.set(r.id, r);
+  } catch {
+    // empty
+  }
+  return map;
 }
 
 function getNewMessages(
   db: Database,
-  lastId: number,
-  limit: number,
-): HermesMessage[] {
+  lastId: number
+): HermesDbMessage[] {
   try {
     return db
       .query(
         "SELECT id, session_id, role, content, timestamp, token_count " +
-        "FROM messages WHERE id > ?1 ORDER BY session_id, timestamp ASC LIMIT ?2",
+          "FROM messages WHERE id > ?1 ORDER BY session_id, timestamp ASC LIMIT 500"
       )
-      .all(lastId, limit) as HermesMessage[];
+      .all(lastId) as HermesDbMessage[];
   } catch {
     return [];
   }
 }
 
-// ── Interaction Parsing ──────────────────────────────────────────
+// ── Pairing ────────────────────────────────────────────────────────
 
-/**
- * Pair user→assistant messages from the raw message stream.
- */
-function pairMessages(
-  msgs: HermesMessage[],
-): Record<string, { lastUser: HermesMessage | null; pairs: Array<{ u: HermesMessage; a: HermesMessage }> }> {
-  const buf: Record<string, { lastUser: HermesMessage | null; pairs: Array<{ u: HermesMessage; a: HermesMessage }> }> = {};
+interface PairBuffer {
+  lastUser: HermesDbMessage | null;
+  pairs: Array<{ u: HermesDbMessage; a: HermesDbMessage }>;
+}
+
+function pairMessages(msgs: HermesDbMessage[]): Map<string, PairBuffer> {
+  const buf = new Map<string, PairBuffer>();
 
   for (const m of msgs) {
     if (m.role === "session_meta" || m.role === "tool") continue;
 
-    if (!buf[m.session_id]) {
-      buf[m.session_id] = { lastUser: null, pairs: [] };
+    let slot = buf.get(m.session_id);
+    if (!slot) {
+      slot = { lastUser: null, pairs: [] };
+      buf.set(m.session_id, slot);
     }
 
     if (m.role === "user") {
-      buf[m.session_id].lastUser = m;
-    } else if (m.role === "assistant" && buf[m.session_id].lastUser) {
-      buf[m.session_id].pairs.push({ u: buf[m.session_id].lastUser, a: m });
-      buf[m.session_id].lastUser = null;
+      slot.lastUser = m;
+    } else if (m.role === "assistant" && slot.lastUser) {
+      slot.pairs.push({ u: slot.lastUser, a: m });
+      slot.lastUser = null;
     }
   }
 
   return buf;
 }
 
-/**
- * Generate a unique hash ID for an interaction.
- */
-function hashInteraction(prompt: string, response: string): string {
-  return createHash("sha256")
-    .update(`${prompt.slice(0, 200)}\n${response.slice(0, 200)}`)
-    .digest("hex")
-    .slice(0, 16);
-}
-
-/**
- * Build Interaction objects from paired messages.
- */
 function buildInteractions(
-  buf: Record<string, { lastUser: HermesMessage | null; pairs: Array<{ u: HermesMessage; a: HermesMessage }> }>,
-  sessions: Record<string, HermesSession>,
+  buf: Map<string, PairBuffer>,
+  sessions: Map<string, HermesDbSession>,
   seen: Set<string>,
-): { items: Interaction[]; maxId: number } {
-  const out: Interaction[] = [];
+  maxLen: number
+): { items: PairedInteraction[]; maxId: number } {
+  const items: PairedInteraction[] = [];
   let maxId = 0;
 
-  for (const sessionId of Object.keys(buf)) {
-    const ses = sessions[sessionId] || { source: "unknown", model: "unknown" };
-    const pairs = buf[sessionId].pairs;
+  for (const [sid, slot] of buf) {
+    const ses = sessions.get(sid);
+    const channel = ses?.source ?? "unknown";
+    const model = ses?.model ?? "unknown";
 
-    for (const pair of pairs) {
-      const uc = pair.u.content || "";
-      const ac = pair.a.content || "";
-      const id = hashInteraction(uc, ac);
-
+    for (const p of slot.pairs) {
+      const uc = p.u.content ?? "";
+      const ac = p.a.content ?? "";
+      const id = sha256(uc.slice(0, 200) + ac.slice(0, 200) + String(p.u.id));
       if (seen.has(id)) continue;
       seen.add(id);
 
-      if (pair.u.id > maxId) maxId = pair.u.id;
-      if (pair.a.id > maxId) maxId = pair.a.id;
+      if (p.u.id > maxId) maxId = p.u.id;
+      if (p.a.id > maxId) maxId = p.a.id;
 
-      out.push({
+      items.push({
         id,
-        timestamp: Math.round((pair.u.timestamp || Date.now()) * 1000),
-        prompt: uc.slice(0, 2000),
-        response: ac.slice(0, 2000),
-        source: "hermes-agent",
-        metadata: {
-          channel: ses.source,
-          model: ses.model,
-          tokenCount: pair.a.token_count || 0,
-        },
+        timestamp: Math.round((p.u.timestamp ?? Date.now()) * 1000),
+        prompt: uc.slice(0, maxLen),
+        response: ac.slice(0, maxLen),
+        channel,
+        model,
+        tokens: p.a.token_count ?? 0,
       });
     }
   }
 
-  return { items: out, maxId };
+  return { items, maxId };
 }
 
-// ── Harvester Factory ────────────────────────────────────────────
+// ── Emit into pipeline ─────────────────────────────────────────────
+
+async function emitAll(
+  hooks: PluginHooks,
+  interactions: PairedInteraction[]
+): Promise<void> {
+  for (const ix of interactions) {
+    const ctx = {
+      interaction: {
+        id: ix.id,
+        timestamp: ix.timestamp,
+        prompt: ix.prompt,
+        response: ix.response,
+        source: SOURCE,
+        metadata: { channel: ix.channel, model: ix.model, tokenCount: ix.tokens },
+      },
+      fragments: [
+        {
+          id: `frag-${ix.id}`,
+          layer: "instant" as const,
+          content: `Prompt: ${ix.prompt}\n\nResponse: ${ix.response}`,
+          timestamp: ix.timestamp,
+          source: SOURCE,
+          metadata: { channel: ix.channel, model: ix.model },
+        },
+      ],
+      promoteToDeep() {
+        // no-op: SPM curator handles promotion
+      },
+    };
+
+    try {
+      await hooks.callHook(HookEvent.HARVESTER_NEW_DATA, ctx);
+      await hooks.callHook(HookEvent.ON_INTERACTION, ctx);
+    } catch {
+      // skip on error
+    }
+  }
+}
+
+// ── Harvester Factory ──────────────────────────────────────────────
+
+export interface InteractionContext {
+  interaction: {
+    id: string;
+    timestamp: number;
+    prompt: string;
+    response: string;
+    source: string;
+    metadata?: Record<string, unknown>;
+  };
+  fragments: Array<{
+    id: string;
+    layer: string;
+    content: string;
+    timestamp: number;
+    source: string;
+    metadata?: Record<string, unknown>;
+  }>;
+  promoteToDeep: () => void;
+}
+
+export interface HermesHarvester {
+  name: string;
+  start(): void;
+  stop(): void;
+  poll(): Promise<InteractionContext[]>;
+  getState(): HarvesterState;
+}
 
 export function createHermesHarvester(
   hooks: PluginHooks,
-  config: Partial<HermesHarvesterConfig> = {},
-) {
-  const cfg = { ...DEFAULT_CONFIG, ...config };
-  let state = loadState(cfg);
-  let intervalId: ReturnType<typeof setInterval> | null = null;
+  config?: HermesHarvesterConfig
+): HermesHarvester {
+  const homeDir = config?.homeDir ?? homedir();
+  const maxLen = config?.maxContentLength ?? 2000;
+  const hermesDb = dbPath(homeDir, config?.hermesDbPath);
+
   let running = false;
 
-  const harvester = {
+  return {
+    name: "harvester-hermes",
+
+    start() {
+      running = true;
+    },
+
+    stop() {
+      running = false;
+    },
+
     async poll(): Promise<InteractionContext[]> {
-      const db = openHermesDb(cfg);
+      const db = openDb(hermesDb);
       if (!db) return [];
 
       try {
-        const dbSessions = loadSessions(db);
-        const knownSessions = new Set(state.sessions);
-        const newSessions: string[] = [];
-
-        for (const sid of Object.keys(dbSessions)) {
-          if (!knownSessions.has(sid)) {
-            newSessions.push(sid);
-          }
-        }
-
-        const msgs = getNewMessages(db, state.lastId, cfg.maxInteractionsPerPoll);
-        if (!msgs.length) return [];
-
+        const state = await loadState(homeDir);
         const seen = new Set(state.sessions);
-        const { items, maxId } = buildInteractions(
-          pairMessages(msgs),
-          dbSessions,
-          seen,
-        );
+        const sessions = loadSessions(db);
 
-        if (!items.length) return [];
-
-        // Emit interactions
-        const contexts: InteractionContext[] = [];
-        for (const interaction of items) {
-          const ctx: InteractionContext = {
-            interaction,
-            fragments: [
-              {
-                id: `hermes-${interaction.id}`,
-                layer: MemoryLayer.INSTANT,
-                content: `Prompt: ${interaction.prompt}\nResponse: ${interaction.response.slice(0, 500)}`,
-                timestamp: interaction.timestamp,
-                source: interaction.source,
-                metadata: interaction.metadata,
-              },
-            ],
-            promoteToDeep: async (frag: MemoryFragment) => {
-              await hooks.callHook(HookEvent.SELECTION_PROMOTE, frag);
-            },
-          };
-
-          contexts.push(ctx);
-          await hooks.callHook(HookEvent.HARVESTER_NEW_DATA, ctx);
-          await hooks.callHook(HookEvent.ON_INTERACTION, ctx);
-        }
-
-        // Update state
-        state.lastId = maxId;
-        state.lastAt = Date.now();
-        for (const sid of newSessions) {
-          if (!state.sessions.includes(sid)) {
-            state.sessions.push(sid);
+        // Track new sessions
+        const newSessions: string[] = [];
+        const sessionIdSet = new Set(state.sessions);
+        for (const id of sessions.keys()) {
+          if (!sessionIdSet.has(id)) {
+            newSessions.push(id);
+            sessionIdSet.add(id);
           }
         }
-        state.totalIx += items.length;
-        state.totalSes += newSessions.length;
-        saveState(state, cfg);
+
+        // Dedup interactions by ID hash (separate from session tracking)
+        const dedup = new Set(state.sessions);
+
+        const msgs = getNewMessages(db, state.lastId);
+        if (msgs.length === 0 && newSessions.length === 0) return [];
+
+        const buf = pairMessages(msgs);
+        const { items, maxId } = buildInteractions(buf, sessions, dedup, maxLen);
+        if (items.length === 0) return [];
+
+        // Build contexts for return
+        const contexts: InteractionContext[] = items.map((ix) => ({
+          interaction: {
+            id: ix.id,
+            timestamp: ix.timestamp,
+            prompt: ix.prompt,
+            response: ix.response,
+            source: SOURCE,
+            metadata: { channel: ix.channel, model: ix.model, tokenCount: ix.tokens },
+          },
+          fragments: [
+            {
+              id: `frag-${ix.id}`,
+              layer: "instant",
+              content: `Prompt: ${ix.prompt}\n\nResponse: ${ix.response}`,
+              timestamp: ix.timestamp,
+              source: SOURCE,
+              metadata: { channel: ix.channel, model: ix.model },
+            },
+          ],
+          promoteToDeep() {},
+        }));
+
+        // Save state
+        const updated: HarvesterState = {
+          lastId: maxId > 0 ? maxId : state.lastId,
+          lastAt: Date.now(),
+          sessions: Array.from(sessionIdSet),
+          totalIx: state.totalIx + items.length,
+          totalSes: state.totalSes + newSessions.length,
+        };
+        await saveState(homeDir, updated);
+
+        // Emit into pipeline
+        await emitAll(hooks, items);
 
         return contexts;
       } finally {
@@ -306,46 +384,32 @@ export function createHermesHarvester(
       }
     },
 
-    start(): void {
-      if (running) return;
-      running = true;
-
-      // Initial poll
-      this.poll().catch(() => {});
-
-      // Periodic polling
-      intervalId = setInterval(() => {
-        this.poll().catch(() => {});
-      }, cfg.pollIntervalMs);
-    },
-
-    stop(): void {
-      running = false;
-      if (intervalId) {
-        clearInterval(intervalId);
-        intervalId = null;
+    getState(): HarvesterState {
+      // Note: returns current in-memory state (may not reflect latest disk write)
+      // For perfect accuracy, callers should re-read from disk.
+      // This is kept sync for convenience — the state was just saved in poll().
+      try {
+        const raw = require("node:fs").readFileSync(stateFile(homeDir), "utf-8");
+        return { ...DEFAULT_STATE, ...JSON.parse(raw) };
+      } catch {
+        return { ...DEFAULT_STATE };
       }
-      saveState(state, cfg);
-    },
-
-    getState(): HermesState {
-      return { ...state };
     },
   };
-
-  return harvester;
 }
 
-// ── Plugin Definition ────────────────────────────────────────────
+// ── Plugin Definition ──────────────────────────────────────────────
+
+const PLUGIN_NAME = "plugin-harvester-hermes";
 
 export default definePlugin({
-  name: "@the-brain/plugin-harvester-hermes",
+  name: PLUGIN_NAME,
   version: "0.1.0",
-  description:
-    "Polls Hermes Agent's state.db and feeds interactions into the the-brain pipeline",
+  description: "Harvests interactions from Hermes Agent state.db",
 
-  setup(hooks: PluginHooks) {
+  setup(hooks: PluginHooks): void {
     const harvester = createHermesHarvester(hooks);
+    (hooks as any)[PLUGIN_NAME] = harvester;
 
     hooks.hook(HookEvent.DAEMON_START, async () => {
       harvester.start();
@@ -356,14 +420,20 @@ export default definePlugin({
     });
 
     hooks.hook(HookEvent.HARVESTER_POLL, async () => {
-      await harvester.poll();
+      const contexts = await harvester.poll();
+      if (contexts.length > 0) {
+        console.log(
+          `[hermes] Harvested ${contexts.length} interaction(s) from ${SOURCE}`
+        );
+      }
     });
-
-    // Store harvester reference for testing
-    (hooks as any)._hermesHarvester = harvester;
   },
 
-  teardown() {
-    // Cleanup handled by DAEMON_STOP hook
+  async teardown(): Promise<void> {
+    // cleanup
   },
 });
+
+// ── Re-exports ─────────────────────────────────────────────────────
+
+export type { HermesHarvesterConfig, HarvesterState };

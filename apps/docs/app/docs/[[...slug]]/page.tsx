@@ -9,6 +9,17 @@ import { notFound } from "next/navigation";
 import { getMDXComponents } from "@/components/mdx";
 import type { Metadata } from "next";
 import { createRelativeLink } from "fumadocs-ui/mdx";
+import type { MDXContent } from "mdx/types";
+
+interface DocPageData {
+  body: MDXContent;
+  toc: { title: string; url: string; depth: number }[];
+  title?: string;
+  description?: string;
+  icon?: string;
+  structuredData?: unknown;
+  _exports?: Record<string, unknown>;
+}
 
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>;
@@ -17,12 +28,13 @@ export default async function Page(props: {
   const page = source.getPage(params.slug);
   if (!page) notFound();
 
-  const MDX = page.data.body;
+  const data = page.data as DocPageData;
+  const MDX = data.body;
 
   return (
-    <DocsPage toc={page.data.toc}>
-      <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription>{page.data.description}</DocsDescription>
+    <DocsPage toc={data.toc}>
+      <DocsTitle>{data.title}</DocsTitle>
+      <DocsDescription>{data.description}</DocsDescription>
       <DocsBody>
         <MDX
           components={getMDXComponents({

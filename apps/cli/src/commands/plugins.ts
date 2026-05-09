@@ -15,6 +15,8 @@ export async function pluginsCommand(action: string) {
         { name: "@the-brain/plugin-harvester-cursor", layer: "Input", desc: "Polls Cursor IDE logs for interactions" },
         { name: "@the-brain/plugin-identity-anchor", layer: "Deep", desc: "Stable Self-Vector to prevent catastrophic forgetting" },
         { name: "@the-brain/plugin-auto-wiki", layer: "Output", desc: "Static Markdown Wiki generator (Sundays)" },
+        { name: "@the-brain/plugin-harvester-hermes", layer: "Input", desc: "Harvests Hermes Agent conversations from state.db" },
+        { name: "@the-brain/plugin-harvester-lm-eval", layer: "Input", desc: "Harvests lm-evaluation-harness benchmark results" },
         { name: "@the-brain/trainer-local-mlx", layer: "Deep", desc: "Local LoRA training on Apple Silicon (MLX)" },
       ];
 
