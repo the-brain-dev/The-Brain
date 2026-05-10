@@ -76,16 +76,16 @@ export default function Home() {
 
           {/* Boot Sequence */}
           <div className="mb-8 font-mono text-sm opacity-75 tracking-wider">
-            <div className={\`transition-opacity duration-300 \${bootOpacity[0]}\`}>
-              THE-BRAIN 1.1 — BUILD 204912
+            <div className={"transition-opacity duration-300 " + bootOpacity[0]}>
+              THE-BRAIN 1.1 - BUILD 204912
             </div>
-            <div className={\`transition-opacity duration-300 \${bootOpacity[1]}\`}>
+            <div className={"transition-opacity duration-300 " + bootOpacity[1]}>
               INITIALIZING MEMORY CORE...
             </div>
-            <div className={\`transition-opacity duration-300 \${bootOpacity[2]}\`}>
+            <div className={"transition-opacity duration-300 " + bootOpacity[2]}>
               LOADING GRAPH LAYER...
             </div>
-            <div className={\`transition-opacity duration-300 \${bootOpacity[3]}\`}>
+            <div className={"transition-opacity duration-300 " + bootOpacity[3]}>
               SPM ENGINE ONLINE
             </div>
           </div>
