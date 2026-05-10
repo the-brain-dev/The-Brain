@@ -64,7 +64,7 @@ export interface DaemonEngine {
 
 async function loadConfig(): Promise<TheBrainConfig> {
   try {
-    const raw = await readFile(CONFIG_PATH, "utf-8");
+    const raw = await readFile(getConfigPath(), "utf-8");
     const parsed = JSON.parse(raw);
     const result = safeParseConfig(parsed);
     if (result.success) return result.data;
@@ -75,10 +75,10 @@ async function loadConfig(): Promise<TheBrainConfig> {
     // No config file — create minimal default
     return {
       plugins: [],
-      daemon: { pollIntervalMs: 30000, logDir: join(CONFIG_DIR, "logs") },
-      database: { path: join(CONFIG_DIR, "global", "brain.db") },
-      mlx: { enabled: false, loraOutputDir: join(CONFIG_DIR, "global", "lora-checkpoints") },
-      wiki: { enabled: true, outputDir: join(CONFIG_DIR, "global", "wiki") },
+      daemon: { pollIntervalMs: 30000, logDir: join(getConfigDir(), "logs") },
+      database: { path: join(getConfigDir(), "global", "brain.db") },
+      mlx: { enabled: false, loraOutputDir: join(getConfigDir(), "global", "lora-checkpoints") },
+      wiki: { enabled: true, outputDir: join(getConfigDir(), "global", "wiki") },
       server: { mode: "local" as const, bindAddress: "127.0.0.1" },
       activeContext: "global",
       contexts: {},
@@ -185,12 +185,12 @@ function registerHandlers(engine: DaemonEngine) {
 // ── Initialization (testable) ──────────────────────────────────
 
 export async function initDaemon(config: DaemonConfig): Promise<DaemonEngine> {
-  await mkdir(CONFIG_DIR, { recursive: true });
-  await mkdir(join(CONFIG_DIR, "global"), { recursive: true });
+  await mkdir(getConfigDir(), { recursive: true });
+  await mkdir(join(getConfigDir(), "global"), { recursive: true });
 
   // Check PID
   try {
-    const pidStr = await readFile(PID_FILE, "utf-8");
+    const pidStr = await readFile(getPidFile(), "utf-8");
     const pid = parseInt(pidStr);
     try {
       process.kill(pid, 0);
@@ -198,7 +198,7 @@ export async function initDaemon(config: DaemonConfig): Promise<DaemonEngine> {
       throw new DaemonAlreadyRunningError(pid);
     } catch (err: unknown) {
       if (err instanceof DaemonAlreadyRunningError) throw err;
-      await unlink(PID_FILE).catch(() => {});
+      await unlink(getPidFile()).catch(() => {});
     }
   } catch (err: unknown) {
     if (err instanceof DaemonAlreadyRunningError) throw err;
@@ -207,7 +207,7 @@ export async function initDaemon(config: DaemonConfig): Promise<DaemonEngine> {
 
   // Load config
   const brainConfig = await loadConfig();
-  const projectManager = new ProjectManager(brainConfig, CONFIG_DIR);
+  const projectManager = new ProjectManager(brainConfig, getConfigDir());
 
   // Get active DB
   const db = await projectManager.getActiveDB();
@@ -216,7 +216,7 @@ export async function initDaemon(config: DaemonConfig): Promise<DaemonEngine> {
   // ── Resolve backends from config (or defaults) ────────────
   const backends = await resolveBackends(
     brainConfig.backends,
-    join(CONFIG_DIR, "global", "brain.db")
+    join(getConfigDir(), "global", "brain.db")
   );
   consola.info(`  Storage: ${brainConfig.backends?.storage ?? "sqlite (default)"}`);
   consola.info(`  Cleaner: ${brainConfig.backends?.cleaner ?? "default"}`);
@@ -303,7 +303,7 @@ export async function initDaemon(config: DaemonConfig): Promise<DaemonEngine> {
     }
   }
 
-  await writeFile(PID_FILE, String(process.pid));
+  await writeFile(getPidFile(), String(process.pid));
 
   const engine: DaemonEngine = {
     db,
@@ -322,7 +322,7 @@ export async function initDaemon(config: DaemonConfig): Promise<DaemonEngine> {
       engine.running = false;
       await pluginManager.shutdown();
       projectManager.close();
-      await unlink(PID_FILE).catch(() => {});
+      await unlink(getPidFile()).catch(() => {});
       consola.info("Daemon stopped");
     },
   };
