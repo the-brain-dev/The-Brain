@@ -8,14 +8,14 @@ Follow this checklist in order.
 Create `src/index.ts`:
 
 ```typescript
-import { definePlugin, type PluginHooks } from "@the-brain/core";
+import { definePlugin, HookEvent, type PluginHooks } from "@the-brain/core";
 
 export default definePlugin({
   name: "harvester-<name>",
   version: "0.1.0",
   description: "Harvests interactions from <source> logs",
   async setup(hooks: PluginHooks) {
-    hooks.hook("harvester:poll", async () => {
+    hooks.hook(HookEvent.HARVESTER_POLL, async () => {
       // 1. Read source logs (files, SQLite, JSONL, LevelDB)
       // 2. Parse into Interaction[] format
       // 3. Track offset/checkpoint to avoid re-processing
@@ -53,7 +53,7 @@ interface Interaction {
   response: string;      // AI's response (or empty for pending)
   context?: string;      // Additional context (file path, language, etc.)
   metadata?: Record<string, unknown>;
-  source: string;        // "cursor", "windsurf", "claude", "copilot"
+  source: string;        // "cursor", "claude", "gemini", "hermes", "lm-eval"
 }
 ```
 
@@ -79,7 +79,7 @@ hash = crypto.createHash("sha256")
 ### 4. Project Detection
 
 Every harvester MUST resolve the project context:
-1. Read workspace root from IDE logs (Cursor: `workspace.json`, Windsurf: `projects.json`, Claude: `.claude/settings.json` first `cwd`)
+1. Read workspace root from IDE logs (Cursor: `workspace.json`, Claude: `.claude/settings.json` first `cwd`, Gemini: `projects.json`)
 2. Match `workDir` against registered project contexts in `config.json`
 3. Tag interactions with matched project name
 4. If no match: fall back to `"global"` context
@@ -87,14 +87,14 @@ Every harvester MUST resolve the project context:
 ### 5. Hook Registration
 
 Your plugin MUST register on these hooks:
-- `harvester:poll` — called by daemon at `pollIntervalMs` interval
+- `HookEvent.HARVESTER_POLL` — called by daemon at `pollIntervalMs` interval
 
 Your plugin MUST emit:
-- `harvester:newData` — `{ interactions: Interaction[], project: string }` when new interactions found
+- `HookEvent.HARVESTER_NEW_DATA` — `{ interactions: Interaction[], project: string }` when new interactions found
 
 Optional hooks (recommended):
-- `daemon:start` — initial state loading
-- `daemon:stop` — flush state to disk
+- `HookEvent.DAEMON_START` — initial state loading
+- `HookEvent.DAEMON_STOP` — flush state to disk
 
 ### 6. Tests (`packages/plugin-harvester-<name>/src/__tests__/`)
 
@@ -119,7 +119,7 @@ Optional hooks (recommended):
   writeFileSync(logPath, sampleLogContent);
 
   // Trigger poll
-  await harness.hooks.callHook("harvester:poll");
+  await harness.hooks.callHook(HookEvent.HARVESTER_POLL);
 
   // Assert interactions were harvested
   const state = await harness.getState();
@@ -132,11 +132,15 @@ Optional hooks (recommended):
 
 ### 7. Daemon Registration
 
-Add to `apps/cli/src/daemon.ts` in the plugin list:
+Add to `apps/cli/src/engine.ts` in **both** `loadPlugins()` return object **and** the plugin registration loop:
+
 ```typescript
-import harvesterNew from "@the-brain/plugin-harvester-<name>";
-// ...
-const plugins = [harvesterCursor, harvesterClaude, harvesterNew, ...];
+// In loadPlugins():
+const harvesterNew = await import("@the-brain/plugin-harvester-<name>");
+// Add to return { ..., harvesterNew, ... }
+
+// In the plugin registration loop (init section, after loadPlugins()):
+await pm.load(plugins.harvesterNew.default || plugins.harvesterNew);
 ```
 
 ### 8. Documentation

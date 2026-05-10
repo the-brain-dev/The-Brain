@@ -9,7 +9,7 @@ We follow the [Contributor Covenant](https://www.contributor-covenant.org/versio
 ## The One Rule
 
 **You must understand your code.** If you cannot explain what your changes do and how they
-interact with the rest of the system, your PR will be closed.
+interact with the rest of the system, a maintainer will ask for clarification before merging.
 
 Using AI to write code is fine. Submitting AI-generated code without understanding it is not.
 

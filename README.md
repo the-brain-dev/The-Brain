@@ -159,6 +159,8 @@ bun run daemon       # Run daemon from source
 | **@the-brain/plugin-harvester-cursor** | Cursor IDE log reader |
 | **@the-brain/plugin-harvester-claude** | Claude Code log reader |
 | **@the-brain/plugin-harvester-hermes** | Hermes Agent log reader |
+| **@the-brain/plugin-harvester-gemini** | Gemini CLI log reader |
+| **@the-brain/plugin-harvester-lm-eval** | Benchmark result harvester |
 | **@the-brain/plugin-identity-anchor** | Stable self-vector across retrains |
 | **@the-brain/plugin-auto-wiki** | Weekly static wiki from learned knowledge |
 | **@the-brain/trainer-local-mlx** | Local LoRA training on Apple Silicon |
@@ -166,21 +168,23 @@ bun run daemon       # Run daemon from source
 ## 🔌 Building Your Own Plugin
 
 ```typescript
-import { definePlugin } from '@the-brain/core';
+import { definePlugin, HookEvent } from '@the-brain/core';
 
 export default definePlugin({
-name: 'my-custom-memory',
-version: '1.0.0',
-setup(hooks) {
-hooks.hook('BEFORE_PROMPT', async (context) => {
-const extraKnowledge = await myVectorSearch(context.prompt);
-context.inject(extraKnowledge);
-});
-}
+  name: 'my-custom-memory',
+  version: '1.0.0',
+  setup(hooks) {
+    hooks.hook(HookEvent.BEFORE_PROMPT, async (context) => {
+      const extraKnowledge = await myVectorSearch(context.prompt);
+      context.inject(extraKnowledge);
+    });
+  },
 });
 ```
 
 See [Writing Plugins](https://the-brain.dev/docs/customization/writing-plugins) for the full plugin authoring guide.
+
+> **Extensions** are lightweight, single-file scripts that don't need a rebuild — but they're **disabled by default**. Enable them in `config.json`: `"extensions": ["name"]`.
 
 ## 📚 Documentation
 
