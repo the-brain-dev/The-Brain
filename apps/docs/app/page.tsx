@@ -28,10 +28,10 @@ export default function Home() {
       <section className="flex flex-col items-center justify-center min-h-[60vh] px-4 pt-20 md:pt-4">
         <div className="relative">
           <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-violet-500 to-emerald-500 rounded-2xl blur-xl opacity-30" />
-          <div className="relative px-8 py-6 rounded-2xl bg-black/90 border border-zinc-800">
-            <img src="/logo.png" alt="🧠" className="w-20 h-20 mx-auto mb-3" />
+          <div className="relative px-8 py-6 rounded-2xl bg-black/90">
+            <img src="/logo.png" alt="the-brain logo" className="w-20 h-20 mx-auto mb-3" />
             <h1 className="text-6xl font-bold tracking-tight text-center">
-              🧠 the-brain
+              the-brain
             </h1>
           </div>
         </div>
