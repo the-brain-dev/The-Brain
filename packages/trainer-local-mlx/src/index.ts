@@ -23,7 +23,7 @@ interface TrainerConfig {
 }
 
 const DEFAULT_CONFIG: TrainerConfig = {
-  modelPath: process.env.THE_BRAIN_MLX_MODEL || "mlx-community/gemma-4-e4b-it-4bit",
+  modelPath: process.env.THE_BRAIN_MLX_MODEL || "mlx-community/Llama-3.2-1B-Instruct-4bit",
   loraOutputDir: join(process.env.HOME || "~", ".the-brain", "lora-checkpoints"),
   pythonSidecarPath: join(
     import.meta.dir,
