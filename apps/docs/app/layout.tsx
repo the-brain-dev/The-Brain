@@ -16,6 +16,11 @@ export const metadata: Metadata = {
   description:
     "An open memory platform for AI, in the making. 3-layer cognitive architecture, local-first, entirely pluggable. Research project — contribute, fork, or build an extension.",
   metadataBase: new URL("https://the-brain.dev"),
+  icons: {
+    icon: "/favicon-32x32.png",
+    shortcut: "/favicon-16x16.png",
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: {
     title: "the-brain — open memory platform for AI",
     description: "3-layer cognitive architecture. Local-first, pluggable. Research project.",
