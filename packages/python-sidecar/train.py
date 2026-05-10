@@ -7,7 +7,7 @@ into model weights using Apple's MLX framework.
 
 Usage:
   uv run --with mlx-lm --with mlx-vlm python3 train.py \
-    --model-path mlx-community/gemma-4-e4b-it-4bit \
+    --model-path mlx-community/Llama-3.2-1B-Instruct-4bit \
     --lora-output-dir ~/.the-brain/lora-checkpoints \
     --learning-rate 1e-4 \
     --lora-rank 16 \
