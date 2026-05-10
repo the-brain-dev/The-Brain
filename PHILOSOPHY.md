@@ -29,7 +29,7 @@ Human memory isn't a flat collection of files. It's layered — working memory, 
 There is no single "correct" way to remember. The AI ecosystem evolves too quickly for dogma.
 
 **Principle:** the-brain's core is an empty data bus. Everything — harvesters, memory modules, trainers, output targets — must be a swappable plugin.
-**Implementation:** Hook system + plugin architecture allowing any form of memory (Graph, Vector, RAG, LoRA, wiki generation) to plug in without modifying the kernel. Lightweight extensions provide external integrations without project rebuilds.
+**Implementation:** Hook system + plugin architecture allowing any form of memory (Graph, Vector, RAG, LoRA, wiki generation) to plug in without modifying the core. Lightweight extensions provide external integrations without project rebuilds.
 
 ### 4. Invisible Intelligence (Ambient UX)
 
@@ -50,7 +50,7 @@ Dumping everything into memory causes noise, context pollution, and hallucinatio
 - **Harvesters, not prompts.** the-brain collects data passively from your actual tools (Cursor, Claude Code, Gemini CLI, Hermes Agent) — no manual note-taking required.
 - **Surprise-driven curation.** Not everything gets remembered. The SPM Curator filters noise, only promoting interactions with high surprise scores to permanent storage.
 - **Permanent output.** Memory isn't just vectors. the-brain produces concrete artifacts: LoRA adapters, a markdown wiki, identity fingerprints, and automatically proposed skills via Skill Forge.
-- **Extensions + Plugins.** Plugins live in the monorepo and ship with the project. Extensions are single-file scripts you drop into `~/.the-brain/extensions/` — no rebuild needed.
+- **Extensions + Plugins.** Plugins live in the monorepo and ship with the project. Extensions are single-file scripts you add to `~/.the-brain/extensions/` and enable in `config.json` (`"extensions": ["name"]`) — disabled by default for security.
 - **Open platform.** the-brain is exposed as an MCP server, integrates with any IDE, and supports team/shared memory modes. Memory as infrastructure, not a SaaS subscription.
 
 > "The brain is a muscle that can be extended with code."

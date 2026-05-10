@@ -5,7 +5,7 @@ description: Local LoRA fine-tuning on Apple Silicon — how adapters work, Gemm
 
 the-brain's Deep Layer uses Apple MLX for zero-cost, fully private LoRA training.
 
-> **⚠️ LoRA adapters are permanently bound to their base model.** An adapter trained on `mlx-community/Gemma-4-4B` only works with that exact model — same architecture, same tokenizer. It's not a standalone model, it's a set of weights that *bias* one specific model toward your style. If you switch base models, you need to retrain. Think of it like a tailored suit — it only fits one person.
+> **⚠️ LoRA adapters are permanently bound to their base model.** An adapter trained on `mlx-community/gemma-4-e4b-it-4bit` only works with that exact model — same architecture, same tokenizer. It's not a standalone model, it's a set of weights that *bias* one specific model toward your style. If you switch base models, you need to retrain. Think of it like a tailored suit — it only fits one person.
 
 ## Concrete Example: Gemma 4 + Ollama
 
@@ -37,17 +37,17 @@ Here's a full workflow using Google's Gemma 4 4B as the base model:
 ollama pull gemma4:4b
 
 # Create a custom model with the adapter
-ollama create my-brain-model --from gemma4:4b --adapter ~/.the-brain/lora-checkpoints/adapter.safetensors
+ollama create the-brain-model --from gemma4:4b --adapter ~/.the-brain/lora-checkpoints/adapter.safetensors
 
 # Use it
-ollama run my-brain-model
+ollama run the-brain-model
 ```
 
 The model now behaves as if it's been working with you for months. Same Gemma 4 — just biased toward your style.
 
 ### 4. Loading in LM Studio
 
-1. Download `gemma-4-4b-it` in LM Studio
+1. Download `gemma-4-4b-it` from LM Studio
 2. In model settings → "LoRA Adapter" → browse to `~/.the-brain/lora-checkpoints/adapter.safetensors`
 3. All subsequent generations use the adapted model
 

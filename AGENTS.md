@@ -1,7 +1,7 @@
 # Development Rules for the-brain
 
 This document defines rules for both humans and AI agents working on this project.
-Agents that comply with AGENTS.md (Cursor, Claude Code, Windsurf, pi, Copilot) will
+Agents that comply with AGENTS.md (Cursor, Claude Code, Gemini CLI, Hermes Agent) will
 automatically read and follow these rules when opened from the the-brain root directory.
 
 ## Conversational Style

@@ -89,6 +89,40 @@ Reads from `~/.hermes/state.db` (Hermes Agent's SQLite database).
 }
 ```
 
+## Gemini CLI Harvester
+
+Reads from `~/.gemini/tmp/` (Gemini CLI's local conversation logs).
+
+### Supported Source Formats
+
+| Source | Format | Source ID | Details |
+|--------|--------|-----------|---------|
+| `~/.gemini/tmp/<project>/logs.json` | JSON array | `gemini-cli` | Flat message array: `{sessionId, messageId, type, message, timestamp}` |
+| `~/.gemini/tmp/<project>/chats/session-*.json` | JSON | `gemini-cli-chat` | Full chat sessions with block-based content |
+| `~/.gemini/projects.json` | JSON | — | Maps project paths to slugs (discovery only) |
+
+**Filters**: Excludes `"info"` type messages. Pairs consecutive `user → gemini` messages.
+
+**Content blocks**: In chat sessions, content is an array of blocks (`text`, `tool_use`, `thinking`). Text and thinking blocks are joined; tool_use blocks are stripped with a fallback `[tool use]` marker.
+
+### Deduplication
+
+- SHA-256 of `prompt + "\x00" + response`, truncated to 16 hex
+- Per-session message ID dedup via `processedMessageIds` Set
+
+### State File
+
+`~/.the-brain/gemini-harvester-state.json`
+
+```json
+{
+  "lastPollTimestamp": 1714800000000,
+  "processedIds": ["gemini-a1b2c3d4e5f6g7h8"],
+  "projectSlugs": ["my-project"],
+  "fileOffsets": { "/path/to/logs.json": 12345 }
+}
+```
+
 ## lm-eval Harvester
 
 Reads lm-evaluation-harness JSON result files for benchmark tracking and regression fingerprinting. Enables the-brain to serve as a cognitive layer for meta-harness systems.
