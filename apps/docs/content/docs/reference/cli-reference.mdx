@@ -77,7 +77,7 @@ bun run apps/cli/src/full-pipeline.ts  # Harvest → curate → train (standalon
 
 ```bash
 the-brain context --query "fix auth bug"           # JSON output (default)
-the-brain context --query "..." --format markdown   # Human-readable
+the-brain context --query "..." --markdown   # Human-readable
 the-brain context --project <name> --query "..."    # Per project
 the-brain context --global --query "..."            # Global brain
 the-brain context --query "React" --limit 20         # Filter + limit
@@ -209,11 +209,8 @@ the-brain user token --revoke <token-id>
 the-brain user set-role --name <name> --project <project> --role <role>
 ```
 
-### `the-brain audit`
+### `the-brain timeline`
 
 ```bash
-the-brain audit                         # Show recent audit log entries
-the-brain audit --userId <id>           # Filter by user
-the-brain audit --project <project>     # Filter by project
-the-brain audit --limit 50              # Max entries (default: 100)
+the-brain timeline                       # Open activity timeline in browser
 ```

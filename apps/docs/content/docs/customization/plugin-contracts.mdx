@@ -3,7 +3,7 @@ title: Plugin Contracts
 description: TypeScript interfaces for each plugin layer in the-brain
 ---
 
-the-brain defines 9 plugin types across its cognitive architecture. Each type maps to a specific layer or concern.
+the-brain defines 8 plugin types across its cognitive architecture. Each type maps to a specific layer or concern.
 
 ## Core Plugin Interface
 
@@ -132,7 +132,7 @@ interface OutputResult {
 ## Implementation Example
 
 ```typescript
-import { definePlugin } from "@the-brain/core";
+import { definePlugin, HookEvent } from "@the-brain/core";
 import type {
   DeepLayerPlugin,
   ConsolidationContext,
@@ -141,7 +141,7 @@ import type {
 const myTrainer: DeepLayerPlugin = definePlugin({
   name: "my-custom-trainer",
   setup(hooks) {
-    hooks.hook("deep:consolidate", async (ctx: ConsolidationContext) => {
+    hooks.hook(HookEvent.DEEP_CONSOLIDATE, async (ctx: ConsolidationContext) => {
       // Custom training logic
       await trainModel(ctx.fragments);
     });

@@ -39,3 +39,15 @@ cd apps/menu-bar
 swift build
 open .
 ```
+
+## Troubleshooting
+
+### "missing required module 'SwiftShims'"
+
+If you renamed or moved the project directory, Swift's precompiled module cache retains stale paths:
+
+```bash
+cd apps/menu-bar
+swift package clean
+swift build -c release
+```

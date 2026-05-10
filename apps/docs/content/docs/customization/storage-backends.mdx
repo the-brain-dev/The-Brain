@@ -50,7 +50,7 @@ interface StorageBackend {
 ## Writing a Custom Backend
 
 ```typescript
-import { definePlugin } from "@the-brain/core";
+import { definePlugin, HookEvent } from "@the-brain/core";
 import type { StorageBackend, MemoryFragment, MemoryLayer } from "@the-brain/core";
 
 export class PostgresStorage implements StorageBackend {
@@ -65,7 +65,7 @@ export default definePlugin({
   name: "storage-postgres",
   setup(hooks) {
     const backend = new PostgresStorage();
-    hooks.hook("storage:register", () => backend);
+    hooks.hook(HookEvent.STORAGE_REGISTER, () => backend);
   },
 });
 ```
