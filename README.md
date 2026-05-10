@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/the-brain-dev/The-Brain/main/apps/docs/public/logo.png" alt="the-brain" width="128">
+  <img src="https://github.com/the-brain-dev/The-Brain/blob/main/apps/docs/public/logo.png?raw=true" alt="the-brain" width="128">
 </p>
 
 # the-brain — open memory platform for AI
