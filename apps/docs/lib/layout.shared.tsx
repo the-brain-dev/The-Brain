@@ -14,7 +14,7 @@ export function baseOptions(): BaseLayoutProps {
     links: [
       {
         text: "GitHub",
-        url: "https://github.com/the-brain-dev/Brain",
+        url: "https://github.com/the-brain-dev/The-Brain",
         icon: (
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -28,6 +28,6 @@ export function baseOptions(): BaseLayoutProps {
         ),
       },
     ],
-    githubUrl: "https://github.com/the-brain-dev/Brain",
+    githubUrl: "https://github.com/the-brain-dev/The-Brain",
   };
 }

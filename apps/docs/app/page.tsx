@@ -12,7 +12,7 @@ export default function Home() {
               the-brain explores what happens when AI has persistent, private, 3-layer memory.
               Interested in the concept?{" "}
             </span>
-            <a href="https://github.com/the-brain-dev/Brain" target="_blank" className="text-amber-300 underline hover:text-amber-200 transition-colors font-medium">
+            <a href="https://github.com/the-brain-dev/The-Brain" target="_blank" className="text-amber-300 underline hover:text-amber-200 transition-colors font-medium">
               Contribute
             </a>
             <span className="text-amber-300/70"> or </span>
@@ -59,7 +59,7 @@ export default function Home() {
             Build an extension →
           </Link>
           <a
-            href="https://github.com/the-brain-dev/Brain"
+            href="https://github.com/the-brain-dev/The-Brain"
             target="_blank"
             className="px-6 py-3 rounded-lg border border-zinc-700 text-zinc-300 font-medium hover:bg-zinc-900 transition-colors"
           >
@@ -215,7 +215,7 @@ export default function Home() {
       <footer className="border-t border-zinc-800 py-8 text-center text-sm text-zinc-600">
         <p>MIT © 2026 Oskar Schachta</p>
         <p className="mt-1">
-          <a href="https://github.com/the-brain-dev/Brain" target="_blank" className="hover:text-zinc-400 transition-colors">GitHub</a>
+          <a href="https://github.com/the-brain-dev/The-Brain" target="_blank" className="hover:text-zinc-400 transition-colors">GitHub</a>
           <span className="mx-2">·</span>
           <a href="https://hermes-agent.nousresearch.com" target="_blank" className="hover:text-zinc-400 transition-colors">Built with Hermes Agent</a>
         </p>
