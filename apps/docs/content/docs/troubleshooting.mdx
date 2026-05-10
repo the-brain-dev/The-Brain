@@ -140,7 +140,7 @@ cat ~/.the-brain/logs/*train*.log
 
 **Symptom:** Training crashes with `Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory)`. Exit code 134. No checkpoint files written — only `training_data.jsonl` in `lora-checkpoints/`.
 
-This happens on Macs with 16GB unified memory or less, especially with the default Gemma 4 model. The model + LoRA parameters + gradients + tokenized data exceed available GPU memory.
+This happens on Macs with 16GB unified memory or less, especially with larger models. The model + LoRA parameters + gradients + tokenized data exceed available GPU memory.
 
 **Workarounds (pick one):**
 
