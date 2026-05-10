@@ -13,7 +13,7 @@ export default definePlugin({
   version: "0.1.0",
   description: "Does something useful",
   setup(hooks) {
-    hooks.hook("BEFORE_PROMPT", async (ctx) => {
+    hooks.hook(HookEvent.BEFORE_PROMPT, async (ctx) => {
       ctx.inject("Always use TypeScript strict mode.");
     });
   },
@@ -34,6 +34,8 @@ packages/plugin-<name>/
 
 ## Hooks Reference
 
+For the full hook system (17 lifecycle events + plugin-defined custom hooks), see [Hook System](/docs/core-concepts/hook-system).
+
 | Hook | Context |
 |------|---------|
 | `BEFORE_PROMPT` | `{ prompt, injected[], inject() }` |
@@ -44,6 +46,10 @@ packages/plugin-<name>/
 | `SELECTION_EVALUATE` | `{ interaction, fragments }` |
 | `SELECTION_PROMOTE` | `{ interaction, fragments }` |
 | `DEEP_CONSOLIDATE` | `{ targetLayer, fragments, results }` |
+| `TRAINING_START` | `{ model, fragmentCount }` |
+| `TRAINING_COMPLETE` | `{ duration, loss, adapterPath }` |
+| `DAEMON_START` | (none) |
+| `DAEMON_STOP` | (none) |
 
 ## Example: Context Injector
 

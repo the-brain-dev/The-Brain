@@ -77,18 +77,19 @@ the-brain ext
 
 ## Available Hooks
 
-Extensions can hook into any event from the hook system:
-`beforePrompt`, `afterResponse`, `onInteraction`, `harvester:poll`, `harvester:newData`, `selection:evaluate`, `selection:promote`, `deep:consolidate`, `training:start`, `training:complete`, `daemon:start`, `daemon:stop`
+Extensions can hook into any event from the hook system. Common hooks:
 
-## Example: Hermes Agent Extension
+`BEFORE_PROMPT`, `AFTER_RESPONSE`, `ON_INTERACTION`, `HARVESTER_POLL`, `HARVESTER_NEW_DATA`, `SELECTION_EVALUATE`, `SELECTION_PROMOTE`, `DEEP_CONSOLIDATE`, `TRAINING_START`, `TRAINING_COMPLETE`, `DAEMON_START`, `DAEMON_STOP`
 
-A real-world extension that harvests interactions from Hermes Agent's `state.db` and injects them into the-brain pipeline.
+See [Hook System](/docs/core-concepts/hook-system) for the full list of 17 lifecycle events + plugin-defined custom hooks.
 
-**Source:** `~/.the-brain/extensions/hermes.ts`
+## Example: Hermes Agent Extension (Migrated to Plugin)
 
-**What it does:**
-- **Auto-harvester** — hooks `harvester:poll` (every 30s), reads `~/.hermes/state.db`, pairs user→assistant messages, emits `harvester:newData` into the pipeline
-- **On-interaction tagging** — tags memories with `hermesChannel`, `hermesModel`, and token counts
+The Hermes harvester was originally an extension (`~/.the-brain/extensions/hermes.ts`) and has since been migrated to `@the-brain/plugin-harvester-hermes`. The extension pattern shown below is preserved as a reference for building similar harvesters.
+
+**What it did:**
+- **Auto-harvester** — hooked `harvester:poll` (every 30s), read `~/.hermes/state.db`, paired user→assistant messages, emitted `harvester:newData` into the pipeline
+- **On-interaction tagging** — tagged memories with `hermesChannel`, `hermesModel`, and token counts
 - **CLI commands** — accessible via a standalone runner
 
 **CLI usage (standalone):**

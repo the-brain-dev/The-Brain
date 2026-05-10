@@ -282,6 +282,26 @@ ls -la ~/Library/LaunchAgents/com.thebrain.*.plist
 # Should be readable by you (not root-owned)
 ```
 
+## Daemon Running But Not Harvesting (Stale Config Paths)
+
+**Symptom:** Daemon starts without errors, status shows 🟢 running, but memory count never increases.
+
+**Common after renames** (e.g., `my-brain` → `the-brain`): `config.json` was copied to the new location, but its **values** still point to old paths:
+
+```bash
+# Check for stale paths in config
+rg '/Users/.*\.my-brain/' ~/.the-brain/config.json
+```
+
+**Fix:** Update every path field in `config.json` to `~/.the-brain/...`:
+- `database.path`
+- `daemon.logDir`
+- `mlx.loraOutputDir`
+- `wiki.outputDir`
+- All project `dbPath`/`wikiDir`/`loraDir` entries
+
+Then restart: `the-brain daemon stop && the-brain daemon start`
+
 ## Error: "getaddrinfo ENOENT" in Timeline
 
 The timeline SPA tries to fetch from `localhost:9420` and fails. This usually means:

@@ -24,6 +24,14 @@ the-brain reads `.claude/history.jsonl` from your project root.
 
 Reads `~/.gemini/logs.json`. Conversation history extracted from `content.blocks`.
 
+## Hermes Agent
+
+Reads `~/.hermes/state.db` (Hermes Agent's SQLite database). Pairs user↔assistant messages from `sessions` + `messages` tables. Tracks `lastId` offset for incremental harvesting.
+
+## lm-eval
+
+Reads `~/.the-brain/eval-results/*.json`. Harvests lm-evaluation-harness benchmark results. Computes per-model per-benchmark fingerprints with anomaly detection (>2σ). Enables meta-harness integration.
+
 ## Adding a New Source
 
 See [Harvesters](/docs/customization/harvesters) for writing your own harvester plugin. works for any data format — SQLite, JSONL, JSON, CSV, or API endpoints.
