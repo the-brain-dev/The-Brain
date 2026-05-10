@@ -29,7 +29,8 @@ export default function Home() {
         <div className="relative">
           <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-violet-500 to-emerald-500 rounded-2xl blur-xl opacity-30" />
           <div className="relative px-8 py-6 rounded-2xl bg-black/90 border border-zinc-800">
-            <h1 className="text-6xl font-bold tracking-tight mb-3 text-center">
+            <img src="/logo.png" alt="🧠" className="w-20 h-20 mx-auto mb-3" />
+            <h1 className="text-6xl font-bold tracking-tight text-center">
               🧠 the-brain
             </h1>
           </div>
