@@ -20,7 +20,7 @@ cat ~/.the-brain/logs/*.log | tail -30
 python3 -m json.tool ~/.the-brain/config.json
 
 # 4. Verify all dependencies
-bun --version   # requires >= 1.2
+bun --version   # requires >= 1.0
 python3 --version  # requires >= 3.11 (for MLX)
 ```
 
@@ -136,6 +136,24 @@ cat ~/.the-brain/logs/*train*.log
 - Set `NO_MLX=1` in environment to skip MLX entirely
 - Run `uv run --with mlx-lm python3 -c "import mlx.core"` to pre-cache dependencies
 
+### Metal Out of Memory (macOS)
+
+**Symptom:** Training crashes with `Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory)`. Exit code 134. No checkpoint files written — only `training_data.jsonl` in `lora-checkpoints/`.
+
+This happens on Macs with 16GB unified memory or less, especially with the default Gemma 4 model. The model + LoRA parameters + gradients + tokenized data exceed available GPU memory.
+
+**Workarounds (pick one):**
+
+1. **Switch to a smaller model:**
+   ```bash
+   THE_BRAIN_MLX_MODEL=mlx-community/Llama-3.2-1B-Instruct-4bit the-brain train --global
+   ```
+   Other options: `Qwen2.5-1.5B-Instruct-4bit`, `Phi-3-mini-4k-instruct`
+
+2. **Free GPU memory** — close Chrome, VS Code, Figma, and other GPU-using apps before training
+
+3. **Reduce batch size and sequence length** in trainer config (edit `trainer-local-mlx/src/index.ts`): `batchSize: 2`, `maxSeqLength: 512`
+
 ## Memory Lost After Restart
 
 **Symptom:** Memories from yesterday are gone.
@@ -154,6 +172,27 @@ the-brain inspect --memories selection
 
 **Memory is NOT lost.** The inspect command shows INSTANT layer by default. DEEP memories are there — use `--memories deep` or `--memories all`.
 
+## Consolidate Finds 0 Memories / "Promoted: 0"
+
+**Symptom:** `the-brain consolidate --now --global` reports `Promoted: 0 fragments -> Deep Layer`.
+
+This is **expected** in two scenarios:
+
+**First run:** Instant-layer memories haven't been scored by SPM yet. The `consolidate` command only looks at `selection`-layer memories. Use `--reprocess` to run all instant memories through the SPM curator first:
+
+```bash
+the-brain consolidate --now --global --reprocess
+```
+
+**Already consolidated:** If `Promoted: 0` still appears after `--reprocess`, the DEEP-layer memories already exist from a previous consolidation. The UNIQUE constraint on memory IDs prevents duplicates. Existing DEEP memories get their metadata refreshed — check with:
+
+```bash
+sqlite3 ~/.the-brain/global/brain.db \
+  "SELECT layer, COUNT(*) FROM memories WHERE surprise_score IS NOT NULL GROUP BY layer;"
+```
+
+If this returns 0 rows in the `selection` layer, SPM hasn't scored anything yet — ensure the daemon has been running with harvesters active.
+
 ## Config Changes Not Taking Effect
 
 The daemon reads config at startup. After editing `~/.the-brain/config.json`:
@@ -163,6 +202,24 @@ the-brain daemon stop && the-brain daemon start
 ```
 
 For plugin config changes, also restart the daemon:
+
+```bash
+the-brain daemon restart
+```
+
+## Extensions Not Loading
+
+**Symptom:** You added a `.ts` file to `~/.the-brain/extensions/` but it doesn't appear in `the-brain plugins list` or `the-brain ext --list`.
+
+**Extensions are disabled by default** (since 2026-05-07, security audit). You must explicitly enable each extension in `config.json`:
+
+```json
+{
+  "extensions": ["my-extension"]
+}
+```
+
+The daemon logs `[ExtensionLoader] No extensions enabled` if this field is missing or empty. After adding extension names, restart the daemon:
 
 ```bash
 the-brain daemon restart

@@ -76,10 +76,10 @@ bun run apps/cli/src/full-pipeline.ts  # Harvest → curate → train (standalon
 ### `the-brain context`
 
 ```bash
-the-brain context --prompt "fix auth bug"           # JSON output (default)
-the-brain context --prompt "..." --format markdown   # Human-readable
-the-brain context --project <name> --prompt "..."    # Per project
-the-brain context --global --prompt "..."            # Global brain
+the-brain context --query "fix auth bug"           # JSON output (default)
+the-brain context --query "..." --format markdown   # Human-readable
+the-brain context --project <name> --query "..."    # Per project
+the-brain context --global --query "..."            # Global brain
 the-brain context --query "React" --limit 20         # Filter + limit
 ```
 

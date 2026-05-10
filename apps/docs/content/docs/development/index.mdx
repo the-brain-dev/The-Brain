@@ -3,55 +3,66 @@ title: Contributing
 description: How to contribute to the-brain
 ---
 
-## Philosophy
+## The One Rule
 
-- All code, comments, docs in English. CLI messages may be localized.
-- No emojis in commits, issues, PRs, or code (except README branding).
-- TDD with >80% coverage.
-- Pluggable architecture: core is an empty data bus.
+**You must understand your code.** If you cannot explain what your changes do, your PR will be closed.
+
+Using AI to write code is fine. Submitting AI-generated code without understanding it isn't.
+
+## Contribution Gate
+
+First-time contributors start with an **Issue or Discussion**, not a PR.
+Maintainers reply `lgtmi` (issues) or `lgtm` (issues + PRs) to approve.
+Once approved, you can submit PRs directly.
 
 ## Setup
 
+**Prerequisites:** [Bun](https://bun.sh) ≥ 1.0, [uv](https://docs.astral.sh/uv/) (macOS MLX only).
+
 ```bash
-git clone https://github.com/the-brain-dev/Brain.git
-cd the-brain
-bun install
-bun run build
-bun test
+git clone https://github.com/<your-username>/Brain.git
+cd Brain
+git remote add upstream https://github.com/the-brain-dev/Brain.git
+./install.sh
 ```
 
-## Project Structure
+## Workflow
 
-See [Project Structure](/docs/development/project-structure) for the monorepo layout.
+Fork → feature branch → PR against `main`. Direct pushes are blocked.
+
+```bash
+git fetch upstream
+git checkout -b feat/your-feature upstream/main
+
+# Write code, following AGENTS.md conventions
+
+bun test --coverage && bun run lint    # must pass
+cd apps/docs && bun run build          # docs compile clean
+
+git add <specific-files>               # targeted add only
+git commit -m "type(scope): description"
+git push origin feat/your-feature
+```
+
+Branch prefixes: `feat/`, `fix/`, `refactor/`, `docs/`, `chore/`. Lowercase, hyphen-separated.
+
+Update `packages/*/CHANGELOG.md` under `## [Unreleased]` with your changes.
 
 ## Before Submitting
 
-```bash
-bun test && bun run lint    # All green
-bun test --coverage         # >80% line coverage
-cd apps/docs && bun run build  # Docs build clean
-```
+- `bun test --coverage` — >80% line coverage for new code
+- `bun run lint` — zero errors
+- `cd apps/docs && bun run build` — docs compile clean
 
-## Commit Style
+## Philosophy
 
-```
-<type>: <description>
-
-feat: add Windsurf harvester
-fix: correct SPM threshold calculation
-docs: update hook system reference
-```
-
-Types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`.
-
-## Pull Requests
-
-- One concern per PR
-- New features need tests
-- Breaking changes need migration guide
+Core is minimal. New features should be plugins. PRs that bloat the core will likely be rejected.
+Read [PHILOSOPHY.md](https://github.com/the-brain-dev/Brain/blob/main/PHILOSOPHY.md) for the full vision.
 
 ## See Also
 
-- [Testing](/docs/development/testing) — Test conventions
-- [Plugins](/docs/customization/writing-plugins) — Plugin development
-- [Changelogs](https://github.com/the-brain-dev/Brain/tree/main/packages) — Per-package changelogs in each package directory
+- [Project Structure](/docs/development/project-structure) — Monorepo layout
+- [Testing](/docs/development/testing) — Test conventions and isolation patterns
+- [Writing Plugins](/docs/customization/writing-plugins) — Plugin development guide
+- [AGENTS.md](https://github.com/the-brain-dev/Brain/blob/main/AGENTS.md) — Full coding standards
+- [CONTRIBUTING.md](https://github.com/the-brain-dev/Brain/blob/main/CONTRIBUTING.md) — Canonical contributing guide

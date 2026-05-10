@@ -26,7 +26,7 @@ the-brain --version
 ## Step 2: Initialize with Your Project
 
 ```bash
-the-brain init --project my-react-app --work-dir ~/code/my-react-app --label "My React Project"
+the-brain init --project my-react-app --work-dir ~/projects/my-react-app --label "My React Project"
 ```
 
 This creates an isolated context for your project:
@@ -57,7 +57,7 @@ the-brain health
 
 ## Step 4: Work Normally
 
-Now use your AI coding assistant (Cursor, Claude Code, or Windsurf) or any AI chat inside `~/code/my-react-app`. Every interaction gets harvested:
+Now use your AI coding assistant (Cursor or Claude Code) or any AI chat inside `~/projects/my-react-app`. Every interaction gets harvested:
 
 - Corrections you make ("no, use `useCallback` instead")
 - Preferences you express ("I prefer arrow functions")
@@ -116,7 +116,7 @@ Example output you might see:
 Now when you start a new conversation in your AI assistant, inject your brain's context:
 
 ```bash
-the-brain context --prompt "fix the auth bug in login component" --format markdown
+the-brain context --query "fix the auth bug in login component" --format markdown
 ```
 
 This returns relevant memories, corrections, and patterns. The output might look like:
@@ -204,7 +204,7 @@ Now your brain is always running, always learning.
 | Start | `the-brain daemon start` | Background daemon starts |
 || Work | Use AI tools | Interactions harvested |
 | Inspect | `the-brain inspect --stats` | See what was learned |
-| Inject | `the-brain context --prompt "..."` | Get relevant context |
+| Inject | `the-brain context --query "..."` | Get relevant context |
 | Consolidate | `the-brain consolidate --now` | Promote to DEEP |
 | Train | `the-brain train` | MLX LoRA training |
 

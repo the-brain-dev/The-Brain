@@ -103,9 +103,8 @@ curl -fsSL https://the-brain.dev/install.sh | bash
 
 # Or install from source
 git clone https://github.com/the-brain-dev/Brain.git
-cd the-brain
-bun install
-bun run apps/cli/src/index.ts init
+cd Brain
+./install.sh
 ```
 
 ## 💻 CLI Usage
@@ -181,7 +180,7 @@ context.inject(extraKnowledge);
 });
 ```
 
-See [docs/plugins.md](docs/plugins.md) for the full plugin authoring guide.
+See [Writing Plugins](https://the-brain.dev/docs/customization/writing-plugins) for the full plugin authoring guide.
 
 ## 📚 Documentation
 
@@ -190,7 +189,6 @@ Full documentation at **[the-brain.dev](https://the-brain.dev)**.
 - [the-brain.dev/docs](https://the-brain.dev/docs) — Full documentation (architecture, plugins, configuration, MLX training)
 - [AGENTS.md](AGENTS.md) — Rules for AI agents working on this project
 - [CONTRIBUTING.md](CONTRIBUTING.md) — Contribution guidelines
-- [SECURITY.md](SECURITY.md) — Security policy
 
 ## 🤝 Contributing
 

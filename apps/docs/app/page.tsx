@@ -71,7 +71,7 @@ export default function Home() {
           <span>MIT License</span>
           <span>Bun + TypeScript</span>
           <span>Apple MLX</span>
-          <span>86% Test Coverage</span>
+          <span>{'>'}80% Test Coverage</span>
         </div>
       </section>
 
@@ -148,7 +148,7 @@ export default function Home() {
           <FeatureCard
             icon="🔌"
             title="Extension-First"
-            desc="Core is an empty data bus. Everything — harvesters, memory modules, trainers — is a swappable plugin. Drop a .ts file and it loads."
+            desc="Core is an empty data bus. Everything — harvesters, memory modules, trainers — is a swappable plugin. Enable extensions in config.json and daemon loads them on start."
           />
           <FeatureCard
             icon="🏠"
