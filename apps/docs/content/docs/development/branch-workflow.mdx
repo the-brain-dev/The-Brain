@@ -1,0 +1,133 @@
+---
+title: Branch Workflow
+description: Branch naming, PR workflow, and GitHub branch protection rules
+---
+
+All development happens on feature branches. **Direct pushes to `main` are forbidden** — enforced by GitHub branch protection.
+
+## Branch Naming
+
+Lowercase, hyphen-separated, max 50 chars.
+
+| Prefix | Purpose | Example |
+|--------|---------|---------|
+| `feat/` | New features, plugins, harvesters | `feat/harvester-gemini` |
+| `fix/` | Bug fixes | `fix/double-evaluation-spm` |
+| `refactor/` | Code restructuring (no behavior change) | `refactor/daemon-engine-separation` |
+| `docs/` | Documentation only | `docs/api-reference-update` |
+| `chore/` | CI, build, deps, tooling | `chore/update-bun` |
+| `release/` | Release preparation (rare) | `release/v1.24.0` |
+
+## External Contributors (Fork & PR)
+
+External contributors don't have write access to the repo. Use the **fork-and-PR** model:
+
+```bash
+# 1. Fork the repo (GitHub UI) and clone your fork
+git clone https://github.com/<your-username>/Brain.git
+cd Brain
+
+# 2. Add upstream remote
+git remote add upstream https://github.com/the-brain-dev/Brain.git
+
+# 3. Sync and branch
+git fetch upstream
+git checkout -b feat/your-feature upstream/main
+
+# 4. Work, test, commit, push to your fork
+git push origin feat/your-feature
+
+# 5. Open a PR against the-brain-dev/Brain:main
+```
+
+See [Contributing](/docs/development) for the full workflow including the contribution gate (`lgtm`/`lgtmi`).
+
+## Internal Agent Workflow
+
+For maintainers and AI agents with repo access:
+
+```bash
+# Create branch
+git checkout main && git pull origin main
+git checkout -b <prefix>/<description>
+
+# Work, test, lint
+bun test && bun run lint
+
+# Commit (conventional, targeted add only)
+git add <specific-files>
+git commit -m "type(scope): description"
+
+# Push and open PR
+git push origin <branch>
+```
+
+## Multi-Session Branches
+
+When working on the same feature across multiple sessions:
+
+```bash
+# Session start — sync with main
+git checkout <my-branch>
+git pull origin main --rebase
+
+# Work, commit, push as usual
+git push origin <my-branch>
+```
+
+Before opening a PR: rebase on latest `main`, resolve only conflicts in files you authored. **Never force push.**
+
+## Commit Convention
+
+```
+type(scope?): concise description
+
+Types: feat, fix, refactor, docs, chore, test, perf
+
+Examples:
+  feat(harvester): add Gemini CLI harvester plugin
+  fix(spm): prevent double-evaluation during promote()
+  docs: update CLI reference with --reprocess flag
+```
+
+## Forbidden Operations
+
+These can destroy work or bypass review:
+
+- `git push origin main` — blocked by branch protection
+- `git push --force` / `git push -f` — rewriting shared history
+- `git reset --hard`, `git checkout .`, `git clean -fd` — destroy uncommitted work
+- `git add -A` / `git add .` — sweeps up changes from other contributors
+
+## Branch Protection Rules
+
+GitHub Ruleset `main` enforces on `~DEFAULT_BRANCH`:
+
+| Rule | Purpose |
+|------|---------|
+| `deletion` | Prevent deleting `main` |
+| `non_fast_forward` | Block force pushes |
+| `update` | Block direct pushes — everything goes through PRs |
+| `pull_request` | Require 1 approving review, dismiss stale reviews, require last push approval, resolve all threads |
+| `code_quality` | Require CodeQL code quality checks |
+| `code_scanning` | Require CodeQL security scan (high+ severity) |
+
+**CodeQL** runs on every PR and push to `main` via `.github/workflows/codeql.yml`. Weekly scheduled scan on Mondays at 08:00 UTC.
+
+CI runs `bun test` and `bun run lint` on every PR — both must pass before merge.
+
+## Releasing
+
+Lockstep versioning — all packages share the same version number.
+
+```bash
+bun run scripts/release.ts patch|minor|major|<x.y.z>
+```
+
+| Bump | Meaning |
+|------|---------|
+| `patch` | Bug fixes + new features (no API break) |
+| `minor` | API breaking changes (plugin contracts, hook signatures) |
+| `major` | Architecture overhaul (core rewrite, storage migration) |
+
+The release script uses targeted `git add` (only `package.json`, `bun.lock`, changelogs) and requires admin access to bypass branch protection.

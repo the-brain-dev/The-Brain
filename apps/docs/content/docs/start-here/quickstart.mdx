@@ -28,13 +28,15 @@ the-brain inspect --search "React hooks"  # Search memory
 
 ```bash
 the-brain consolidate --now   # Promote to DEEP layer
+# First time? Use --reprocess to score all instant memories first:
+the-brain consolidate --now --global --reprocess
 the-brain train               # Run LoRA training
 ```
 
 ## 5. Context Injection
 
 ```bash
-the-brain context --prompt "fix the auth bug" --format markdown
+the-brain context --query "fix the auth bug" --format markdown
 ```
 
 Returns relevant memories and corrections to inject into your next LLM prompt.

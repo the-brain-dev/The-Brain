@@ -1,6 +1,10 @@
 # Contributing to the-brain
 
-This guide exists to save both sides time.
+Thanks for your interest in contributing. This guide keeps things efficient for both sides.
+
+## Code of Conduct
+
+We follow the [Contributor Covenant](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).
 
 ## The One Rule
 
@@ -12,80 +16,125 @@ Using AI to write code is fine. Submitting AI-generated code without understandi
 If you use an agent, run it from the `the-brain` root directory so it picks up `AGENTS.md`
 automatically. Your agent must follow the rules and guidelines in that file.
 
+## Communication
+
+- **Bug reports & feature requests:** [GitHub Issues](https://github.com/the-brain-dev/Brain/issues)
+- **Questions & discussion:** [GitHub Discussions](https://github.com/the-brain-dev/Brain/discussions)
+- **Security issues:** Email maintainers directly (see [README](README.md) for contact)
+
 ## Contribution Gate
 
-All issues and PRs from new contributors are auto-closed by default.
+First-time contributors start by opening an **Issue or Discussion** (not a PR).
+This lets maintainers scope the work before you invest time.
 
-Maintainers review auto-closed issues daily and reopen worthwhile ones. Issues that do not
-meet the quality bar below will not be reopened or receive a reply.
+Approval happens through maintainer replies:
 
-Approval happens through maintainer replies on issues:
+- `lgtmi`: your future issues will not require re-approval
+- `lgtm`: your future issues and PRs will not require re-approval
 
-- `lgtmi`: your future issues will not be auto-closed
-- `lgtm`: your future issues and PRs will not be auto-closed
+Once you receive `lgtm`, you can submit PRs directly. Until then, open an issue first.
 
-`lgtmi` does not grant rights to submit PRs. Only `lgtm` grants rights to submit PRs.
+## Quality Bar for Issues
 
-## Quality Bar For Issues
-
-- Keep it concise. If it does not fit on one screen, it is too long.
+- Keep it concise. If it doesn't fit on one screen, it's too long.
 - Write in your own voice.
 - State the bug or request clearly.
 - Explain why it matters.
 - If you want to implement the change yourself, say so.
 
-If the issue is real and written well, a maintainer may reopen it, reply `lgtmi`, or reply `lgtm`.
+## Development Environment
 
-## Blocking
+**Prerequisites:**
 
-If you ignore this document twice, or if you spam the tracker with agent-generated issues,
-your GitHub account will be permanently blocked.
+- [Bun](https://bun.sh) ≥ 1.0 (runtime, package manager, test runner)
+- [uv](https://docs.astral.sh/uv/) (Python sidecar for MLX training, macOS only)
+- macOS with Apple Silicon for MLX features (optional — core works on any platform)
 
-## Branch Workflow
+**Setup:**
 
-All work happens on feature branches. **Direct pushes to `main` are forbidden.**
+```bash
+git clone https://github.com/<your-username>/Brain.git  # your fork
+cd Brain
+git remote add upstream https://github.com/the-brain-dev/Brain.git
+./install.sh
+```
 
-1. Create a branch: `feat/`, `fix/`, `refactor/`, `docs/`, or `chore/` prefix
-2. Work, test, commit
-3. Push and open a PR against `main`
-4. Maintainer reviews and merges
+**Verify:**
 
-See [AGENTS.md](AGENTS.md) for full branch naming rules, agent workflow, and commit conventions.
+```bash
+the-brain --version
+bun test          # 940+ tests, 0 failures
+bun run lint      # zero errors
+```
+
+## Development Workflow
+
+We use the **fork-and-PR** model. Direct pushes to `main` are blocked.
+
+```bash
+# 1. Sync with upstream
+git fetch upstream
+git checkout -b feat/your-feature upstream/main
+
+# 2. Write code, following AGENTS.md conventions
+
+# 3. Test and lint
+bun test --coverage
+bun run lint
+
+# 4. Commit (conventional commits)
+git add <specific-files>       # targeted add only — never git add -A or .
+git commit -m "type(scope): description"
+
+# 5. Push to your fork
+git push origin feat/your-feature
+
+# 6. Open a PR against the-brain-dev/Brain:main
+```
+
+Branch naming: lowercase, hyphen-separated, max 50 chars. Prefixes: `feat/`, `fix/`, `refactor/`, `docs/`, `chore/`.
+
+See [AGENTS.md](AGENTS.md) for full coding standards, commit conventions, and agent workflow.
 
 ## Before Submitting a PR
 
-Do not open a PR unless you have already been approved with `lgtm`.
-
-Before submitting a PR:
+Do not open a PR unless you've been approved with `lgtm` (see Contribution Gate above).
 
 ```bash
-bun test --coverage
-bun run lint
+bun test --coverage     # >80% line coverage for new code
+bun run lint            # zero errors
+cd apps/docs && bun run build  # docs compile clean
 ```
 
-Both must pass. Target >80% line coverage for new code.
-
-Do not edit `CHANGELOG.md`. Changelog entries are added by maintainers during release.
+Update the relevant `packages/*/CHANGELOG.md` under `## [Unreleased]` with your changes.
+See [AGENTS.md](AGENTS.md#changelog) for the exact format.
 
 ## Philosophy
 
-the-brain's core is minimal. If your feature does not belong in the core, it should be a plugin.
+the-brain's core is minimal. If your feature doesn't belong in the core, it should be a plugin.
 PRs that bloat the core will likely be rejected.
 
-## Questions?
-
-Open a discussion on [GitHub Discussions](https://github.com/the-brain-dev/Brain/discussions).
+Read [PHILOSOPHY.md](PHILOSOPHY.md) for the full vision.
 
 ## FAQ
 
-### Why are new issues and PRs auto-closed?
+### Why the contribution gate?
 
-the-brain receives more contributions than maintainers can responsibly review in real time.
-Auto-closing creates a buffer so maintainers can review the tracker on their own schedule
-and reopen the issues that meet the quality bar.
+the-brain is maintained by a small team. The gate ensures every PR has been discussed and
+scoped before code is written — saving both your time and ours.
 
-### Is this hostile to contributors?
+### How do I add a harvester?
 
-No. It is a guardrail against burnout and tracker spam. Short, concrete, reproducible issues
-are welcome. Thoughtful contributions are welcome. Automated slop, entitlement, and large
-volumes of low-effort reports are not.
+See [HARVESTERS.md](HARVESTERS.md) for the 9-step checklist: plugin structure, parsing,
+deduplication, hook registration, testing, and daemon wiring.
+
+### What counts as "core bloat"?
+
+If it's a new memory layer, data source, or training backend, it should be a plugin.
+If it's a fix to the plugin system, hook infrastructure, or data pipeline, it belongs in core.
+When in doubt, open a Discussion first.
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the
+[MIT License](LICENSE).

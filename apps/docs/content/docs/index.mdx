@@ -17,7 +17,7 @@ AI forgets everything between sessions. the-brain remembers — across any AI to
 
 <Mermaid chart={`
 graph LR
-    H["Harvesters<br/>Cursor · Claude · Gemini · Windsurf"] --> I["⚡ INSTANT<br/>Graph Memory"]
+    H["Harvesters<br/>Cursor · Claude · Gemini · Hermes · lm-eval"] --> I["⚡ INSTANT<br/>Graph Memory"]
     I --> S["⚖️ SELECTION<br/>SPM Curator"]
     S --> D["🌌 DEEP<br/>MLX LoRA · SQLite · Wiki"]
 
@@ -50,7 +50,7 @@ Any AI tool → ⚡ INSTANT slot — what happens now (default: graph-memory)
             → 🌌 DEEP slot — permanent consolidation (default: mlx-lora + auto-wiki)
 ```
 
-Each slot is replaceable. Drop a `.ts` file into `~/.the-brain/extensions/` and it loads automatically.
+Each slot is replaceable. Add extension names to `config.json` (`"extensions": ["my-ext"]`) and daemon loads them on start. Extensions are **disabled by default** for security — you must explicitly enable each one.
 
 ## What the-brain Learns
 

@@ -23,16 +23,16 @@ The installer auto-detects your OS:
 
 ```bash
 git clone https://github.com/the-brain-dev/Brain.git
-cd the-brain
-bun install
-bun run build
-the-brain init
+cd Brain
+./install.sh
 ```
+
+This handles everything: Bun checks, dependency installation, config generation, CLI linking, daemon setup, and LaunchAgents (macOS).
 
 ## Initialize with a Project
 
 ```bash
-the-brain init --project my-app --work-dir ~/code/my-app
+the-brain init --project my-app --work-dir ~/projects/my-app
 ```
 
 Each project gets isolated memory, wiki, and LoRA checkpoints.

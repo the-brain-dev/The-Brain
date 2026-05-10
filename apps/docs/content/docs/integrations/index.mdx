@@ -3,11 +3,46 @@ title: Integrations
 description: Connect the-brain to external tools and environments
 ---
 
-the-brain integrates with AI assistants, IDEs, and remote servers.
+the-brain integrates with AI assistants, IDEs, remote servers, and team workflows.
 
-## Supported Integrations
+## MCP Server
 
-- **MCP Server** — Expose the-brain as a memory backend for Claude Desktop, Cursor, Zed
-- **Remote Mode** — Run the-brain on a Linux server, connect from macOS
-- **AI Tools** — Auto-harvest from Cursor, Claude Code, Windsurf, and any data source
-- **Menu Bar App** — macOS menu bar for quick status and drag-drop ingest
+Expose the-brain as a memory backend for **Claude Desktop, Cursor, Zed**, and any MCP-compatible client. 26 tools + 11 resources + SSE subscriptions.
+
+[→ MCP Server Setup](/docs/integrations/mcp-server)
+
+## Remote Mode
+
+Run the-brain on a **Linux server**, connect from macOS. Agent mode pushes interactions every 60s, daemon serves API on port 9420.
+
+[→ Remote Mode](/docs/integrations/remote-mode)
+
+## AI Tools
+
+Auto-harvest interactions from your AI coding assistants:
+
+| Tool | Harvester | Auto-Detection |
+|------|-----------|----------------|
+| Cursor IDE | `plugin-harvester-cursor` | SQLite + JSONL logs |
+| Claude Code | `plugin-harvester-claude` | JSONL history |
+| Gemini CLI | `plugin-harvester-gemini` | JSON logs |
+| Hermes Agent | `plugin-harvester-hermes` | SQLite state.db |
+| lm-eval | `plugin-harvester-lm-eval` | Benchmark results |
+
+[→ Configure AI Tools](/docs/integrations/ide-setup)
+
+## Team Mode
+
+Multi-user auth with **per-user tokens, role-based permissions**, and audit logging. Admins, contributors, and observers.
+
+[→ Team Mode Setup](/docs/integrations/team-mode)
+
+## Menu Bar App (macOS)
+
+Status indicator, memory counts, quick actions (consolidate, train), and **drag & drop file ingest** — all from the macOS menu bar.
+
+[→ Menu Bar App](/docs/integrations/menu-bar)
+
+## Build Your Own
+
+Every integration above is a plugin. [Write your own harvester](/docs/customization/harvesters) for any AI tool or [build an MCP client](/docs/integrations/mcp-server) for any platform.
