@@ -5,7 +5,7 @@ export default function Home() {
     <main className="min-h-screen bg-black text-white">
       {/* Research Status Banner */}
       <section className="w-full bg-amber-900/30 border-b border-amber-800/50">
-        <div className="max-w-5xl mx-auto px-4 py-3 text-center">
+        <div className="max-w-5xl mx-auto px-4 py-4 sm:py-5 text-center">
           <p className="text-sm text-amber-200/80">
             🧪 <span className="font-medium">Active research project.</span>{" "}
             <span className="text-amber-300/70">
@@ -25,7 +25,7 @@ export default function Home() {
       </section>
 
       {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+      <section className="flex flex-col items-center justify-center min-h-[60vh] px-4 pt-20 md:pt-4">
         <div className="relative">
           <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-violet-500 to-emerald-500 rounded-2xl blur-xl opacity-30" />
           <div className="relative px-8 py-6 rounded-2xl bg-black/90 border border-zinc-800">
@@ -65,13 +65,6 @@ export default function Home() {
           >
             GitHub
           </a>
-        </div>
-
-        <div className="flex gap-6 mt-6 text-sm text-zinc-600">
-          <span>MIT License</span>
-          <span>Bun + TypeScript</span>
-          <span>Apple MLX</span>
-          <span>{'>'}80% Test Coverage</span>
         </div>
       </section>
 
@@ -183,7 +176,7 @@ export default function Home() {
         <h2 className="text-2xl font-semibold text-center mb-8">Quick Start</h2>
 
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <pre className="text-sm text-zinc-300 font-mono leading-relaxed">
+          <pre className="text-sm text-zinc-300 font-mono leading-relaxed" style={{"whiteSpace": "normal"}}>
             <span className="text-zinc-600"># Install in 60 seconds</span>
             <br />
             <span className="text-cyan-400">curl -fsSL https://the-brain.dev/install.sh | bash</span>

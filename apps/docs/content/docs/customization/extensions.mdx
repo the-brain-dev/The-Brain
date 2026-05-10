@@ -83,9 +83,9 @@ Extensions can hook into any event from the hook system. Common hooks:
 
 See [Hook System](/docs/core-concepts/hook-system) for the full list of 17 lifecycle events + plugin-defined custom hooks.
 
-## Example: Hermes Agent Extension (Migrated to Plugin)
+## Example: Hermes Agent Harvester
 
-The Hermes harvester was originally an extension (`~/.the-brain/extensions/hermes.ts`) and has since been migrated to `@the-brain/plugin-harvester-hermes`. The extension pattern shown below is preserved as a reference for building similar harvesters.
+The `@the-brain/plugin-harvester-hermes` plugin harvests conversations from Hermes Agent. The example below shows key extension-programming techniques used to build this harvester.
 
 **What it did:**
 - **Auto-harvester** — hooked `harvester:poll` (every 30s), read `~/.hermes/state.db`, paired user→assistant messages, emitted `harvester:newData` into the pipeline

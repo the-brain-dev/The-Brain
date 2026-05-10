@@ -1,4 +1,8 @@
-# 🧠 the-brain — open memory platform for AI
+<p align="center">
+  <img src="https://the-brain.dev/logo.jpg" alt="the-brain" width="128">
+</p>
+
+# the-brain — open memory platform for AI
 
 **[the-brain.dev](https://the-brain.dev)**
 
