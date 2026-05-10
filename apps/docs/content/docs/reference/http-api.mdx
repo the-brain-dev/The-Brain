@@ -15,7 +15,7 @@ Required on all endpoints in remote mode except `/api/health`.
 
 ## CORS
 
-All endpoints return `Access-Control-Allow-Origin: *` and support `OPTIONS` preflight.
+Endpoints are restricted to localhost origins only (security audit 2026-05-07). Requests from non-localhost origins are rejected.
 
 ---
 

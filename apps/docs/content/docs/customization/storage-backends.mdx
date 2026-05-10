@@ -40,6 +40,8 @@ interface StorageBackend {
   insertMemory(memory: MemoryFragment): Promise<void>;
   getMemoriesByLayer(layer: MemoryLayer, limit?: number): Promise<MemoryFragment[]>;
   getSurprisingMemories(threshold: number): Promise<MemoryFragment[]>;
+  getRecentMemories(hoursAgo?: number): Promise<MemoryFragment[]>;
+  getAllMemories(limit?: number): Promise<MemoryFragment[]>;
   getStats(): Promise<BrainStats>;
   close(): void;
 }

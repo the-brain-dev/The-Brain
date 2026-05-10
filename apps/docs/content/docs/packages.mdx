@@ -154,3 +154,5 @@ Extensions register custom commands accessible via `the-brain ext <cmd>`:
 # List all registered extension commands
 the-brain ext --list
 ```
+
+> **⚠️ Limitation:** `brain.registerCommand()` registers commands in the **daemon process** memory. The CLI process (`the-brain ext`) has its own copy and can't see daemon-registered commands. For extensions that need CLI access, use a **standalone runner** script (see [Writing Plugins](/docs/customization/writing-plugins) for the pattern).

@@ -15,6 +15,7 @@ The absolute minimum to get started:
   "database": { "path": "~/.the-brain/global/brain.db" },
   "activeContext": "global",
   "contexts": {},
+  "extensions": [],
   "plugins": [
     { "name": "@the-brain/plugin-graph-memory", "enabled": true },
     { "name": "@the-brain/plugin-spm-curator", "enabled": true }
@@ -37,4 +38,4 @@ The absolute minimum to get started:
 - **Config changes require daemon restart**: `the-brain daemon stop && the-brain daemon start`
 - **Secrets go in env vars**, not in config.json (auth tokens, API keys)
 - **Plugin loading order** matters — hooks fire in registration order
-- **Project contexts** get their own DB, wiki, and LoRA checkpoints — see [CLI Reference → init](/docs/reference/cli-reference#core-commands)
+- **Project contexts** get their own DB, wiki, and LoRA checkpoints — see [CLI Reference → init](/docs/reference/cli-reference#the-brain-init)

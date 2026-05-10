@@ -58,7 +58,7 @@ graph TB
 
 ## Design Principles
 
-**Extension-First:** Core is an empty data bus. Everything — harvesters, memory modules, trainers — is a swappable plugin via `definePlugin()`. Drop a `.ts` file into `~/.the-brain/extensions/` — no rebuild, no restart.
+**Extension-First:** Core is an empty data bus. Everything — harvesters, memory modules, trainers — is a swappable plugin via `definePlugin()`. Extensions are loaded from `~/.the-brain/extensions/` when enabled in `config.json`.
 
 **Local-First:** Data never leaves your machine unless you explicitly install a remote storage plugin. Defaults use local SQLite, local MLX training.
 
@@ -83,3 +83,8 @@ Three core tables via Drizzle ORM + `bun:sqlite`:
 3. PluginManager loads from config
 4. Hooks fire in registration order
 5. Hot-swappable without restart
+
+## Dive Deeper
+
+- [Hook System](/docs/core-concepts/hook-system) — All 17 lifecycle events + plugin-defined custom hooks
+- [Memory Layers](/docs/core-concepts/memory-layers) — Instant → Selection → Deep internals, scores, promotion flow
