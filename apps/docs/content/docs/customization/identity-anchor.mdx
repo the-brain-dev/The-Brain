@@ -75,6 +75,10 @@ The Identity Anchor now includes a `HarnessFingerprintStore` for tracking per-mo
 
 Fingerprints are stored at `~/.the-brain/identity/harness-fingerprints.json`. The store is auto-saved when dirty and loaded on daemon start.
 
+### Multi-User Mode
+
+In team mode, each user gets a dedicated identity file at `~/.the-brain/identity/{userId}.json`. The `identity-anchor:switchUser(userId)` hook swaps active user state, and `SELECTION_PROMOTE` saves to the correct per-user file based on interaction metadata.
+
 ### MCP Integration
 
 These hooks are exposed via MCP tools (`brain_predict_regression`, `brain_record_run`, `brain_get_fingerprint`, etc.) for use by external meta-harness systems like AHE and Meta-Harness.
