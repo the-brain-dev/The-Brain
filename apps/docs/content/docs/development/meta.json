@@ -1,6 +1,6 @@
 {
   "title": "Development",
   "root": false,
-  "pages": ["contributing", "branch-workflow", "project-structure", "testing"],
+  "pages": ["branch-workflow", "project-structure", "testing"],
   "defaultOpen": false
 }
