@@ -53,7 +53,7 @@ export default function Home() {
         backgroundSize: "100% 800px",
       }} />
 
-      <style jsx global>{"`
+      <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
         body { font-family: 'VT323', 'Courier New', monospace; }
         @keyframes crt-flicker {
@@ -66,7 +66,7 @@ export default function Home() {
           0% { background-position: 0 0; }
           100% { background-position: 0 800px; }
         }
-      \`}</style>
+      `}</style>
 
       {/* Content */}
       <div className="relative z-10 flex items-center justify-center min-h-screen px-6">
