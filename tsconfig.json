@@ -80,6 +80,12 @@
       ],
       "@the-brain/plugin-harvester-lm-eval/*": [
         "./packages/plugin-harvester-lm-eval/src/*"
+      ],
+      "@the-brain/plugin-data-curator": [
+        "./packages/plugin-data-curator/src"
+      ],
+      "@the-brain/plugin-data-curator/*": [
+        "./packages/plugin-data-curator/src/*"
       ]
     }
   },

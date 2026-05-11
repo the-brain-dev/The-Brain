@@ -14,7 +14,7 @@ describe("evaluateHeuristics", () => {
     const response = "Some response";
     const result = evaluateHeuristics(prompt, response);
     expect(result.passed).toBe(false);
-    expect(result.rejectReason).toContain("context compaction");
+    expect(result.rejectReason).toContain("context bracket");
     expect(result.scores.noSystemNoise).toBe(0);
   });
 
@@ -23,7 +23,7 @@ describe("evaluateHeuristics", () => {
     const response = "OK";
     const result = evaluateHeuristics(prompt, response);
     expect(result.passed).toBe(false);
-    expect(result.rejectReason).toContain("model switch");
+    expect(result.rejectReason).toContain("system bracket");
   });
 
   test("rejects background process notifications", () => {
@@ -31,6 +31,7 @@ describe("evaluateHeuristics", () => {
     const response = "";
     const result = evaluateHeuristics(prompt, response);
     expect(result.passed).toBe(false);
+    expect(result.rejectReason).toContain("important bracket");
   });
 
   test("rejects empty tool call messages", () => {
@@ -38,7 +39,7 @@ describe("evaluateHeuristics", () => {
     const response = "";
     const result = evaluateHeuristics(prompt, response);
     expect(result.passed).toBe(false);
-    expect(result.rejectReason).toContain("empty tool call");
+    expect(result.rejectReason).toContain("tool loop message");
   });
 
   test("rejects max iterations messages", () => {
@@ -46,7 +47,7 @@ describe("evaluateHeuristics", () => {
     const response = "Summary...";
     const result = evaluateHeuristics(prompt, response);
     expect(result.passed).toBe(false);
-    expect(result.rejectReason).toContain("max iterations");
+    expect(result.rejectReason).toContain("tool loop message");
   });
 
   test("rejects cron response messages", () => {
@@ -54,7 +55,15 @@ describe("evaluateHeuristics", () => {
     const response = "Job completed";
     const result = evaluateHeuristics(prompt, response);
     expect(result.passed).toBe(false);
-    expect(result.rejectReason).toContain("cron response");
+    expect(result.rejectReason).toContain("cron label");
+  });
+
+  test("rejects system prompt annotations", () => {
+    const prompt = "[System note: language set to Polish]";
+    const response = "Rozumiem";
+    const result = evaluateHeuristics(prompt, response);
+    expect(result.passed).toBe(false);
+    expect(result.rejectReason).toContain("system bracket");
   });
 
   // ── Empty / near-empty ──
@@ -66,12 +75,35 @@ describe("evaluateHeuristics", () => {
     expect(result.rejectReason).toContain("empty");
   });
 
-  test("rejects acknowledgement-only response", () => {
+  test("rejects whitespace-only response", () => {
+    const prompt = "test";
+    const response = "   \n  \t  ";
+    const result = evaluateHeuristics(prompt, response);
+    expect(result.passed).toBe(false);
+  });
+
+  test("rejects very short non-code response", () => {
     const prompt = "Do this task";
     const response = "Ok";
     const result = evaluateHeuristics(prompt, response);
     expect(result.passed).toBe(false);
-    expect(result.rejectReason).toContain("acknowledgement");
+    expect(result.rejectReason).toContain("too short");
+  });
+
+  test("detects emoji-only response", () => {
+    const prompt = "How are you?";
+    const response = "👋🙂💻";
+    const result = evaluateHeuristics(prompt, response);
+    expect(result.passed).toBe(false);
+    expect(result.rejectReason).toContain("emoji");
+  });
+
+  test("detects emoji-garbage with mixed text", () => {
+    const prompt = "What do you think?";
+    const response = "👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍"; // pure emoji, no alphanumeric
+    const result = evaluateHeuristics(prompt, response);
+    expect(result.passed).toBe(false);
+    expect(result.rejectReason).toContain("emoji");
   });
 
   test("rejects off-topic content via configurable patterns", () => {
@@ -107,20 +139,12 @@ describe("evaluateHeuristics", () => {
     expect(result.scores.coherence).toBeGreaterThanOrEqual(0.6);
   });
 
-  // ── Edge cases ──
-  test("handles whitespace-only response", () => {
-    const prompt = "test";
-    const response = "   \n  \t  ";
+  test("passes short response with code block", () => {
+    const prompt = "Fix this bug";
+    const response = "```js\nconst x = 1;\n```";
     const result = evaluateHeuristics(prompt, response);
-    expect(result.passed).toBe(false);
-  });
-
-  test("detects emoji-only response", () => {
-    const prompt = "How are you?";
-    const response = "👋🙂💻";
-    const result = evaluateHeuristics(prompt, response);
-    expect(result.passed).toBe(false);
-    expect(result.rejectReason).toContain("emoji");
+    // Has code block — the <50 char rejection only applies when there's no ```
+    expect(result.passed).toBe(true);
   });
 
   test("heuristic report includes all scores", () => {

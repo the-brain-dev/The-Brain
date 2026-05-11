@@ -1,6 +1,14 @@
 /**
  * Quality heuristics — regex-based first-pass gate.
  * Cheap, deterministic filters that catch ~70% of garbage.
+ *
+ * Design principles:
+ *   - Match CATEGORIES of system noise, not exact phrasing from specific tools.
+ *     Bracketed annotations like [System...], [Note:...], [CONTEXT...] are
+ *     universal across Hermes, Claude Code, Cursor, etc.
+ *   - No locale-specific patterns. Language detection belongs in offTopicPatterns
+ *     config, not in source.
+ *   - Emoji detection uses alphanumeric ratio, not unicode range enumeration.
  */
 
 export interface HeuristicReport {
@@ -13,20 +21,35 @@ export interface HeuristicReport {
   };
 }
 
-// Context compaction patterns — these are Hermes/Claude Code system summaries
-const CONTEXT_COMPACTION = /\[CONTEXT COMPACTION\s*[—–-]\s*REFERENCE ONLY\]/i;
-const SYSTEM_NOTE = /\[Note:\s*model was just switched/i;
-const BACKGROUND_PROCESS = /\[IMPORTANT:\s*Background process/i;
-const SYSTEM_PROMPT = /\[System note:/i;
-const TOOL_CALL_EMPTY = /You just executed tool calls but returned an empty response/i;
-const MAX_ITERATIONS = /You've reached the maximum number of tool-calling iterations/i;
-const CRON_RESPONSE = /Cronjob Response:/i;
+// ── System noise — bracket-annotation patterns ──────────────────────────
 
-// Emoji-only or near-empty responses
-const EMOJI_ONLY = /^[\s\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}✅❌👍👎🙏💻]*$/u;
+/** [CONTEXT COMPACTION ...], [CONTEXT RESTORED ...], etc. */
+const BRACKET_CONTEXT = /\[CONTEXT\b/i;
 
-/** Response that's just an acknowledgment */
-const ACK_ONLY = /^(ok|okay|tak|nie|gotowe|done|spoko|pewnie|jasne)[!.\s]*$/i;
+/** [System note: ...], [System prompt: ...], [Note: model was ...] */
+const BRACKET_SYSTEM = /\[(System(?: note| prompt)?|Note):/i;
+
+/** [IMPORTANT: Background process ...] */
+const BRACKET_IMPORTANT = /\[IMPORTANT:/i;
+
+/** Hermes "you executed tool calls but returned nothing" / "max iterations" */
+const TOOL_LOOP_MESSAGE = /(returned an empty response|maximum number of tool-calling iterations)/i;
+
+/** Cronjob/task output headers */
+const CRON_LABEL = /^(Cronjob|Task)\s+(Response|Output):/im;
+
+// ── Content emptiness ────────────────────────────────────────────────────
+
+/**
+ * Response is primarily non-alphanumeric (emoji, symbols).
+ * Detects emoji-only without enumerating unicode ranges.
+ */
+function isEmojiGarbage(text: string): boolean {
+  const alphanumeric = (text.match(/[\p{L}\p{N}]/gu) || []).length;
+  return text.length > 0 && alphanumeric / text.length < 0.05;
+}
+
+// ── Evaluation ──────────────────────────────────────────────────────────
 
 export function evaluateHeuristics(
   prompt: string,
@@ -39,14 +62,12 @@ export function evaluateHeuristics(
   };
 
   // ── 1. System noise detection ──
-  const systemPatterns = [
-    { re: CONTEXT_COMPACTION, label: "context compaction" },
-    { re: SYSTEM_NOTE, label: "model switch" },
-    { re: BACKGROUND_PROCESS, label: "background process" },
-    { re: SYSTEM_PROMPT, label: "system prompt" },
-    { re: TOOL_CALL_EMPTY, label: "empty tool call" },
-    { re: MAX_ITERATIONS, label: "max iterations" },
-    { re: CRON_RESPONSE, label: "cron response" },
+  const systemPatterns: Array<{ re: RegExp; label: string }> = [
+    { re: BRACKET_CONTEXT, label: "context bracket" },
+    { re: BRACKET_SYSTEM, label: "system bracket" },
+    { re: BRACKET_IMPORTANT, label: "important bracket" },
+    { re: TOOL_LOOP_MESSAGE, label: "tool loop message" },
+    { re: CRON_LABEL, label: "cron label" },
   ];
 
   for (const { re, label } of systemPatterns) {
@@ -58,7 +79,7 @@ export function evaluateHeuristics(
     }
   }
 
-  // ── 2. Content quality (length-based) ──
+  // ── 2. Content emptiness ──
   const cleanResponse = response.trim();
 
   if (cleanResponse.length === 0) {
@@ -68,28 +89,27 @@ export function evaluateHeuristics(
     return report;
   }
 
-  if (cleanResponse.length < 50) {
-    report.scores.contentQuality = 0.1;
-    if (ACK_ONLY.test(cleanResponse)) {
-      report.rejectReason = "acknowledgement only";
-      report.passed = false;
-      return report;
-    }
-  }
-
-  if (EMOJI_ONLY.test(cleanResponse)) {
+  if (isEmojiGarbage(cleanResponse)) {
     report.scores.contentQuality = 0;
     report.rejectReason = "emoji-only response";
     report.passed = false;
     return report;
   }
 
-  // ── 3. Off-topic detection (configurable patterns) ──
-  // Off-topic patterns are locale-specific and MUST be configured per-user
-  // via the plugin config, NOT hardcoded in source. See DataCuratorConfig.
+  // ── 3. Off-topic detection (configurable per-locale) ──
   if (offTopicPatterns && offTopicPatterns.some((re) => re.test(prompt + " " + cleanResponse))) {
     report.scores.contentQuality = 0.2;
     report.rejectReason = "off-topic (non-technical)";
+    report.passed = false;
+    return report;
+  }
+
+  // Very short non-technical responses (likely acknowledgments).
+  // Locale-specific ack patterns belong in offTopicPatterns config,
+  // but < 50 chars with no code blocks is a strong universal signal.
+  if (cleanResponse.length < 50 && !cleanResponse.includes("```")) {
+    report.scores.contentQuality = 0.1;
+    report.rejectReason = "too short, no code";
     report.passed = false;
     return report;
   }
