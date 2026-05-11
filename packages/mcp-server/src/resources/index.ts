@@ -311,6 +311,7 @@ const configHandler: ResourceHandler = async (_uri, ctx) => {
         pollInterval: cfg.daemon?.pollIntervalMs,
         pluginCount: cfg.plugins?.length ?? 0,
         backends: cfg.backends ?? {},
+        llm: cfg.llm ?? null,
       }, null, 2),
     }],
   };

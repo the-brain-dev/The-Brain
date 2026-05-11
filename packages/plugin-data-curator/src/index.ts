@@ -6,7 +6,7 @@
  *
  * Architecture:
  *   1. Heuristics gate (regex) — fast, cheap, catches ~70% garbage
- *   2. LLM Judge — local Ollama model scores 1-10, rejects < threshold
+ *   2. LLM Judge — OpenAI-compatible backend scores 1-10, rejects < threshold
  *   3. LLM Rewriter — salvages borderline interactions (score 4-7)
  *
  * Hooks into SELECTION_EVALUATE, running BEFORE the SPM surprise gate.
@@ -18,7 +18,7 @@ import {
   HookEvent,
   type InteractionContext,
   type MemoryFragment,
-  type SurpriseGateResult,
+  type LLMBackend,
 } from "@the-brain/core";
 import { evaluateHeuristics, type HeuristicReport } from "./heuristics";
 import { judgeInteraction, type QualityJudgment } from "./judge";
@@ -33,17 +33,11 @@ export interface DataCuratorConfig {
   /** Score range (inclusive) where rewriting is attempted */
   rewriteRange: { min: number; max: number };
 
-  /** Maximum concurrent LLM calls (Ollama API can handle ~4 parallel) */
+  /** Maximum concurrent LLM calls */
   maxConcurrent: number;
 
-  /** Ollama API base URL */
-  ollamaUrl: string;
-
-  /** Ollama model name for Judge and Rewriter */
-  llmModel: string;
-
-  /** Timeout per LLM call in ms */
-  llmTimeoutMs: number;
+  /** LLM backend used for Judge and Rewriter (OpenAI-compatible) */
+  backend: LLMBackend;
 
   /** Skip LLM entirely — heuristics only */
   heuristicsOnly: boolean;
@@ -55,13 +49,19 @@ export interface DataCuratorConfig {
   offTopicPatterns?: RegExp[];
 }
 
+const DEFAULT_BACKEND: LLMBackend = {
+  provider: "ollama",
+  baseUrl: "http://localhost:11434/v1",
+  defaultModel: process.env.THE_BRAIN_CURATOR_MODEL || "qwen2.5:3b",
+  fallbackModels: ["qwen2.5:1.5b"],
+  timeoutMs: 30_000,
+};
+
 const DEFAULT_CONFIG: DataCuratorConfig = {
   judgeThreshold: 6,
   rewriteRange: { min: 4, max: 6 },
   maxConcurrent: 2,
-  ollamaUrl: "http://localhost:11434",
-  llmModel: process.env.THE_BRAIN_CURATOR_MODEL || "qwen2.5:3b",
-  llmTimeoutMs: 30_000,
+  backend: DEFAULT_BACKEND,
   heuristicsOnly: false,
   noRewrite: false,
 };
@@ -80,8 +80,6 @@ export function createDataCurator(configOverrides: Partial<DataCuratorConfig> = 
 
     setup(hooks) {
       // Register as quality gate BEFORE SPM evaluate
-      // Priority matters: we want data-curator to run before spm-curator
-      // so bad interactions get rejected before surprise scoring
       hooks.hook(HookEvent.SELECTION_EVALUATE, async (ctx: InteractionContext) => {
         const result = await instance.evaluate(ctx);
         // Publish quality report for observability
@@ -183,9 +181,7 @@ export class DataCuratorPlugin {
     const judgment = await judgeInteraction(
       prompt,
       response,
-      this.config.ollamaUrl,
-      this.config.llmModel,
-      this.config.llmTimeoutMs,
+      this.config.backend,
     );
 
     if (!judgment) {
@@ -245,9 +241,7 @@ export class DataCuratorPlugin {
     const rewritten = await rewriteInteraction(
       prompt,
       response,
-      this.config.ollamaUrl,
-      this.config.llmModel,
-      this.config.llmTimeoutMs * 2, // Rewriter gets double timeout
+      this.config.backend,
     );
 
     if (!rewritten) {

@@ -186,6 +186,39 @@ export interface PluginConfig {
   config?: Record<string, unknown>;
 }
 
+// ── LLM Backend ──────────────────────────────────────────────────
+
+export interface LLMBackend {
+  /** Provider identifier: "ollama", "lmstudio", "vllm", "openai", "openai-compatible" */
+  provider: string;
+
+  /** Base URL including /v1 prefix.
+   *  "http://localhost:11434/v1" (Ollama)
+   *  "http://localhost:1234/v1" (LM Studio)
+   *  "https://api.openai.com/v1" (OpenAI) */
+  baseUrl: string;
+
+  /** API key for cloud providers. Undefined = no auth (local). */
+  apiKey?: string;
+
+  /** Primary model to use when not specified per-call */
+  defaultModel: string;
+
+  /** Fallback cascade — tried in order if primary fails.
+   *  Example: ["qwen2.5:7b", "qwen2.5:3b"] */
+  fallbackModels?: string[];
+
+  /** Request timeout in ms (default: 30000) */
+  timeoutMs?: number;
+}
+
+export interface LLMConfig {
+  /** Name of the default backend to use */
+  default: string;
+  /** Named backends — plugins reference by name */
+  backends: Record<string, LLMBackend>;
+}
+
 export interface ProjectContext {
   name: string;           // Machine-friendly slug (e.g., "e-commerce", "ml-research")
   label?: string;         // Human-friendly name (e.g., "E-Commerce App")
@@ -242,6 +275,8 @@ export interface TheBrainConfig {
   contexts: Record<string, ProjectContext>; // Map of context name → config
   /** Explicitly enabled extension names (empty = none loaded by default) */
   extensions?: string[];
+  /** LLM backends for plugins that need AI inference (data-curator, trainers, etc.) */
+  llm?: LLMConfig;
 }
 
 // ── Zod Schemas (runtime validation) ────────
@@ -255,6 +290,20 @@ export const ProjectContextSchema = z.object({
   workDir: z.string().optional(),
   createdAt: z.number(),
   lastActive: z.number().optional(),
+});
+
+export const LLMBackendSchema = z.object({
+  provider: z.string(),
+  baseUrl: z.string(),
+  apiKey: z.string().optional(),
+  defaultModel: z.string(),
+  fallbackModels: z.array(z.string()).optional(),
+  timeoutMs: z.number().int().positive().optional(),
+});
+
+export const LLMConfigSchema = z.object({
+  default: z.string(),
+  backends: z.record(LLMBackendSchema),
 });
 
 export const TheBrainConfigSchema = z.object({
@@ -295,6 +344,7 @@ export const TheBrainConfigSchema = z.object({
     mcpPort: z.number().int().positive().optional(),
   }).default({}),
   extensions: z.array(z.string()).optional(),
+  llm: LLMConfigSchema.optional(),
   activeContext: z.string().default("global"),
   contexts: z.record(ProjectContextSchema).default({}),
 });

@@ -15,6 +15,7 @@ description: JSON schema reference for ~/.the-brain/config.json
   "server": {},
   "extensions": [],
   "backends": {},
+  "llm": {},
   "activeContext": "global",
   "contexts": {}
 }
@@ -105,6 +106,57 @@ Module paths support three formats:
 - npm packages: `"libsql"` → resolves `@the-brain/storage-libsql`
 - local paths: `"./my-custom-cleaner.ts"`
 - absolute paths: `"/Users/me/my-backend.ts"`
+
+### `llm`
+
+OpenAI-compatible LLM backends for plugins that need AI inference (data-curator, trainers). All backends use `/v1/chat/completions` — works with Ollama, LM Studio, vLLM, OpenAI, and any compatible server.
+
+```json
+{
+  "default": "ollama-local",
+  "backends": {
+    "ollama-local": {
+      "provider": "ollama",
+      "baseUrl": "http://localhost:11434/v1",
+      "defaultModel": "qwen2.5:3b",
+      "fallbackModels": ["qwen2.5:1.5b"],
+      "timeoutMs": 30000
+    },
+    "lmstudio": {
+      "provider": "lmstudio",
+      "baseUrl": "http://localhost:1234/v1",
+      "defaultModel": "llama-3.2-3b"
+    },
+    "openai": {
+      "provider": "openai",
+      "baseUrl": "https://api.openai.com/v1",
+      "apiKey": "sk-...",
+      "defaultModel": "gpt-4o-mini"
+    }
+  }
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `default` | yes | Name of the default backend to use |
+| `backends` | yes | Named backends — plugins reference by name |
+| `backends.<name>.provider` | yes | Identifier: `"ollama"`, `"lmstudio"`, `"vllm"`, `"openai"`, `"openai-compatible"` |
+| `backends.<name>.baseUrl` | yes | Base URL including `/v1` prefix |
+| `backends.<name>.apiKey` | no | API key for cloud providers. Undefined = no auth (local) |
+| `backends.<name>.defaultModel` | yes | Primary model to use |
+| `backends.<name>.fallbackModels` | no | Fallback cascade — tried in order if primary fails (OOM, timeout, 404) |
+| `backends.<name>.timeoutMs` | no | Request timeout in ms (default: 30000) |
+
+#### Provider base URLs
+
+| Provider | Typical baseUrl |
+|----------|----------------|
+| Ollama (local) | `http://localhost:11434/v1` |
+| LM Studio (local) | `http://localhost:1234/v1` |
+| vLLM (local) | `http://localhost:8000/v1` |
+| OpenAI | `https://api.openai.com/v1` |
+| Any OpenAI-compatible | `https://your-server/v1` |
 
 ### Plugin Configs
 

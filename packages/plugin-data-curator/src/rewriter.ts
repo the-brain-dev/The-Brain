@@ -5,14 +5,11 @@
  * instruction/response pair suitable for fine-tuning.
  */
 
+import { generateText, type LLMBackend } from "@the-brain/core";
+
 export interface RewrittenExample {
   instruction: string;
   response: string;
-}
-
-interface OllamaGenerateResponse {
-  response: string;
-  done: boolean;
 }
 
 const REWRITER_PROMPT = `You are a training data curator. Convert the following AI coding assistant conversation into a clean instruction/response pair suitable for fine-tuning.
@@ -77,44 +74,21 @@ export function parseRewriterResponse(raw: string): RewrittenExample | null {
 }
 
 /**
- * Rewrite an interaction via Ollama API.
+ * Rewrite an interaction via OpenAI-compatible LLM backend.
  * Returns null if unsalvageable or on network failure.
  */
 export async function rewriteInteraction(
   prompt: string,
   response: string,
-  ollamaUrl: string = "http://localhost:11434",
-  model: string = "qwen2.5:3b",
-  timeoutMs: number = 60000,
+  backend: LLMBackend,
 ): Promise<RewrittenExample | null> {
   const fullPrompt = buildRewriterPrompt(prompt, response);
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const text = await generateText(backend, fullPrompt, {
+    temperature: 0.2,
+    maxTokens: 1024,
+  });
 
-  try {
-    const res = await fetch(`${ollamaUrl}/api/generate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model,
-        prompt: fullPrompt,
-        stream: false,
-        options: {
-          temperature: 0.2,
-          num_predict: 1024,
-        },
-      }),
-      signal: controller.signal,
-    });
-
-    if (!res.ok) return null;
-
-    const data = (await res.json()) as OllamaGenerateResponse;
-    return parseRewriterResponse(data.response);
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
+  if (!text) return null;
+  return parseRewriterResponse(text);
 }

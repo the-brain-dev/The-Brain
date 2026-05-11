@@ -1,9 +1,11 @@
 /**
- * LLM Judge — evaluates training data quality via local Ollama model.
+ * LLM Judge — evaluates training data quality via OpenAI-compatible LLM backend.
  *
  * Uses a structured prompt to score interactions 1-10 across multiple
  * dimensions. Scores below threshold are candidates for rewriting or rejection.
  */
+
+import { generateText, type LLMBackend } from "@the-brain/core";
 
 export interface QualityJudgment {
   overall: number;          // 1-10 composite score
@@ -16,11 +18,6 @@ export interface QualityJudgment {
   };
   reasoning: string;
   needsRewrite: boolean;
-}
-
-interface OllamaGenerateResponse {
-  response: string;
-  done: boolean;
 }
 
 const JUDGE_PROMPT = `Rate this training example for an AI coding assistant. Output ONLY valid JSON, no markdown, no explanation outside the JSON.
@@ -80,44 +77,22 @@ function clampScore(v: unknown): number {
 }
 
 /**
- * Judge an interaction via Ollama API.
- * Returns null on failure (network error, timeout, model not found).
+ * Judge an interaction via OpenAI-compatible LLM backend.
+ * Uses model fallback if backend.fallbackModels are configured.
+ * Returns null on failure (all models failed, network error, timeout).
  */
 export async function judgeInteraction(
   prompt: string,
   response: string,
-  ollamaUrl: string = "http://localhost:11434",
-  model: string = "qwen2.5:3b",
-  timeoutMs: number = 30000,
+  backend: LLMBackend,
 ): Promise<QualityJudgment | null> {
   const fullPrompt = buildJudgePrompt(prompt, response);
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const text = await generateText(backend, fullPrompt, {
+    temperature: 0.1,
+    maxTokens: 256,
+  });
 
-  try {
-    const res = await fetch(`${ollamaUrl}/api/generate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model,
-        prompt: fullPrompt,
-        stream: false,
-        options: {
-          temperature: 0.1,
-          num_predict: 256,
-        },
-      }),
-      signal: controller.signal,
-    });
-
-    if (!res.ok) return null;
-
-    const data = (await res.json()) as OllamaGenerateResponse;
-    return parseJudgeResponse(data.response);
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
+  if (!text) return null;
+  return parseJudgeResponse(text);
 }

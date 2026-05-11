@@ -5,7 +5,7 @@ export { BrainDB } from "./db/index";
 export { AuthDB } from "./auth-db";
 export { LayerRouter } from "./layers/index";
 export { ProjectManager } from "./context";
-export { TheBrainConfigSchema, ProjectContextSchema, parseConfig, safeParseConfig, generateAuthToken } from "./types";
+export { TheBrainConfigSchema, ProjectContextSchema, LLMBackendSchema, LLMConfigSchema, parseConfig, safeParseConfig, generateAuthToken } from "./types";
 export { TestHarness } from "./test-harness";
 export type { HarnessOptions, HarnessState } from "./test-harness";
 export { loadPrompt, listPrompts, renderPrompt } from "./prompts";
@@ -32,6 +32,8 @@ export type {
   PluginManifest,
   PluginConfig,
   TheBrainConfig,
+  LLMBackend,
+  LLMConfig,
   Session,
   Memory,
   GraphNodeRecord,
@@ -65,3 +67,5 @@ export type { BackendConfig } from "./backend-resolver";
 export type { DBMap } from "./context";
 export { cleanMemoryContent, cleanGraphNodeLabel, deduplicateContents } from "./content-cleaner";
 export type { CleanedContent as ContentCleanerLegacy } from "./content-cleaner";
+export { generateText } from "./llm-client";
+export type { GenerateOptions } from "./llm-client";

@@ -472,7 +472,17 @@ describe("MCP Resources", () => {
         database: { path: "/home/user/.the-brain/brain.db" },
         daemon: { pollIntervalMs: 5000 },
         plugins: [{ name: "plugin-a" }, { name: "plugin-b" }, { name: "plugin-c" }],
-        backends: { ollama: { url: "http://localhost:11434" }, lmStudio: { url: "http://localhost:1234" } },
+        backends: { storage: "sqlite" },
+        llm: {
+          default: "ollama-local",
+          backends: {
+            "ollama-local": {
+              provider: "ollama",
+              baseUrl: "http://localhost:11434/v1",
+              defaultModel: "qwen2.5:3b",
+            },
+          },
+        },
       },
     };
 
@@ -485,9 +495,16 @@ describe("MCP Resources", () => {
     expect(parsed.database).toBe("/home/user/.the-brain/brain.db");
     expect(parsed.pollInterval).toBe(5000);
     expect(parsed.pluginCount).toBe(3);
-    expect(parsed.backends).toEqual({
-      ollama: { url: "http://localhost:11434" },
-      lmStudio: { url: "http://localhost:1234" },
+    expect(parsed.backends).toEqual({ storage: "sqlite" });
+    expect(parsed.llm).toEqual({
+      default: "ollama-local",
+      backends: {
+        "ollama-local": {
+          provider: "ollama",
+          baseUrl: "http://localhost:11434/v1",
+          defaultModel: "qwen2.5:3b",
+        },
+      },
     });
   });
 
