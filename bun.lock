@@ -87,6 +87,13 @@
         "@the-brain/core": "workspace:*",
       },
     },
+    "packages/plugin-data-curator": {
+      "name": "@the-brain/plugin-data-curator",
+      "version": "0.1.0",
+      "dependencies": {
+        "@the-brain/core": "workspace:*",
+      },
+    },
     "packages/plugin-graph-memory": {
       "name": "@the-brain/plugin-graph-memory",
       "version": "0.1.0",
@@ -485,6 +492,8 @@
     "@the-brain/mcp-server": ["@the-brain/mcp-server@workspace:packages/mcp-server"],
 
     "@the-brain/plugin-auto-wiki": ["@the-brain/plugin-auto-wiki@workspace:packages/plugin-auto-wiki"],
+
+    "@the-brain/plugin-data-curator": ["@the-brain/plugin-data-curator@workspace:packages/plugin-data-curator"],
 
     "@the-brain/plugin-graph-memory": ["@the-brain/plugin-graph-memory@workspace:packages/plugin-graph-memory"],
 
