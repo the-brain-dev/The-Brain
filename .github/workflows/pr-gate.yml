@@ -2,7 +2,7 @@ name: PR Gate
 
 on:
   pull_request_target:
-    types: [opened]
+    types: [opened, reopened]
 
 jobs:
   check-contributor:
@@ -13,7 +13,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Check if contributor is approved
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const APPROVED_FILE = '.github/APPROVED_CONTRIBUTORS';
