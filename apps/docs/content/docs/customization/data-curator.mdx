@@ -14,7 +14,7 @@ Harvester → Data Curator → SPM Curator → Deep Memory → MLX Training
 Three-stage pipeline:
 
 1. **Heuristics Gate** — fast regex-based filters (no LLM cost)
-2. **LLM Judge** — local Ollama model scores interactions 1-10
+2. **LLM Judge** — local LLM backend scores interactions 1-10
 3. **LLM Rewriter** — transforms salvageable borderline interactions
 
 ## Heuristics Gate
@@ -32,7 +32,7 @@ These filters catch ~70% of garbage with zero computation cost.
 
 ## LLM Judge
 
-Each interaction that passes heuristics gets scored by a local Ollama model across 5 dimensions:
+Each interaction that passes heuristics gets scored by an LLM backend across 5 dimensions:
 
 | Dimension | Description |
 |-----------|-------------|
@@ -66,7 +66,7 @@ If rewriting fails or the interaction is unsalvageable, it's rejected outright.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `THE_BRAIN_CURATOR_MODEL` | `qwen2.5:3b` | Ollama model for Judge and Rewriter |
+| `THE_BRAIN_CURATOR_MODEL` | `qwen2.5:3b` | Default model for Judge and Rewriter |
 
 ### Plugin Config
 
@@ -81,8 +81,8 @@ interface DataCuratorConfig {
   /** Max concurrent LLM calls */
   maxConcurrent: number;         // default: 2
 
-  /** Ollama API base URL */
-  ollamaUrl: string;             // default: "http://localhost:11434"
+  /** LLM backend config (OpenAI-compatible /v1/chat/completions) */
+  backend: LLMBackend;           // default: Ollama localhost:11434/v1
 
   /** Skip LLM entirely — heuristics only */
   heuristicsOnly: boolean;       // default: false
@@ -121,6 +121,6 @@ console.log(instance.stats);
 
 ## Model Selection
 
-The default model is `qwen2.5:3b` — fast (~9.5s per judgment on Apple Silicon) and capable enough for scoring. For higher accuracy, try `gemma4:e4b`, but expect longer inference times (30s+ on 16GB Macs).
+The default model is `qwen2.5:3b` — fast (~9.5s per judgment on Apple Silicon) and capable enough for scoring. For higher accuracy, try `gemma4:e4b`, but expect longer inference times (30s+ on 16GB Macs). Configured via the `llm.backends` config section (defaults to `THE_BRAIN_CURATOR_MODEL` env var).
 
-Set via `THE_BRAIN_CURATOR_MODEL=gemma4:e4b` in your environment.
+See [LLM Backend Configuration](/docs/reference/config-schema#llm) for full provider setup.

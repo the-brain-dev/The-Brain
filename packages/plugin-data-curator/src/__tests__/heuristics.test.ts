@@ -107,9 +107,9 @@ describe("evaluateHeuristics", () => {
   });
 
   test("rejects off-topic content via configurable patterns", () => {
-    const prompt = "Znajdź mi serwis LG w Bydgoszczy";
-    const response = "Szukam...";
-    const result = evaluateHeuristics(prompt, response, [/\b(LG|Bydgoszcz)\b/i]);
+    const prompt = "Find me a pizza place in Brooklyn";
+    const response = "Searching...";
+    const result = evaluateHeuristics(prompt, response, [/\b(pizza|Brooklyn)\b/i]);
     expect(result.passed).toBe(false);
     expect(result.rejectReason).toContain("off-topic");
   });
