@@ -99,7 +99,7 @@ describe("DaemonEngine", () => {
   });
 
   test("registerHandlers processes HARVESTER_NEW_DATA correctly", async () => {
-    const { HookEvent, MemoryLayer, createHookSystem, BrainDB } = await import("@the-brain-dev/core");
+    const { MemoryLayer, createHookSystem, BrainDB } = await import("@the-brain-dev/core");
     const { join } = await import("node:path");
     const hooks = createHookSystem();
     const dbPath = join(TEST_HOME, ".the-brain", "engine-handler-test.db");
