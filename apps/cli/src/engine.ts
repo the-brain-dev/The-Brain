@@ -95,6 +95,9 @@ async function loadPlugins(hooks: ReturnType<typeof createHookSystem>, db: Brain
   const spmMod = await import("@the-brain/plugin-spm-curator");
   const spmCurator = spmMod.createSpmCurator();
 
+  const curatorMod = await import("@the-brain/plugin-data-curator");
+  const dataCurator = curatorMod.createDataCurator();
+
   const cursorMod = await import("@the-brain/plugin-harvester-cursor");
   const cursorHarvester = cursorMod.default ?? cursorMod;
 
@@ -116,7 +119,7 @@ async function loadPlugins(hooks: ReturnType<typeof createHookSystem>, db: Brain
   const lmEvalMod = await import("@the-brain/plugin-harvester-lm-eval");
   const lmEvalHarvester = lmEvalMod.default ?? lmEvalMod;
 
-  return { graphMemory, spmCurator, cursorHarvester, claudeHarvester, hermesHarvester, lmEvalHarvester, identityAnchor, autoWiki, mlxTrainer };
+  return { graphMemory, spmCurator, dataCurator, cursorHarvester, claudeHarvester, hermesHarvester, lmEvalHarvester, identityAnchor, autoWiki, mlxTrainer };
 }
 
 // ── Event handlers (shared state) ──────────────────────────────
