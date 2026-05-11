@@ -278,7 +278,7 @@ if [[ "$(uname -s)" == "Linux" ]] && command -v systemctl &>/dev/null; then
 
     cat > "$SYSTEMD_USER_DIR/the-brain-daemon.service" <<UNITEOF
 [Unit]
-Description=the-brain Cognitive OS Daemon
+Description=the-brain memory platform daemon
 After=network-online.target
 
 [Service]
