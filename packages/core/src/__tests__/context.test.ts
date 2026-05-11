@@ -2,7 +2,7 @@
  * ProjectManager tests — multi-project isolation, context switching, cross-project promotion.
  */
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { ProjectManager, BrainDB, MemoryLayer } from "@the-brain-dev/core";
+import { ProjectManager, MemoryLayer } from "@the-brain-dev/core";
 import type { TheBrainConfig, ProjectContext } from "@the-brain-dev/core";
 import { join } from "node:path";
 import { mkdir, rm } from "node:fs/promises";
