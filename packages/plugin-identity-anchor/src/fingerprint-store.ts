@@ -14,7 +14,7 @@ import type {
   BenchmarkFingerprintData,
   RegressionPrediction,
   SurpriseAssessment,
-} from "@the-brain/core";
+} from "@the-brain-dev/core";
 
 const ANOMALY_THRESHOLD = 2.0; // σ
 const COLD_START_MIN_SAMPLES = 3;

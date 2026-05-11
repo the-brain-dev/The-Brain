@@ -20,7 +20,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync } from 
 import { homedir } from "node:os";
 import { createHash } from "node:crypto";
 import { Database } from "bun:sqlite";
-import type { Interaction } from "@the-brain/core";
+import type { Interaction } from "@the-brain-dev/core";
 
 // ── State ──────────────────────────────────────────────────────
 

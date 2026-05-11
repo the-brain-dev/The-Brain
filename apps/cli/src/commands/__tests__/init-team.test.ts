@@ -6,7 +6,7 @@ import { describe, test, expect, beforeAll, afterEach } from "bun:test";
 import { join } from "node:path";
 import { mkdir, rm, readFile, access } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { AuthDB, UserRole } from "@the-brain/core";
+import { AuthDB, UserRole } from "@the-brain-dev/core";
 
 let initCommand: any;
 let tmpDir: string;

@@ -2,14 +2,14 @@
  * Clean auto-wiki tests — no mock.module(), use real in-memory BrainDB
  */
 import { describe, test, expect } from "bun:test";
-import { BrainDB, MemoryLayer, HookEvent } from "@the-brain/core";
+import { BrainDB, MemoryLayer, HookEvent } from "@the-brain-dev/core";
 import { createAutoWikiPlugin } from "../index";
 
 describe("auto-wiki plugin", () => {
   test("createAutoWikiPlugin returns plugin definition", () => {
     const db = new BrainDB(":memory:");
     const plugin = createAutoWikiPlugin(db);
-    expect(plugin.name).toBe("@the-brain/plugin-auto-wiki");
+    expect(plugin.name).toBe("@the-brain-dev/plugin-auto-wiki");
     expect(typeof plugin.setup).toBe("function");
     db.close();
   });

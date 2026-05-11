@@ -4,8 +4,8 @@
 import { consola } from "consola";
 import { mkdir, writeFile, access, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { BrainDB, generateAuthToken, AuthDB, UserRole, safeParseConfig } from "@the-brain/core";
-import type { TheBrainConfig, ProjectContext } from "@the-brain/core";
+import { BrainDB, generateAuthToken, AuthDB, UserRole, safeParseConfig } from "@the-brain-dev/core";
+import type { TheBrainConfig, ProjectContext } from "@the-brain-dev/core";
 
 function getConfigDir() {
   return join(process.env.HOME || "~", ".the-brain");
@@ -18,11 +18,11 @@ function getDefaultConfig(): TheBrainConfig {
   const brainDir = getConfigDir();
   return {
   plugins: [
-    { name: "@the-brain/plugin-graph-memory", enabled: true },
-    { name: "@the-brain/plugin-spm-curator", enabled: true, config: { threshold: 0.30 } },
-    { name: "@the-brain/plugin-harvester-cursor", enabled: true },
-    { name: "@the-brain/plugin-identity-anchor", enabled: true },
-    { name: "@the-brain/plugin-auto-wiki", enabled: true, config: { schedule: "0 9 * * 0" } },
+    { name: "@the-brain-dev/plugin-graph-memory", enabled: true },
+    { name: "@the-brain-dev/plugin-spm-curator", enabled: true, config: { threshold: 0.30 } },
+    { name: "@the-brain-dev/plugin-harvester-cursor", enabled: true },
+    { name: "@the-brain-dev/plugin-identity-anchor", enabled: true },
+    { name: "@the-brain-dev/plugin-auto-wiki", enabled: true, config: { schedule: "0 9 * * 0" } },
   ],
   daemon: {
     pollIntervalMs: 30000,
@@ -83,7 +83,7 @@ export async function initCommand(options: {
             const pkgRaw = await readFile(pkgJsonPath, "utf-8");
             const pkg = JSON.parse(pkgRaw);
             const name = pkg.name;
-            if (!name || !name.startsWith("@the-brain/")) continue;
+            if (!name || !name.startsWith("@the-brain-dev/")) continue;
             if (!paths[name]) {
               paths[name] = [`./${pkgRoot}/${entry.name}/src`];
               if (!paths[`${name}/*`]) {

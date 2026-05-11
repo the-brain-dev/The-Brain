@@ -31,7 +31,7 @@ beforeAll(async () => {
   const userMod = await import("../user");
   userCommand = userMod.userCommand;
 
-  const core = await import("@the-brain/core");
+  const core = await import("@the-brain-dev/core");
   AuthDB = core.AuthDB;
   UserRole = core.UserRole;
 

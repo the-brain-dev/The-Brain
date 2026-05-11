@@ -8,7 +8,7 @@ Follow this checklist in order.
 Create `src/index.ts`:
 
 ```typescript
-import { definePlugin, HookEvent, type PluginHooks } from "@the-brain/core";
+import { definePlugin, HookEvent, type PluginHooks } from "@the-brain-dev/core";
 
 export default definePlugin({
   name: "harvester-<name>",
@@ -105,9 +105,9 @@ Optional hooks (recommended):
   - `harvester-project.test.ts` — verify workspace → project name matching
   - `harvester-edge.test.ts` — empty responses, UTF-8 issues, truncated files
 
-- **Integration test**: Use `TestHarness` from `@the-brain/core`:
+- **Integration test**: Use `TestHarness` from `@the-brain-dev/core`:
   ```typescript
-  import { TestHarness } from "@the-brain/core";
+  import { TestHarness } from "@the-brain-dev/core";
 
   const harness = new TestHarness();
   await harness.start();
@@ -136,7 +136,7 @@ Add to `apps/cli/src/engine.ts` in **both** `loadPlugins()` return object **and*
 
 ```typescript
 // In loadPlugins():
-const harvesterNew = await import("@the-brain/plugin-harvester-<name>");
+const harvesterNew = await import("@the-brain-dev/plugin-harvester-<name>");
 // Add to return { ..., harvesterNew, ... }
 
 // In the plugin registration loop (init section, after loadPlugins()):

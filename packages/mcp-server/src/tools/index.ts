@@ -10,8 +10,8 @@
  */
 
 import type { ToolDef, ToolHandler, McpServerContext } from "../server";
-import { MemoryLayer } from "@the-brain/core";
-import type { Memory, GraphNodeRecord } from "@the-brain/core";
+import { MemoryLayer } from "@the-brain-dev/core";
+import type { Memory, GraphNodeRecord } from "@the-brain-dev/core";
 import { randomUUID } from "node:crypto";
 
 // ── Memory Tools ──────────────────────────────────────────────

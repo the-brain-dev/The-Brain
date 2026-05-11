@@ -97,7 +97,7 @@ PREDICTION:
 ```
 
 **Bad safety argument:** "All tests pass so it's fine"
-**Good safety argument:** "The extractSignal function is duplicated 3 times (core/content-cleaner.ts, plugin-spm-curator/src/index.ts, plugin-graph-memory/src/index.ts) with identical logic but different guard clauses. Each copy is covered by 4-7 tests. Extracting to core/src/signal-utils.ts and importing will reduce code by 45 lines while keeping all 15 existing test cases passing. No cross-package dependency changes needed — all 3 packages already depend on @the-brain/core."
+**Good safety argument:** "The extractSignal function is duplicated 3 times (core/content-cleaner.ts, plugin-spm-curator/src/index.ts, plugin-graph-memory/src/index.ts) with identical logic but different guard clauses. Each copy is covered by 4-7 tests. Extracting to core/src/signal-utils.ts and importing will reduce code by 45 lines while keeping all 15 existing test cases passing. No cross-package dependency changes needed — all 3 packages already depend on @the-brain-dev/core."
 
 ### Step 3: Implement — Refactor, Verify, Refactor, Verify
 

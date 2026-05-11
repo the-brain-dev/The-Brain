@@ -23,7 +23,7 @@ describe("Pipeline: Harvester → Graph → SPM → MLX", () => {
     process.env.HOME = TEST_HOME;
     await mkdir(join(TEST_HOME, ".the-brain"), { recursive: true });
 
-    const core = await import("@the-brain/core");
+    const core = await import("@the-brain-dev/core");
     BrainDB = core.BrainDB;
     MemoryLayer = core.MemoryLayer;
     HookEvent = core.HookEvent;
@@ -32,10 +32,10 @@ describe("Pipeline: Harvester → Graph → SPM → MLX", () => {
     db = new BrainDB(join(TEST_HOME, ".the-brain", "brain.db"));
 
     // Load plugins
-    const graphMod = await import("@the-brain/plugin-graph-memory");
+    const graphMod = await import("@the-brain-dev/plugin-graph-memory");
     createGraphMemoryPlugin = graphMod.createGraphMemoryPlugin;
 
-    const spmMod = await import("@the-brain/plugin-spm-curator");
+    const spmMod = await import("@the-brain-dev/plugin-spm-curator");
     createSpmCurator = spmMod.createSpmCurator;
   });
 
@@ -153,11 +153,11 @@ describe("Pipeline: Harvester → Graph → SPM → MLX", () => {
 
   test("Step 4: Graph Memory pattern detection on stored interactions", async () => {
     // Set up hooks and simulate AFTER_RESPONSE like the daemon does
-    const { createHookSystem } = await import("@the-brain/core");
+    const { createHookSystem } = await import("@the-brain-dev/core");
     const hooks = createHookSystem();
 
     // Register graph memory plugin
-    const pluginManager = new (await import("@the-brain/core")).PluginManager(hooks);
+    const pluginManager = new (await import("@the-brain-dev/core")).PluginManager(hooks);
     await pluginManager.load(graphPlugin);
 
     // Fire AFTER_RESPONSE for each interaction

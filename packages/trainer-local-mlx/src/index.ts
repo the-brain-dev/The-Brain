@@ -1,11 +1,11 @@
 /**
- * @the-brain/trainer-local-mlx
+ * @the-brain-dev/trainer-local-mlx
  * Zero-cost, privacy-first LoRA training on Apple Silicon.
  * Wraps the Python MLX sidecar for local fine-tuning.
  */
-import { definePlugin, HookEvent } from "@the-brain/core";
-import type { ConsolidationContext, DeepLayerPlugin, MemoryLayer as ML } from "@the-brain/core";
-import { MemoryLayer } from "@the-brain/core";
+import { definePlugin, HookEvent } from "@the-brain-dev/core";
+import type { ConsolidationContext, DeepLayerPlugin, MemoryLayer as ML } from "@the-brain-dev/core";
+import { MemoryLayer } from "@the-brain-dev/core";
 import { spawn } from "node:child_process";
 import { join } from "node:path";
 
@@ -219,7 +219,7 @@ export function createMlxTrainer(config: Partial<TrainerConfig> = {}) {
   let hooks: any;
 
   const trainerPlugin = definePlugin({
-    name: "@the-brain/trainer-local-mlx",
+    name: "@the-brain-dev/trainer-local-mlx",
     version: "0.1.0",
     description:
       "Zero-cost, privacy-first LoRA training on Apple Silicon using MLX",

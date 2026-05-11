@@ -17,7 +17,7 @@ describe("inspectCommand", () => {
     await mkdir(join(TEST_HOME, ".the-brain"), { recursive: true });
 
     // Seed the test DB with data
-    const { BrainDB, MemoryLayer } = await import("@the-brain/core");
+    const { BrainDB, MemoryLayer } = await import("@the-brain-dev/core");
     const db = new BrainDB(TEST_DB);
 
     // Insert some sessions

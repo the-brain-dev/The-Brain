@@ -1,6 +1,6 @@
 // Verify pattern dedup: bun run apps/cli/src/verify-dedup.ts
-import { BrainDB, createHookSystem, PluginManager, HookEvent } from "@the-brain/core";
-import { createGraphMemoryPlugin } from "@the-brain/plugin-graph-memory";
+import { BrainDB, createHookSystem, PluginManager, HookEvent } from "@the-brain-dev/core";
+import { createGraphMemoryPlugin } from "@the-brain-dev/plugin-graph-memory";
 import { unlinkSync } from "node:fs";
 
 async function main() {

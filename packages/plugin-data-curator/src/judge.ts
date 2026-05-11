@@ -5,7 +5,7 @@
  * dimensions. Scores below threshold are candidates for rewriting or rejection.
  */
 
-import { generateText, type LLMBackend } from "@the-brain/core";
+import { generateText, type LLMBackend } from "@the-brain-dev/core";
 
 export interface QualityJudgment {
   overall: number;          // 1-10 composite score

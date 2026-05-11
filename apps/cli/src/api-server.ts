@@ -9,7 +9,7 @@
  *   POST /api/train       → trigger LoRA training
  */
 import type { DaemonEngine } from "./engine";
-import { MemoryLayer, HookEvent, AuthDB } from "@the-brain/core";
+import { MemoryLayer, HookEvent, AuthDB } from "@the-brain-dev/core";
 import { registerUserRoutes } from "./api-users";
 import { readFileSync, existsSync, realpathSync, writeFileSync } from "node:fs";
 import { basename, join as pathJoin, join, resolve } from "node:path";

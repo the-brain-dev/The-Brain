@@ -1,5 +1,5 @@
 /**
- * @the-brain/plugin-harvester-claude
+ * @the-brain-dev/plugin-harvester-claude
  *
  * Data harvester that polls Claude Code's local conversation transcripts
  * (~/.claude/projects/<project>/<sessionId>.jsonl) and feeds new
@@ -34,8 +34,8 @@ import type {
   Interaction,
   InteractionContext,
   PluginHooks,
-} from "@the-brain/core";
-import { HookEvent, MemoryLayer, definePlugin } from "@the-brain/core";
+} from "@the-brain-dev/core";
+import { HookEvent, MemoryLayer, definePlugin } from "@the-brain-dev/core";
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -567,7 +567,7 @@ export function createClaudeHarvester(
 // ── Plugin Definition ────────────────────────────────────────────
 
 export default definePlugin({
-  name: "@the-brain/plugin-harvester-claude",
+  name: "@the-brain-dev/plugin-harvester-claude",
   version: "0.1.0",
   description:
     "Polls Claude Code's ~/.claude/projects/ transcripts and feeds interactions into the the-brain pipeline",

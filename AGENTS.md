@@ -104,7 +104,7 @@ the-brain/
 │       │   └── commands/       # CLI subcommands
 │       └── CHANGELOG.md
 ├── packages/
-│   ├── core/                   # @the-brain/core — types, hooks, plugin manager, db
+│   ├── core/                   # @the-brain-dev/core — types, hooks, plugin manager, db
 │   ├── plugin-graph-memory/    # ⚡ Instant Layer — graph-based quick corrections
 │   ├── plugin-spm-curator/     # ⚖️ Selection Layer — surprise-gated filtering
 │   ├── plugin-harvester-cursor/# 📥 Cursor IDE log harvester

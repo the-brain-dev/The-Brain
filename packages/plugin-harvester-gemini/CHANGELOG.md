@@ -1,4 +1,4 @@
-# @the-brain/plugin-harvester-gemini
+# @the-brain-dev/plugin-harvester-gemini
 
 ## 0.1.0 — Initial Release
 

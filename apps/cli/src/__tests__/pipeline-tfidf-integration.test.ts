@@ -138,7 +138,7 @@ describe("Pipeline: ContentCleaner → SPM/TF-IDF → Graph Memory → Context",
     process.env.HOME = TEST_HOME;
     await mkdir(join(TEST_HOME, ".the-brain"), { recursive: true });
 
-    const core = await import("@the-brain/core");
+    const core = await import("@the-brain-dev/core");
     BrainDB = core.BrainDB;
     MemoryLayer = core.MemoryLayer;
     HookEvent = core.HookEvent;
@@ -148,10 +148,10 @@ describe("Pipeline: ContentCleaner → SPM/TF-IDF → Graph Memory → Context",
 
     db = new BrainDB(join(TEST_HOME, ".the-brain", "brain.db"));
 
-    const spmMod = await import("@the-brain/plugin-spm-curator");
+    const spmMod = await import("@the-brain-dev/plugin-spm-curator");
     spmInstance = spmMod.createSpmCurator({ useTfidf: true }).instance; // default threshold is now 0.82
 
-    const graphMod = await import("@the-brain/plugin-graph-memory");
+    const graphMod = await import("@the-brain-dev/plugin-graph-memory");
     graphPlugin = graphMod.createGraphMemoryPlugin(db);
 
     hooks = createHookSystem();

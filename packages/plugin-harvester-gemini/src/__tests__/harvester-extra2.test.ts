@@ -14,8 +14,8 @@ import { describe, it, expect, afterEach, beforeAll } from "bun:test";
 import { mkdtempSync, rmSync, writeFileSync, mkdirSync, readFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { PluginHooks } from "@the-brain/core";
-import { HookEvent, MemoryLayer } from "@the-brain/core";
+import type { PluginHooks } from "@the-brain-dev/core";
+import { HookEvent, MemoryLayer } from "@the-brain-dev/core";
 
 // ── Helpers ──────────────────────────────────────────────────────
 

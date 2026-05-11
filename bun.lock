@@ -18,27 +18,27 @@
       },
     },
     "apps/cli": {
-      "name": "@the-brain/cli",
+      "name": "the-brain",
       "version": "0.1.0",
       "bin": {
-        "the-brain": "./src/index.ts",
+        "the-brain": "./dist/index.js",
       },
       "dependencies": {
-        "@the-brain/core": "workspace:*",
-        "@the-brain/mcp-server": "workspace:*",
-        "@the-brain/plugin-auto-wiki": "workspace:*",
-        "@the-brain/plugin-graph-memory": "workspace:*",
-        "@the-brain/plugin-harvester-claude": "workspace:*",
-        "@the-brain/plugin-harvester-cursor": "workspace:*",
-        "@the-brain/plugin-identity-anchor": "workspace:*",
-        "@the-brain/plugin-spm-curator": "workspace:*",
-        "@the-brain/trainer-local-mlx": "workspace:*",
+        "@the-brain-dev/core": "workspace:*",
+        "@the-brain-dev/mcp-server": "workspace:*",
+        "@the-brain-dev/plugin-auto-wiki": "workspace:*",
+        "@the-brain-dev/plugin-graph-memory": "workspace:*",
+        "@the-brain-dev/plugin-harvester-claude": "workspace:*",
+        "@the-brain-dev/plugin-harvester-cursor": "workspace:*",
+        "@the-brain-dev/plugin-identity-anchor": "workspace:*",
+        "@the-brain-dev/plugin-spm-curator": "workspace:*",
+        "@the-brain-dev/trainer-local-mlx": "workspace:*",
         "cac": "^6.7.14",
         "consola": "^3.4.0",
       },
     },
     "apps/docs": {
-      "name": "@the-brain/docs",
+      "name": "@the-brain-dev/docs",
       "version": "0.1.0",
       "dependencies": {
         "fumadocs-core": "16.8.7",
@@ -64,7 +64,7 @@
       },
     },
     "packages/core": {
-      "name": "@the-brain/core",
+      "name": "@the-brain-dev/core",
       "version": "0.1.0",
       "dependencies": {
         "croner": "^9.0.0",
@@ -74,99 +74,102 @@
       },
     },
     "packages/mcp-server": {
-      "name": "@the-brain/mcp-server",
+      "name": "@the-brain-dev/mcp-server",
       "version": "0.1.0",
       "dependencies": {
-        "@the-brain/core": "workspace:*",
+        "@the-brain-dev/core": "workspace:*",
       },
     },
     "packages/plugin-auto-wiki": {
-      "name": "@the-brain/plugin-auto-wiki",
+      "name": "@the-brain-dev/plugin-auto-wiki",
       "version": "0.1.0",
       "dependencies": {
-        "@the-brain/core": "workspace:*",
+        "@the-brain-dev/core": "workspace:*",
       },
     },
     "packages/plugin-data-curator": {
-      "name": "@the-brain/plugin-data-curator",
+      "name": "@the-brain-dev/plugin-data-curator",
       "version": "0.1.0",
       "dependencies": {
-        "@the-brain/core": "workspace:*",
+        "@the-brain-dev/core": "workspace:*",
       },
     },
     "packages/plugin-graph-memory": {
-      "name": "@the-brain/plugin-graph-memory",
+      "name": "@the-brain-dev/plugin-graph-memory",
       "version": "0.1.0",
       "dependencies": {
-        "@the-brain/core": "workspace:*",
+        "@the-brain-dev/core": "workspace:*",
       },
     },
     "packages/plugin-harvester-claude": {
-      "name": "@the-brain/plugin-harvester-claude",
+      "name": "@the-brain-dev/plugin-harvester-claude",
       "version": "0.1.0",
       "dependencies": {
-        "@the-brain/core": "workspace:*",
+        "@the-brain-dev/core": "workspace:*",
       },
     },
     "packages/plugin-harvester-cursor": {
-      "name": "@the-brain/plugin-harvester-cursor",
+      "name": "@the-brain-dev/plugin-harvester-cursor",
       "version": "0.1.0",
       "dependencies": {
-        "@the-brain/core": "workspace:*",
+        "@the-brain-dev/core": "workspace:*",
       },
     },
     "packages/plugin-harvester-gemini": {
-      "name": "@the-brain/plugin-harvester-gemini",
+      "name": "@the-brain-dev/plugin-harvester-gemini",
       "version": "0.1.0",
       "dependencies": {
-        "@the-brain/core": "workspace:*",
+        "@the-brain-dev/core": "workspace:*",
       },
     },
     "packages/plugin-harvester-hermes": {
-      "name": "@the-brain/plugin-harvester-hermes",
+      "name": "@the-brain-dev/plugin-harvester-hermes",
       "version": "0.1.0",
       "dependencies": {
-        "@the-brain/core": "workspace:*",
+        "@the-brain-dev/core": "workspace:*",
       },
     },
     "packages/plugin-harvester-lm-eval": {
-      "name": "@the-brain/plugin-harvester-lm-eval",
+      "name": "@the-brain-dev/plugin-harvester-lm-eval",
       "version": "0.1.0",
       "dependencies": {
-        "@the-brain/core": "workspace:*",
+        "@the-brain-dev/core": "workspace:*",
       },
     },
     "packages/plugin-identity-anchor": {
-      "name": "@the-brain/plugin-identity-anchor",
+      "name": "@the-brain-dev/plugin-identity-anchor",
       "version": "0.1.0",
       "dependencies": {
-        "@the-brain/core": "workspace:*",
+        "@the-brain-dev/core": "workspace:*",
       },
     },
     "packages/plugin-spm-curator": {
-      "name": "@the-brain/plugin-spm-curator",
+      "name": "@the-brain-dev/plugin-spm-curator",
       "version": "0.1.0",
       "dependencies": {
-        "@the-brain/core": "workspace:*",
+        "@the-brain-dev/core": "workspace:*",
       },
     },
     "packages/storage-libsql": {
-      "name": "@the-brain/storage-libsql",
+      "name": "@the-brain-dev/storage-libsql",
       "version": "0.1.0",
       "dependencies": {
         "@libsql/client": "^0.14.0",
-        "@the-brain/core": "workspace:*",
+        "@the-brain-dev/core": "workspace:*",
         "drizzle-orm": "^0.45.2",
       },
     },
     "packages/trainer-local-mlx": {
-      "name": "@the-brain/trainer-local-mlx",
+      "name": "@the-brain-dev/trainer-local-mlx",
       "version": "0.1.0",
       "dependencies": {
-        "@the-brain/core": "workspace:*",
+        "@the-brain-dev/core": "workspace:*",
       },
     },
   },
+  "trustedDependencies": [
+    "the-brain",
+  ],
   "overrides": {
     "postcss": ">=8.5.10",
   },
@@ -483,37 +486,35 @@
 
     "@tailwindcss/postcss": ["@tailwindcss/postcss@4.2.4", "", { "dependencies": { "@alloc/quick-lru": "^5.2.0", "@tailwindcss/node": "4.2.4", "@tailwindcss/oxide": "4.2.4", "postcss": "^8.5.6", "tailwindcss": "4.2.4" } }, "sha512-wgAVj6nUWAolAu8YFvzT2cTBIElWHkjZwFYovF+xsqKsW2ADxM/X2opxj5NsF/qVccAOjRNe8X2IdPzMsWyHTg=="],
 
-    "@the-brain/cli": ["@the-brain/cli@workspace:apps/cli"],
+    "@the-brain-dev/core": ["@the-brain-dev/core@workspace:packages/core"],
 
-    "@the-brain/core": ["@the-brain/core@workspace:packages/core"],
+    "@the-brain-dev/docs": ["@the-brain-dev/docs@workspace:apps/docs"],
 
-    "@the-brain/docs": ["@the-brain/docs@workspace:apps/docs"],
+    "@the-brain-dev/mcp-server": ["@the-brain-dev/mcp-server@workspace:packages/mcp-server"],
 
-    "@the-brain/mcp-server": ["@the-brain/mcp-server@workspace:packages/mcp-server"],
+    "@the-brain-dev/plugin-auto-wiki": ["@the-brain-dev/plugin-auto-wiki@workspace:packages/plugin-auto-wiki"],
 
-    "@the-brain/plugin-auto-wiki": ["@the-brain/plugin-auto-wiki@workspace:packages/plugin-auto-wiki"],
+    "@the-brain-dev/plugin-data-curator": ["@the-brain-dev/plugin-data-curator@workspace:packages/plugin-data-curator"],
 
-    "@the-brain/plugin-data-curator": ["@the-brain/plugin-data-curator@workspace:packages/plugin-data-curator"],
+    "@the-brain-dev/plugin-graph-memory": ["@the-brain-dev/plugin-graph-memory@workspace:packages/plugin-graph-memory"],
 
-    "@the-brain/plugin-graph-memory": ["@the-brain/plugin-graph-memory@workspace:packages/plugin-graph-memory"],
+    "@the-brain-dev/plugin-harvester-claude": ["@the-brain-dev/plugin-harvester-claude@workspace:packages/plugin-harvester-claude"],
 
-    "@the-brain/plugin-harvester-claude": ["@the-brain/plugin-harvester-claude@workspace:packages/plugin-harvester-claude"],
+    "@the-brain-dev/plugin-harvester-cursor": ["@the-brain-dev/plugin-harvester-cursor@workspace:packages/plugin-harvester-cursor"],
 
-    "@the-brain/plugin-harvester-cursor": ["@the-brain/plugin-harvester-cursor@workspace:packages/plugin-harvester-cursor"],
+    "@the-brain-dev/plugin-harvester-gemini": ["@the-brain-dev/plugin-harvester-gemini@workspace:packages/plugin-harvester-gemini"],
 
-    "@the-brain/plugin-harvester-gemini": ["@the-brain/plugin-harvester-gemini@workspace:packages/plugin-harvester-gemini"],
+    "@the-brain-dev/plugin-harvester-hermes": ["@the-brain-dev/plugin-harvester-hermes@workspace:packages/plugin-harvester-hermes"],
 
-    "@the-brain/plugin-harvester-hermes": ["@the-brain/plugin-harvester-hermes@workspace:packages/plugin-harvester-hermes"],
+    "@the-brain-dev/plugin-harvester-lm-eval": ["@the-brain-dev/plugin-harvester-lm-eval@workspace:packages/plugin-harvester-lm-eval"],
 
-    "@the-brain/plugin-harvester-lm-eval": ["@the-brain/plugin-harvester-lm-eval@workspace:packages/plugin-harvester-lm-eval"],
+    "@the-brain-dev/plugin-identity-anchor": ["@the-brain-dev/plugin-identity-anchor@workspace:packages/plugin-identity-anchor"],
 
-    "@the-brain/plugin-identity-anchor": ["@the-brain/plugin-identity-anchor@workspace:packages/plugin-identity-anchor"],
+    "@the-brain-dev/plugin-spm-curator": ["@the-brain-dev/plugin-spm-curator@workspace:packages/plugin-spm-curator"],
 
-    "@the-brain/plugin-spm-curator": ["@the-brain/plugin-spm-curator@workspace:packages/plugin-spm-curator"],
+    "@the-brain-dev/storage-libsql": ["@the-brain-dev/storage-libsql@workspace:packages/storage-libsql"],
 
-    "@the-brain/storage-libsql": ["@the-brain/storage-libsql@workspace:packages/storage-libsql"],
-
-    "@the-brain/trainer-local-mlx": ["@the-brain/trainer-local-mlx@workspace:packages/trainer-local-mlx"],
+    "@the-brain-dev/trainer-local-mlx": ["@the-brain-dev/trainer-local-mlx@workspace:packages/trainer-local-mlx"],
 
     "@types/bun": ["@types/bun@1.3.13", "", { "dependencies": { "bun-types": "1.3.13" } }, "sha512-9fqXWk5YIHGGnUau9TEi+qdlTYDAnOj+xLCmSTwXfAIqXr2x4tytJb43E9uCvt09zJURKXwAtkoH4nLQfzeTXw=="],
 
@@ -1139,6 +1140,8 @@
 
     "tapable": ["tapable@2.3.3", "", {}, "sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A=="],
 
+    "the-brain": ["the-brain@workspace:apps/cli"],
+
     "tinyexec": ["tinyexec@1.1.2", "", {}, "sha512-dAqSqE/RabpBKI8+h26GfLq6Vb3JVXs30XYQjdMjaj/c2tS8IYYMbIzP599KtRj7c57/wYApb3QjgRgXmrCukA=="],
 
     "tinyglobby": ["tinyglobby@0.2.16", "", { "dependencies": { "fdir": "^6.5.0", "picomatch": "^4.0.4" } }, "sha512-pn99VhoACYR8nFHhxqix+uvsbXineAasWm5ojXoN8xEwK5Kd3/TrhNn1wByuD52UxWRLy8pu+kRMniEi6Eq9Zg=="],
@@ -1225,13 +1228,11 @@
 
     "@tailwindcss/oxide-wasm32-wasi/tslib": ["tslib@2.8.1", "", { "bundled": true }, "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="],
 
-    "@the-brain/cli/cac": ["cac@6.7.14", "", {}, "sha512-b6Ilus+c3RrdDk+JhLKUAQfzzgLEPy6wcXqS7f/xe1EETvsDP6GORG7SFuOs6cID5YkqchW/LXZbX5bc8j7ZcQ=="],
+    "@the-brain-dev/core/croner": ["croner@9.1.0", "", {}, "sha512-p9nwwR4qyT5W996vBZhdvBCnMhicY5ytZkR4D1Xj0wuTDEiMnjwR57Q3RXYY/s0EpX6Ay3vgIcfaR+ewGHsi+g=="],
 
-    "@the-brain/core/croner": ["croner@9.1.0", "", {}, "sha512-p9nwwR4qyT5W996vBZhdvBCnMhicY5ytZkR4D1Xj0wuTDEiMnjwR57Q3RXYY/s0EpX6Ay3vgIcfaR+ewGHsi+g=="],
+    "@the-brain-dev/core/hookable": ["hookable@5.5.3", "", {}, "sha512-Yc+BQe8SvoXH1643Qez1zqLRmbA5rCL+sSmk6TVos0LWVfNIB7PGncdlId77WzLGSIB5KaWgTaNTs2lNVEI6VQ=="],
 
-    "@the-brain/core/hookable": ["hookable@5.5.3", "", {}, "sha512-Yc+BQe8SvoXH1643Qez1zqLRmbA5rCL+sSmk6TVos0LWVfNIB7PGncdlId77WzLGSIB5KaWgTaNTs2lNVEI6VQ=="],
-
-    "@the-brain/core/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
+    "@the-brain-dev/core/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
 
     "cytoscape-fcose/cose-base": ["cose-base@2.2.0", "", { "dependencies": { "layout-base": "^2.0.0" } }, "sha512-AzlgcsCbUMymkADOJtQm3wO9S3ltPfYOFD5033keQn9NJzIbtnZj+UdBJe7DYml/8TdbtHJW3j58SOnKhWY/5g=="],
 
@@ -1246,6 +1247,8 @@
     "libsql/detect-libc": ["detect-libc@2.0.2", "", {}, "sha512-UX6sGumvvqSaXgdKGUsgZWqcUyIXZ/vZTrlRT/iobiKhGL0zL4d3osHj3uqllWJK+i+sixDS/3COVEOFbupFyw=="],
 
     "parse-entities/@types/unist": ["@types/unist@2.0.11", "", {}, "sha512-CmBKiL6NNo/OqgmMn95Fk9Whlp2mtvIv+KNpQKN2F4SjvrEesubTRWGYSg+BnWZOnlCaSTU1sMpsBOzgbYhnsA=="],
+
+    "the-brain/cac": ["cac@6.7.14", "", {}, "sha512-b6Ilus+c3RrdDk+JhLKUAQfzzgLEPy6wcXqS7f/xe1EETvsDP6GORG7SFuOs6cID5YkqchW/LXZbX5bc8j7ZcQ=="],
 
     "cytoscape-fcose/cose-base/layout-base": ["layout-base@2.0.1", "", {}, "sha512-dp3s92+uNI1hWIpPGH3jK2kxE2lMjdXdr+DH8ynZHpd6PUlH6x6cbuXnoMmiNumznqaNO31xu9e79F0uuZ0JFg=="],
 

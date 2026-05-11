@@ -6,7 +6,7 @@ import {
   LayerRouter,
   MemoryLayer,
   HookEvent,
-} from "@the-brain/core";
+} from "@the-brain-dev/core";
 import type {
   PluginDefinition,
   PluginManifest,
@@ -20,7 +20,7 @@ import type {
   InstantLayerPlugin,
   SelectionLayerPlugin,
   DeepLayerPlugin,
-} from "@the-brain/core";
+} from "@the-brain-dev/core";
 
 // ── Helpers ─────────────────────────────────────────────────────
 

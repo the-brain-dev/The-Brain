@@ -19,12 +19,12 @@
  * beyond the standard library.
  */
 
-import { BrainDB, MemoryLayer, safeParseConfig } from "@the-brain/core";
-import type { TheBrainConfig } from "@the-brain/core";
+import { BrainDB, MemoryLayer, safeParseConfig } from "@the-brain-dev/core";
+import type { TheBrainConfig } from "@the-brain-dev/core";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
 import { existsSync, statSync } from "node:fs";
-import type { Memory } from "@the-brain/core";
+import type { Memory } from "@the-brain-dev/core";
 
 // ── ANSI Constants ──────────────────────────────────────────────
 

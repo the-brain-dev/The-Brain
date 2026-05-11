@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
-import { AuthDB, UserRole } from "@the-brain/core";
-import type { User, AuthToken, AuditEntry, UserPermission } from "@the-brain/core";
+import { AuthDB, UserRole } from "@the-brain-dev/core";
+import type { User, AuthToken, AuditEntry, UserPermission } from "@the-brain-dev/core";
 
 // ── Helpers ─────────────────────────────────────────────────────
 

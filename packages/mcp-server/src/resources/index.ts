@@ -18,7 +18,7 @@
  */
 
 import type { ResourceDef, ResourceHandler } from "../server";
-import { MemoryLayer } from "@the-brain/core";
+import { MemoryLayer } from "@the-brain-dev/core";
 
 // ── Resource Definitions ────────────────────────────────────
 

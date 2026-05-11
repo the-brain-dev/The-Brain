@@ -1,5 +1,5 @@
 /**
- * @the-brain/plugin-harvester-gemini
+ * @the-brain-dev/plugin-harvester-gemini
  *
  * Data harvester that polls Gemini CLI's local conversation logs
  * (~/.gemini/tmp/<project>/logs.json and chat sessions) and feeds new
@@ -40,8 +40,8 @@ import {
 import { join, basename } from "node:path";
 import { homedir } from "node:os";
 import { createHash } from "node:crypto";
-import type { Interaction, InteractionContext, PluginHooks } from "@the-brain/core";
-import { HookEvent, MemoryLayer, definePlugin } from "@the-brain/core";
+import type { Interaction, InteractionContext, PluginHooks } from "@the-brain-dev/core";
+import { HookEvent, MemoryLayer, definePlugin } from "@the-brain-dev/core";
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -604,7 +604,7 @@ export function createGeminiHarvester(
 // ── Plugin Definition ────────────────────────────────────────────
 
 export default definePlugin({
-  name: "@the-brain/plugin-harvester-gemini",
+  name: "@the-brain-dev/plugin-harvester-gemini",
   version: "0.1.0",
   description:
     "Polls Gemini CLI's ~/.gemini/tmp/ conversation logs and feeds interactions into the the-brain pipeline",

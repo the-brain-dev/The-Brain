@@ -11,8 +11,8 @@
  */
 import { join } from "node:path";
 import { readFile, access } from "node:fs/promises";
-import { AuthDB, UserRole, safeParseConfig } from "@the-brain/core";
-import type { TheBrainConfig } from "@the-brain/core";
+import { AuthDB, UserRole, safeParseConfig } from "@the-brain-dev/core";
+import type { TheBrainConfig } from "@the-brain-dev/core";
 
 const CONFIG_PATH = join(process.env.HOME || "~", ".the-brain", "config.json");
 const AUTH_DB_PATH = join(process.env.HOME || "~", ".the-brain", "auth.db");

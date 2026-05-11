@@ -1,10 +1,10 @@
 /**
- * Tests for @the-brain/plugin-spm-curator — Selection Layer
+ * Tests for @the-brain-dev/plugin-spm-curator — Selection Layer
  */
 import { describe, test, expect, beforeEach } from "bun:test";
 import { createSpmCurator, SpmCuratorPlugin } from "../index";
-import { MemoryLayer, HookEvent } from "@the-brain/core";
-import type { InteractionContext, SurpriseGateResult, MemoryFragment } from "@the-brain/core";
+import { MemoryLayer, HookEvent } from "@the-brain-dev/core";
+import type { InteractionContext, SurpriseGateResult, MemoryFragment } from "@the-brain-dev/core";
 
 function createInteractionCtx(prompt: string, response: string, fragments: MemoryFragment[] = []): InteractionContext {
   return {
@@ -35,7 +35,7 @@ function createFragment(content: string, embed?: number[], score?: number): Memo
 describe("createSpmCurator", () => {
   test("returns definition and instance", () => {
     const { definition, instance } = createSpmCurator();
-    expect(definition.name).toBe("@the-brain/plugin-spm-curator");
+    expect(definition.name).toBe("@the-brain-dev/plugin-spm-curator");
     expect(definition.version).toBeDefined();
     expect(instance).toBeInstanceOf(SpmCuratorPlugin);
   });

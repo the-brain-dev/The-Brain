@@ -9,9 +9,9 @@
  *   - Whether the model correctly identifies surprising vs mundane
  */
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { BrainDB, MemoryLayer } from "@the-brain/core";
+import { BrainDB, MemoryLayer } from "@the-brain-dev/core";
 import { createSpmCurator, SpmCuratorPlugin } from "../index";
-import type { InteractionContext, Memory, MemoryFragment } from "@the-brain/core";
+import type { InteractionContext, Memory, MemoryFragment } from "@the-brain-dev/core";
 import { join } from "node:path";
 
 const DB_PATH = process.env.THE_BRAIN_DB_PATH || "";

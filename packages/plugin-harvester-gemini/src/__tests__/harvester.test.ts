@@ -1,5 +1,5 @@
 /**
- * Tests for @the-brain/plugin-harvester-gemini
+ * Tests for @the-brain-dev/plugin-harvester-gemini
  *
  * Tests cover:
  *   - extractTextFromBlocks: text, tool_use, thinking, mixed blocks
@@ -13,8 +13,8 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import type { PluginHooks, InteractionContext } from "@the-brain/core";
-import { HookEvent } from "@the-brain/core";
+import type { PluginHooks, InteractionContext } from "@the-brain-dev/core";
+import { HookEvent } from "@the-brain-dev/core";
 
 // We test the internal functions by importing the module and
 // using the createGeminiHarvester factory + internal state inspection.

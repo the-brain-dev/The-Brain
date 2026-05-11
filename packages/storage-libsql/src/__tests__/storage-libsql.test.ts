@@ -1,13 +1,13 @@
 /**
- * @the-brain/storage-libsql — Comprehensive tests
+ * @the-brain-dev/storage-libsql — Comprehensive tests
  *
  * Tests the full StorageBackend interface: sessions, memories, graph nodes, stats, maintenance.
  * Uses local LibSQL (file: URL) — no remote server needed.
  */
 import { describe, it, expect, beforeAll, afterAll } from "bun:test";
 import { createLibsqlBackend } from "../index";
-import { MemoryLayer } from "@the-brain/core";
-import type { Memory, Session, GraphNodeRecord } from "@the-brain/core";
+import { MemoryLayer } from "@the-brain-dev/core";
+import type { Memory, Session, GraphNodeRecord } from "@the-brain-dev/core";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";

@@ -13,7 +13,7 @@ import {
 
 export function createDefaultCleaner(): ContentCleanerPlugin {
   return {
-    name: "@the-brain/content-cleaner-default",
+    name: "@the-brain-dev/content-cleaner-default",
     async clean(raw: string): Promise<CleanedContent> {
       const result = cleanMemoryContent(raw);
       // Convert sync result to the CleanedContent interface (structurally identical)

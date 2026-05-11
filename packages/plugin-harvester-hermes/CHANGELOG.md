@@ -1,4 +1,4 @@
-# @the-brain/plugin-harvester-hermes
+# @the-brain-dev/plugin-harvester-hermes
 
 ## [Unreleased]
 

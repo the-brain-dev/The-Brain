@@ -1,4 +1,4 @@
-// @the-brain/core — Main entry point
+// @the-brain-dev/core — Main entry point
 export { createHookSystem } from "./hooks";
 export { PluginManager, definePlugin } from "./plugin";
 export { BrainDB } from "./db/index";

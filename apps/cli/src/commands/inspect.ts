@@ -3,8 +3,8 @@
  * Multi-project aware: supports --project <name> and --global.
  */
 import { consola } from "consola";
-import { BrainDB, MemoryLayer, safeParseConfig } from "@the-brain/core";
-import type { TheBrainConfig } from "@the-brain/core";
+import { BrainDB, MemoryLayer, safeParseConfig } from "@the-brain-dev/core";
+import type { TheBrainConfig } from "@the-brain-dev/core";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";

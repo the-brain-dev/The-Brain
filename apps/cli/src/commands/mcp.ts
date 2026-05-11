@@ -8,9 +8,9 @@
  *   the-brain mcp serve --transport sse --port 9422
  */
 
-import type { BrainDB, StorageBackend, SchedulerPlugin } from "@the-brain/core";
-import type { TheBrainConfig, ProjectContext } from "@the-brain/core";
-import { McpServer, runStdioServer, startSseServer, registerAllTools, registerAllResources, allTools, allResources } from "@the-brain/mcp-server";
+import type { BrainDB, StorageBackend, SchedulerPlugin } from "@the-brain-dev/core";
+import type { TheBrainConfig, ProjectContext } from "@the-brain-dev/core";
+import { McpServer, runStdioServer, startSseServer, registerAllTools, registerAllResources, allTools, allResources } from "@the-brain-dev/mcp-server";
 import { consola } from "consola";
 
 interface McpServeOptions {
@@ -121,7 +121,7 @@ async function loadConfig(): Promise<TheBrainConfig> {
   const { homedir } = await import("node:os");
   const { join } = await import("node:path");
   const { readFileSync, existsSync } = await import("node:fs");
-  const { safeParseConfig } = await import("@the-brain/core");
+  const { safeParseConfig } = await import("@the-brain-dev/core");
 
   const configPath = join(homedir(), ".the-brain", "config.json");
 
@@ -147,7 +147,7 @@ async function loadConfig(): Promise<TheBrainConfig> {
 // ── Internal: Open database ──────────────────────────────────
 
 async function openDatabase(config: TheBrainConfig): Promise<BrainDB> {
-  const { BrainDB } = await import("@the-brain/core");
+  const { BrainDB } = await import("@the-brain-dev/core");
   const { homedir } = await import("node:os");
   const { join } = await import("node:path");
 

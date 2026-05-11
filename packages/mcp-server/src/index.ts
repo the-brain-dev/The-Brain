@@ -1,5 +1,5 @@
 /**
- * @the-brain/mcp-server — Public API
+ * @the-brain-dev/mcp-server — Public API
  *
  * Exposes the-brain as an MCP (Model Context Protocol) server.
  * Used by Claude Desktop, Cursor, Zed, and other MCP-compatible AI tools.

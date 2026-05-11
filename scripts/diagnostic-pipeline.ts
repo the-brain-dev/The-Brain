@@ -1,7 +1,7 @@
 // Diagnostic: run the full pipeline in foreground and inspect results.
 // bun run scripts/diagnostic-pipeline.ts
-import { BrainDB, createHookSystem, PluginManager, HookEvent } from "@the-brain/core";
-import { createGraphMemoryPlugin } from "@the-brain/plugin-graph-memory";
+import { BrainDB, createHookSystem, PluginManager, HookEvent } from "@the-brain-dev/core";
+import { createGraphMemoryPlugin } from "@the-brain-dev/plugin-graph-memory";
 import { Database } from "bun:sqlite";
 import { unlinkSync } from "node:fs";
 
@@ -16,12 +16,12 @@ async function main() {
   await pm.load(graphMemory);
 
   // Load Claude harvester
-  const claudeMod = await import("@the-brain/plugin-harvester-claude");
+  const claudeMod = await import("@the-brain-dev/plugin-harvester-claude");
   const claudePlugin = claudeMod.default || claudeMod;
   await pm.load(claudePlugin);
 
   // Load Cursor harvester
-  const cursorMod = await import("@the-brain/plugin-harvester-cursor");
+  const cursorMod = await import("@the-brain-dev/plugin-harvester-cursor");
   const cursorPlugin = cursorMod.default || cursorMod;
   await pm.load(cursorPlugin);
 

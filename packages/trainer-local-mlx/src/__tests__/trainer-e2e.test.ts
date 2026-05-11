@@ -5,16 +5,16 @@
  * Actual uv/mlx training is verified manually (requires Apple Silicon + mlx-lm).
  */
 import { describe, test, expect } from "bun:test";
-import { BrainDB, MemoryLayer, createHookSystem } from "@the-brain/core";
+import { BrainDB, MemoryLayer, createHookSystem } from "@the-brain-dev/core";
 import { existsSync, statSync } from "node:fs";
-import type { ConsolidationContext, MemoryFragment } from "@the-brain/core";
+import type { ConsolidationContext, MemoryFragment } from "@the-brain-dev/core";
 
 describe("MLX Trainer — end-to-end pipeline", () => {
   test("creates plugin and registers DEEP_CONSOLIDATE hook", async () => {
     const { createMlxTrainer } = await import("../index");
     const plugin = await Promise.resolve(createMlxTrainer());
 
-    expect(plugin.name).toBe("@the-brain/trainer-local-mlx");
+    expect(plugin.name).toBe("@the-brain-dev/trainer-local-mlx");
     expect(typeof plugin.setup).toBe("function");
 
     // Verify hook registration
@@ -90,7 +90,7 @@ describe("MLX Trainer — end-to-end pipeline", () => {
       maxSeqLength: 1024,
     });
 
-    expect(plugin.name).toBe("@the-brain/trainer-local-mlx");
+    expect(plugin.name).toBe("@the-brain-dev/trainer-local-mlx");
   });
 
   test("real deep memories exist after consolidation", async () => {

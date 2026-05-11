@@ -9,7 +9,7 @@ describe("createDefaultCleaner", () => {
     const { createDefaultCleaner } = await import("../cleaner-default");
     const cleaner = createDefaultCleaner();
 
-    expect(cleaner.name).toBe("@the-brain/content-cleaner-default");
+    expect(cleaner.name).toBe("@the-brain-dev/content-cleaner-default");
     expect(typeof cleaner.clean).toBe("function");
     expect(typeof cleaner.cleanGraphLabel).toBe("function");
     expect(typeof cleaner.deduplicate).toBe("function");

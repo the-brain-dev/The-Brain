@@ -4,7 +4,7 @@
  */
 
 import { describe, test, expect } from "bun:test";
-import { BrainDB } from "@the-brain/core";
+import { BrainDB } from "@the-brain-dev/core";
 import { createSpmCurator, SpmCuratorPlugin } from "../index";
 import { TfidfSurpriseDetector } from "../tfidf-detector";
 

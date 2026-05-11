@@ -1,15 +1,15 @@
 /**
- * Tests for @the-brain/trainer-local-mlx — Deep Layer Trainer
+ * Tests for @the-brain-dev/trainer-local-mlx — Deep Layer Trainer
  */
 import { describe, test, expect } from "bun:test";
-import { HookEvent } from "@the-brain/core";
+import { HookEvent } from "@the-brain-dev/core";
 
 // Use relative import since workspace resolution may have issues with node:child_process
-describe("@the-brain/trainer-local-mlx", () => {
+describe("@the-brain-dev/trainer-local-mlx", () => {
   test("createMlxTrainer returns plugin definition", async () => {
     const { createMlxTrainer } = await import("../index");
     const plugin = await Promise.resolve(createMlxTrainer());
-    expect(plugin.name).toBe("@the-brain/trainer-local-mlx");
+    expect(plugin.name).toBe("@the-brain-dev/trainer-local-mlx");
     expect(typeof plugin.setup).toBe("function");
   });
 

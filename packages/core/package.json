@@ -1,5 +1,5 @@
 {
-  "name": "@the-brain/core",
+  "name": "@the-brain-dev/core",
   "version": "0.1.0",
   "description": "Core orchestrator for the-brain \u2014 plugin system, hooks, database, and memory layer interfaces",
   "type": "module",
