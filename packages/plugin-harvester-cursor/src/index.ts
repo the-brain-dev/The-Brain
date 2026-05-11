@@ -1,5 +1,5 @@
 /**
- * @the-brain/plugin-harvester-cursor
+ * @the-brain-dev/plugin-harvester-cursor
  *
  * Data harvester that polls Cursor IDE's local conversation logs (JSONL and SQLite)
  * and feeds new interactions into the the-brain pipeline.
@@ -24,9 +24,9 @@ import type {
   InteractionContext,
   MemoryFragment,
   PluginHooks,
-} from "@the-brain/core";
-import { HookEvent, MemoryLayer, definePlugin } from "@the-brain/core";
-import type { HarvesterPlugin } from "@the-brain/core";
+} from "@the-brain-dev/core";
+import { HookEvent, MemoryLayer, definePlugin } from "@the-brain-dev/core";
+import type { HarvesterPlugin } from "@the-brain-dev/core";
 
 // ── Types ────────────────────────────────────────────────────────
 

@@ -1,10 +1,10 @@
 /**
- * Tests for @the-brain/plugin-graph-memory — Instant Layer
+ * Tests for @the-brain-dev/plugin-graph-memory — Instant Layer
  */
 import { describe, test, expect, beforeEach, mock } from "bun:test";
 import { createGraphMemoryPlugin } from "../index";
-import { BrainDB, MemoryLayer, HookEvent } from "@the-brain/core";
-import type { PromptContext, GraphNodeRecord } from "@the-brain/core";
+import { BrainDB, HookEvent } from "@the-brain-dev/core";
+import type { PromptContext, GraphNodeRecord } from "@the-brain-dev/core";
 
 function createMockDB(nodes: Partial<GraphNodeRecord>[] = []): BrainDB {
   return {
@@ -30,14 +30,14 @@ describe("createGraphMemoryPlugin", () => {
   test("returns a plugin definition with name and setup", () => {
     const db = createMockDB();
     const plugin = createGraphMemoryPlugin(db);
-    expect(plugin.name).toBe("@the-brain/plugin-graph-memory");
+    expect(plugin.name).toBe("@the-brain-dev/plugin-graph-memory");
     expect(typeof plugin.setup).toBe("function");
   });
 
   test("accepts custom options", () => {
     const db = createMockDB();
     const plugin = createGraphMemoryPlugin(db, { maxInjectNodes: 4, minWeight: 0.5 });
-    expect(plugin.name).toBe("@the-brain/plugin-graph-memory");
+    expect(plugin.name).toBe("@the-brain-dev/plugin-graph-memory");
     expect(typeof plugin.setup).toBe("function");
   });
 

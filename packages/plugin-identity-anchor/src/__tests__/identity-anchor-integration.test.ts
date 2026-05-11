@@ -1,19 +1,19 @@
 /**
- * Integration tests for @the-brain/plugin-identity-anchor
+ * Integration tests for @the-brain-dev/plugin-identity-anchor
  *
  * Tests hook handlers (SELECTION_PROMOTE, DEEP_CONSOLIDATE),
  * identity fragment capture, self-vector computation, maxAnchorFragments
  * enforcement, cosine similarity, teardown, and the getState custom hook.
  */
 import { describe, test, expect, beforeEach, mock } from "bun:test";
-import { HookEvent, MemoryLayer } from "@the-brain/core";
+import { HookEvent, MemoryLayer } from "@the-brain-dev/core";
 import type {
   MemoryFragment,
   Memory,
   InteractionContext,
   ConsolidationContext,
   Interaction,
-} from "@the-brain/core";
+} from "@the-brain-dev/core";
 
 // ── Helpers ─────────────────────────────────────────────────────
 
@@ -124,7 +124,7 @@ describe("createIdentityAnchorPlugin integration", () => {
   // ── Test 1: Plugin definition ──────────────────────────────
 
   test("returns a plugin definition with name, setup, and teardown", () => {
-    expect(plugin.name).toBe("@the-brain/plugin-identity-anchor");
+    expect(plugin.name).toBe("@the-brain-dev/plugin-identity-anchor");
     expect(plugin.version).toBe("0.2.0");
     expect(typeof plugin.setup).toBe("function");
     expect(typeof plugin.teardown).toBe("function");

@@ -157,22 +157,22 @@ bun run daemon       # Run daemon from source
 
 | Package | Description |
 |---------|-------------|
-| **@the-brain/core** | Types, hooks, plugin manager, database layer |
-| **@the-brain/plugin-graph-memory** | Instant memory layer with relation graphs |
-| **@the-brain/plugin-spm-curator** | Surprise-gated prediction error filtering |
-| **@the-brain/plugin-harvester-cursor** | Cursor IDE log reader |
-| **@the-brain/plugin-harvester-claude** | Claude Code log reader |
-| **@the-brain/plugin-harvester-hermes** | Hermes Agent log reader |
-| **@the-brain/plugin-harvester-gemini** | Gemini CLI log reader |
-| **@the-brain/plugin-harvester-lm-eval** | Benchmark result harvester |
-| **@the-brain/plugin-identity-anchor** | Stable self-vector across retrains |
-| **@the-brain/plugin-auto-wiki** | Weekly static wiki from learned knowledge |
-| **@the-brain/trainer-local-mlx** | Local LoRA training on Apple Silicon |
+| **@the-brain-dev/core** | Types, hooks, plugin manager, database layer |
+| **@the-brain-dev/plugin-graph-memory** | Instant memory layer with relation graphs |
+| **@the-brain-dev/plugin-spm-curator** | Surprise-gated prediction error filtering |
+| **@the-brain-dev/plugin-harvester-cursor** | Cursor IDE log reader |
+| **@the-brain-dev/plugin-harvester-claude** | Claude Code log reader |
+| **@the-brain-dev/plugin-harvester-hermes** | Hermes Agent log reader |
+| **@the-brain-dev/plugin-harvester-gemini** | Gemini CLI log reader |
+| **@the-brain-dev/plugin-harvester-lm-eval** | Benchmark result harvester |
+| **@the-brain-dev/plugin-identity-anchor** | Stable self-vector across retrains |
+| **@the-brain-dev/plugin-auto-wiki** | Weekly static wiki from learned knowledge |
+| **@the-brain-dev/trainer-local-mlx** | Local LoRA training on Apple Silicon |
 
 ## 🔌 Building Your Own Plugin
 
 ```typescript
-import { definePlugin, HookEvent } from '@the-brain/core';
+import { definePlugin, HookEvent } from '@the-brain-dev/core';
 
 export default definePlugin({
   name: 'my-custom-memory',

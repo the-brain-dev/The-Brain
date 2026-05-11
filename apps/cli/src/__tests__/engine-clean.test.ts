@@ -99,14 +99,14 @@ describe("DaemonEngine", () => {
   });
 
   test("registerHandlers processes HARVESTER_NEW_DATA correctly", async () => {
-    const { HookEvent, MemoryLayer, createHookSystem, BrainDB } = await import("@the-brain/core");
+    const { createHookSystem, BrainDB } = await import("@the-brain-dev/core");
     const { join } = await import("node:path");
     const hooks = createHookSystem();
     const dbPath = join(TEST_HOME, ".the-brain", "engine-handler-test.db");
 
     // Mock engine with a real DB
     const db = new BrainDB(dbPath);
-    const { PluginManager, LayerRouter } = await import("@the-brain/core");
+    const { PluginManager, LayerRouter } = await import("@the-brain-dev/core");
     const pm = new PluginManager(hooks);
     const lr = new LayerRouter();
 

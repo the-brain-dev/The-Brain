@@ -1,11 +1,11 @@
 /**
- * Tests for @the-brain/mcp-server — Protocol compliance and tool behavior.
+ * Tests for @the-brain-dev/mcp-server — Protocol compliance and tool behavior.
  */
 import { describe, test, expect, mock, afterEach } from "bun:test";
 import { McpServer } from "../server";
 import type { McpServerContext } from "../server";
 import { registerAllTools } from "../tools/index";
-import type { BrainDB, StorageBackend, SchedulerPlugin, TheBrainConfig, MemoryLayer, Memory, ProjectContext, GraphNodeRecord } from "@the-brain/core";
+import type { BrainDB, StorageBackend, SchedulerPlugin, TheBrainConfig, MemoryLayer, Memory, ProjectContext, GraphNodeRecord } from "@the-brain-dev/core";
 import { registerAllResources } from "../resources/index";
 
 // ── Helpers ────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 /**
- * @the-brain/mcp-server — MCP (Model Context Protocol) 2024-11-05
+ * @the-brain-dev/mcp-server — MCP (Model Context Protocol) 2024-11-05
  *
  * Lightweight JSON-RPC 2.0 server exposing the-brain as an MCP backend.
  * Supports stdio transport for Claude Desktop, Cursor, Zed, and other
@@ -9,9 +9,9 @@
  */
 
 import type { Readable, Writable } from "node:stream";
-import type { BrainDB } from "@the-brain/core";
-import type { StorageBackend, SchedulerPlugin } from "@the-brain/core";
-import type { TheBrainConfig, MemoryLayer, ProjectContext, GraphNodeRecord, Memory } from "@the-brain/core";
+import type { BrainDB } from "@the-brain-dev/core";
+import type { StorageBackend, SchedulerPlugin } from "@the-brain-dev/core";
+import type { TheBrainConfig, MemoryLayer, ProjectContext, GraphNodeRecord, Memory } from "@the-brain-dev/core";
 
 // ── MCP Protocol Types ──────────────────────────────────────────
 

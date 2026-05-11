@@ -1,5 +1,5 @@
 /**
- * @the-brain/plugin-identity-anchor
+ * @the-brain-dev/plugin-identity-anchor
  * Deep Layer Helper — maintains a stable "Self-Vector" across retrains
  * to prevent catastrophic forgetting of the agent's core persona.
  *
@@ -10,8 +10,8 @@
  *   4. Detects drift between new training data and the self-vector
  *   5. Provides identity fragments to trainers for boosted inclusion
  */
-import { definePlugin, HookEvent, MemoryLayer } from "@the-brain/core";
-import type { Memory, InteractionContext, ConsolidationContext, MemoryFragment } from "@the-brain/core";
+import { definePlugin, HookEvent, MemoryLayer } from "@the-brain-dev/core";
+import type { Memory, InteractionContext, ConsolidationContext, MemoryFragment } from "@the-brain-dev/core";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
@@ -20,7 +20,7 @@ import type {
   RegressionPrediction,
   SurpriseAssessment,
   HarnessEditMetadata,
-} from "@the-brain/core";
+} from "@the-brain-dev/core";
 
 interface IdentityAnchorConfig {
   /** Minimum surprise score to consider an identity-relevant fragment */
@@ -330,7 +330,7 @@ export function createIdentityAnchorPlugin(
   // ── Plugin definition ───────────────────────────────────────
 
   const plugin = definePlugin({
-    name: "@the-brain/plugin-identity-anchor",
+    name: "@the-brain-dev/plugin-identity-anchor",
     version: "0.2.0",
     description:
       "Maintains a stable Self-Vector across retrains to prevent catastrophic forgetting of core persona. Includes persistence, drift detection, and training boost.",

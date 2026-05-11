@@ -11,7 +11,7 @@ export function createIntervalScheduler(): SchedulerPlugin {
   let counter = 0;
 
   return {
-    name: "@the-brain/scheduler-interval",
+    name: "@the-brain-dev/scheduler-interval",
 
     schedule(name: string, intervalMs: number, task: () => Promise<void>): SchedulerHandle {
       const id = `sched-${++counter}`;

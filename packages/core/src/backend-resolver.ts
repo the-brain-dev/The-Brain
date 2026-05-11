@@ -8,7 +8,7 @@
  *   - OutputPlugin:      export function createOutput(opts?: any): OutputPlugin
  *
  * Module paths can be:
- *   - npm package:  "@the-brain/storage-postgres"
+ *   - npm package:  "@the-brain-dev/storage-postgres"
  *   - local path:   "./my-custom-cleaner.ts"
  *   - file path:    "/Users/me/extensions/my-scheduler.ts"
  */

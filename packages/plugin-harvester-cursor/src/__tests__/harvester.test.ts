@@ -1,8 +1,8 @@
 /**
- * Tests for @the-brain/plugin-harvester-cursor — Data Harvester
+ * Tests for @the-brain-dev/plugin-harvester-cursor — Data Harvester
  */
 import { describe, test, expect, mock, afterEach } from "bun:test";
-import { HookEvent } from "@the-brain/core";
+import { HookEvent } from "@the-brain-dev/core";
 
 // Import the default export (it's a definePlugin call)
 // We need to handle the dynamic import
@@ -30,16 +30,16 @@ describe("createCursorHarvester", () => {
   });
 });
 
-describe("@the-brain/plugin-identity-anchor", () => {
+describe("@the-brain-dev/plugin-identity-anchor", () => {
   test("createIdentityAnchorPlugin returns plugin definition", async () => {
-    const { createIdentityAnchorPlugin } = await import("@the-brain/plugin-identity-anchor");
+    const { createIdentityAnchorPlugin } = await import("@the-brain-dev/plugin-identity-anchor");
     const plugin = createIdentityAnchorPlugin();
-    expect(plugin.name).toBe("@the-brain/plugin-identity-anchor");
+    expect(plugin.name).toBe("@the-brain-dev/plugin-identity-anchor");
     expect(typeof plugin.setup).toBe("function");
   });
 
   test("setup registers selection and deep hooks", async () => {
-    const { createIdentityAnchorPlugin } = await import("@the-brain/plugin-identity-anchor");
+    const { createIdentityAnchorPlugin } = await import("@the-brain-dev/plugin-identity-anchor");
     const plugin = createIdentityAnchorPlugin();
     const registered: string[] = [];
     const hooks = {
@@ -54,33 +54,33 @@ describe("@the-brain/plugin-identity-anchor", () => {
   });
 
   test("accepts custom config", async () => {
-    const { createIdentityAnchorPlugin } = await import("@the-brain/plugin-identity-anchor");
+    const { createIdentityAnchorPlugin } = await import("@the-brain-dev/plugin-identity-anchor");
     const plugin = createIdentityAnchorPlugin({ minIdentityScore: 0.8, maxAnchorFragments: 20 });
     expect(plugin.name).toBeDefined();
     expect(typeof plugin.teardown).toBe("function");
   });
 
   test("teardown clears state", async () => {
-    const { createIdentityAnchorPlugin } = await import("@the-brain/plugin-identity-anchor");
+    const { createIdentityAnchorPlugin } = await import("@the-brain-dev/plugin-identity-anchor");
     const plugin = createIdentityAnchorPlugin();
     expect(() => plugin.teardown!()).not.toThrow();
   });
 });
 
-describe("@the-brain/plugin-auto-wiki", () => {
+describe("@the-brain-dev/plugin-auto-wiki", () => {
   test("createAutoWikiPlugin returns plugin definition", async () => {
-    const { BrainDB } = await import("@the-brain/core");
+    const { BrainDB } = await import("@the-brain-dev/core");
     const db = new BrainDB(":memory:");
-    const { createAutoWikiPlugin } = await import("@the-brain/plugin-auto-wiki");
+    const { createAutoWikiPlugin } = await import("@the-brain-dev/plugin-auto-wiki");
     const plugin = createAutoWikiPlugin(db);
-    expect(plugin.name).toBe("@the-brain/plugin-auto-wiki");
+    expect(plugin.name).toBe("@the-brain-dev/plugin-auto-wiki");
     db.close();
   });
 
   test("setup registers consolidation hook", async () => {
-    const { BrainDB } = await import("@the-brain/core");
+    const { BrainDB } = await import("@the-brain-dev/core");
     const db = new BrainDB(":memory:");
-    const { createAutoWikiPlugin } = await import("@the-brain/plugin-auto-wiki");
+    const { createAutoWikiPlugin } = await import("@the-brain-dev/plugin-auto-wiki");
     const plugin = createAutoWikiPlugin(db);
     const registered: string[] = [];
     const hooks = {
@@ -95,9 +95,9 @@ describe("@the-brain/plugin-auto-wiki", () => {
   });
 
   test("accepts custom output directory", async () => {
-    const { BrainDB } = await import("@the-brain/core");
+    const { BrainDB } = await import("@the-brain-dev/core");
     const db = new BrainDB(":memory:");
-    const { createAutoWikiPlugin } = await import("@the-brain/plugin-auto-wiki");
+    const { createAutoWikiPlugin } = await import("@the-brain-dev/plugin-auto-wiki");
     const plugin = createAutoWikiPlugin(db, { outputDir: "/tmp/test-wiki", title: "Test Wiki" });
     expect(plugin.name).toBeDefined();
     db.close();

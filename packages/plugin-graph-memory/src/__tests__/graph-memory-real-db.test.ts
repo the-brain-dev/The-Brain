@@ -27,7 +27,7 @@ describe("Graph Memory — real SQLite integration", () => {
   beforeAll(async () => {
     await mkdir(join(TEST_DIR, ".the-brain"), { recursive: true });
 
-    const core = await import("@the-brain/core");
+    const core = await import("@the-brain-dev/core");
     BrainDB = core.BrainDB;
     MemoryLayer = core.MemoryLayer;
     HookEvent = core.HookEvent;
@@ -36,7 +36,7 @@ describe("Graph Memory — real SQLite integration", () => {
 
     db = new BrainDB(join(TEST_DIR, ".the-brain", "brain.db"));
 
-    const graphMod = await import("@the-brain/plugin-graph-memory");
+    const graphMod = await import("@the-brain-dev/plugin-graph-memory");
     createGraphMemoryPlugin = graphMod.createGraphMemoryPlugin;
 
     graphPlugin = createGraphMemoryPlugin(db, {

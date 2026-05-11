@@ -1,5 +1,5 @@
 /**
- * @the-brain/storage-libsql — Remote LibSQL / Turso Storage Backend
+ * @the-brain-dev/storage-libsql — Remote LibSQL / Turso Storage Backend
  *
  * Implements the StorageBackend interface using @libsql/client for
  * SQLite-compatible remote storage over HTTP or WebSocket.
@@ -10,7 +10,7 @@
  *
  * Usage in config.json:
  *   "backends": {
- *     "storage": "@the-brain/storage-libsql"
+ *     "storage": "@the-brain-dev/storage-libsql"
  *   }
  *
  * Environment variables:
@@ -22,9 +22,9 @@ import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 import { eq, desc, and, gte, lte, like, or } from "drizzle-orm";
-import type { StorageBackend } from "@the-brain/core";
-import { MemoryLayer } from "@the-brain/core";
-import type { Memory, GraphNodeRecord, Session } from "@the-brain/core";
+import type { StorageBackend } from "@the-brain-dev/core";
+import { MemoryLayer } from "@the-brain-dev/core";
+import type { Memory, GraphNodeRecord, Session } from "@the-brain-dev/core";
 
 // ── Drizzle Schema (mirrors BrainDB tables) ──────
 

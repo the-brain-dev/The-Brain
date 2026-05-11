@@ -1,5 +1,5 @@
 /**
- * @the-brain/plugin-auto-wiki — v2.0.0
+ * @the-brain-dev/plugin-auto-wiki — v2.0.0
  *
  * Karpathy-style LLM Wiki generator for the-brain.
  * Inspired by:
@@ -14,8 +14,8 @@
  *   5. Append to log.md
  *   6. Lint for orphans & stale pages
  */
-import { definePlugin, HookEvent, MemoryLayer } from "@the-brain/core";
-import type { BrainDB, Memory, GraphNodeRecord, OutputPlugin, OutputGenerateContext, OutputResult } from "@the-brain/core";
+import { definePlugin, HookEvent } from "@the-brain-dev/core";
+import type { BrainDB, Memory, GraphNodeRecord, OutputPlugin, OutputGenerateContext, OutputResult } from "@the-brain-dev/core";
 import { mkdir, writeFile, readFile, access } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { existsSync } from "node:fs";
@@ -702,7 +702,7 @@ export function createAutoWikiPlugin(
   // ── Plugin Definition ───────────────────────────────────────
 
   const plugin = definePlugin({
-    name: "@the-brain/plugin-auto-wiki",
+    name: "@the-brain-dev/plugin-auto-wiki",
     version: "2.0.0",
     description:
       "Karpathy-style LLM Wiki — raw dumps, entity pages from graph nodes, weekly summaries, registry, backlinks, and lint",
@@ -715,7 +715,7 @@ export function createAutoWikiPlugin(
           await hooks.callHook("wiki:generated", { filepath, filename });
         } catch (err) {
           await hooks.callHook("plugin:error", {
-            name: "@the-brain/plugin-auto-wiki",
+            name: "@the-brain-dev/plugin-auto-wiki",
             error: err instanceof Error ? err.message : String(err),
           });
         }
@@ -735,7 +735,7 @@ export function createAutoWikiPlugin(
     /** Implement OutputPlugin interface */
     asOutputPlugin(): OutputPlugin {
       return {
-        name: "@the-brain/plugin-auto-wiki",
+        name: "@the-brain-dev/plugin-auto-wiki",
         async generate(ctx: OutputGenerateContext): Promise<OutputResult> {
           const { filepath, filename } = await generateWiki();
           return {

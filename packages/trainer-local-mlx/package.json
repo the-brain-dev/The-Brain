@@ -1,11 +1,15 @@
 {
-  "name": "@the-brain/trainer-local-mlx",
+  "name": "@the-brain-dev/trainer-local-mlx",
   "version": "0.1.0",
-  "description": "Local MLX LoRA trainer for Apple Silicon — privacy-first, zero-cost fine-tuning",
+  "description": "Local MLX LoRA trainer for Apple Silicon \u2014 privacy-first, zero-cost fine-tuning",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
-    "@the-brain/core": "workspace:*"
-  }
+    "@the-brain-dev/core": "workspace:*"
+  },
+  "license": "MIT",
+  "files": [
+    "src"
+  ]
 }

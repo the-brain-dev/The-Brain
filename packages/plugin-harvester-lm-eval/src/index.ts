@@ -1,5 +1,5 @@
 /**
- * @the-brain/plugin-harvester-lm-eval
+ * @the-brain-dev/plugin-harvester-lm-eval
  *
  * Data harvester that polls a configurable directory for lm-evaluation-harness
  * JSON result files and feeds benchmark results into the the-brain pipeline.
@@ -24,8 +24,8 @@ import type {
   Interaction,
   InteractionContext,
   PluginHooks,
-} from "@the-brain/core";
-import { HookEvent, MemoryLayer, definePlugin } from "@the-brain/core";
+} from "@the-brain-dev/core";
+import { HookEvent, MemoryLayer, definePlugin } from "@the-brain-dev/core";
 import {
   parseEvalResults,
   summarizeRun,
@@ -171,7 +171,7 @@ function buildInteraction(
 // ── Plugin ───────────────────────────────────────────────────────
 
 export default definePlugin({
-  name: "@the-brain/plugin-harvester-lm-eval",
+  name: "@the-brain-dev/plugin-harvester-lm-eval",
   version: "0.1.0",
   description:
     "Harvests lm-evaluation-harness benchmark results — feeds eval data into the-brain memory pipeline",

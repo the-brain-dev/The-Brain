@@ -1,5 +1,5 @@
 /**
- * Tests for @the-brain/plugin-harvester-hermes
+ * Tests for @the-brain-dev/plugin-harvester-hermes
  *
  * Tests the Hermes Agent harvester: SQLite parsing, state management,
  * deduplication, and interaction extraction.

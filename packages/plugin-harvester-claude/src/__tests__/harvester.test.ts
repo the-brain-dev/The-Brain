@@ -1,5 +1,5 @@
 /**
- * Tests for @the-brain/plugin-harvester-claude
+ * Tests for @the-brain-dev/plugin-harvester-claude
  *
  * Tests the Claude Code harvester: JSONL parsing, state management,
  * project detection, deduplication, and interaction extraction.
@@ -88,7 +88,7 @@ describe("Plugin Definition", () => {
   it("has expected shape", async () => {
     const mod = await import("../index");
     const plugin = mod.default || mod;
-    expect(plugin.name).toBe("@the-brain/plugin-harvester-claude");
+    expect(plugin.name).toBe("@the-brain-dev/plugin-harvester-claude");
     expect(typeof plugin.setup).toBe("function");
   });
 

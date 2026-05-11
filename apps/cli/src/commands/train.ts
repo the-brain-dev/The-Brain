@@ -8,9 +8,9 @@
  *   the-brain train --dry-run        Show what would be trained, don't execute
  */
 import { consola } from "consola";
-import { BrainDB, MemoryLayer, safeParseConfig } from "@the-brain/core";
-import type { MemoryFragment, ConsolidationContext, TheBrainConfig } from "@the-brain/core";
-import { createMlxTrainer } from "@the-brain/trainer-local-mlx";
+import { BrainDB, MemoryLayer, safeParseConfig } from "@the-brain-dev/core";
+import type { MemoryFragment, ConsolidationContext, TheBrainConfig } from "@the-brain-dev/core";
+import { createMlxTrainer } from "@the-brain-dev/trainer-local-mlx";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";

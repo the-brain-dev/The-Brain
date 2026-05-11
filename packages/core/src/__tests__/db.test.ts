@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
-import { BrainDB, MemoryLayer } from "@the-brain/core";
-import type { Session, Memory, GraphNodeRecord } from "@the-brain/core";
+import { BrainDB, MemoryLayer } from "@the-brain-dev/core";
+import type { Session, Memory, GraphNodeRecord } from "@the-brain-dev/core";
 
 // ── Helpers ─────────────────────────────────────────────────────
 

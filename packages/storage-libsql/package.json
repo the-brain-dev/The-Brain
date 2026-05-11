@@ -1,12 +1,16 @@
 {
-  "name": "@the-brain/storage-libsql",
+  "name": "@the-brain-dev/storage-libsql",
   "version": "0.1.0",
   "description": "Remote LibSQL/Turso storage backend for the-brain. SQLite-compatible over HTTP.",
   "type": "module",
   "main": "src/index.ts",
   "dependencies": {
     "@libsql/client": "^0.14.0",
-    "@the-brain/core": "workspace:*",
+    "@the-brain-dev/core": "workspace:*",
     "drizzle-orm": "^0.45.2"
-  }
+  },
+  "license": "MIT",
+  "files": [
+    "src"
+  ]
 }

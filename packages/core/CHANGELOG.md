@@ -1,4 +1,4 @@
-# Changelog — @the-brain/core
+# Changelog — @the-brain-dev/core
 
 ## [Unreleased]
 

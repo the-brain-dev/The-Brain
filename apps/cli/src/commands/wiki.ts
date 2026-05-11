@@ -10,8 +10,8 @@ import { consola } from "consola";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import type { TheBrainConfig } from "@the-brain/core";
-import { safeParseConfig } from "@the-brain/core";
+import type { TheBrainConfig } from "@the-brain-dev/core";
+import { safeParseConfig } from "@the-brain-dev/core";
 
 const CONFIG_PATH = join(process.env.HOME || "~", ".the-brain", "config.json");
 
@@ -223,8 +223,8 @@ function renderMarkdownToHTML(md: string, baseDir: string): string {
 
 async function generateWikiFromBrain(options: { project?: string; global?: boolean }) {
   const consola = (await import("consola")).consola;
-  const { BrainDB } = await import("@the-brain/core");
-  const { createAutoWikiPlugin } = await import("@the-brain/plugin-auto-wiki");
+  const { BrainDB } = await import("@the-brain-dev/core");
+  const { createAutoWikiPlugin } = await import("@the-brain-dev/plugin-auto-wiki");
 
   const DB_PATH = join(process.env.HOME || "~", ".the-brain", "global", "brain.db");
 

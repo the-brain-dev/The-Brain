@@ -4,8 +4,8 @@
  */
 import { writeFile, unlink, readFile } from "node:fs/promises";
 import { consola } from "consola";
-import { HookEvent, MemoryLayer, ProjectManager } from "@the-brain/core";
-import type { BrainDB, ConsolidationContext } from "@the-brain/core";
+import { HookEvent, MemoryLayer, ProjectManager } from "@the-brain-dev/core";
+import type { BrainDB, ConsolidationContext } from "@the-brain-dev/core";
 import { initDaemon, getConfigDir, getPidFile, getConfigPath } from "./engine";
 import type { DaemonConfig, DaemonEngine } from "./engine";
 import { startAPIServer, type APIState } from "./api-server";

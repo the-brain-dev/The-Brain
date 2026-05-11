@@ -9,12 +9,12 @@
  *   --global     Target global brain
  */
 import { consola } from "consola";
-import { BrainDB, LayerRouter, MemoryLayer, HookEvent, safeParseConfig } from "@the-brain/core";
-import type { ConsolidationContext, MemoryFragment, Memory, InteractionContext } from "@the-brain/core";
+import { BrainDB, MemoryLayer, safeParseConfig } from "@the-brain-dev/core";
+import type { ConsolidationContext, MemoryFragment, Memory, InteractionContext } from "@the-brain-dev/core";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import type { TheBrainConfig } from "@the-brain/core";
+import type { TheBrainConfig } from "@the-brain-dev/core";
 
 const CONFIG_PATH = join(process.env.HOME || "~", ".the-brain", "config.json");
 const DEFAULT_DB_PATH = join(process.env.HOME || "~", ".the-brain", "brain.db");
@@ -160,7 +160,7 @@ async function reprocessMemoriesWithSPM(db: BrainDB) {
     return;
   }
 
-  const { createSpmCurator } = await import("@the-brain/plugin-spm-curator");
+  const { createSpmCurator } = await import("@the-brain-dev/plugin-spm-curator");
   const spm = createSpmCurator({ threshold: 0.3 }).instance;
 
   let processed = 0;

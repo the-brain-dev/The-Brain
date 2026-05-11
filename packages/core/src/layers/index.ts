@@ -13,7 +13,7 @@ import { MemoryLayer } from "../types";
 // ── Instant Layer Interface ─────────────────────────────────────
 /**
  * Instant Layer (Working Memory) — injects context before each prompt.
- * Plugins implementing this: @the-brain/plugin-graph-memory, any Vector DB RAG.
+ * Plugins implementing this: @the-brain-dev/plugin-graph-memory, any Vector DB RAG.
  */
 export interface InstantLayerPlugin {
   readonly layer: MemoryLayer.INSTANT;
@@ -25,7 +25,7 @@ export interface InstantLayerPlugin {
 /**
  * Selection Layer (Gatekeeper) — evaluates interactions and decides
  * what gets promoted to Deep Layer.
- * Plugins implementing this: @the-brain/plugin-spm-curator, LLM-as-judge.
+ * Plugins implementing this: @the-brain-dev/plugin-spm-curator, LLM-as-judge.
  */
 export interface SelectionLayerPlugin {
   readonly layer: MemoryLayer.SELECTION;
@@ -38,7 +38,7 @@ export interface SelectionLayerPlugin {
 // ── Deep Layer Interface ────────────────────────────────────────
 /**
  * Deep Layer (Long-Term) — consolidates knowledge permanently.
- * Plugins: @the-brain/trainer-local-mlx, dense Vector DB, auto-wiki.
+ * Plugins: @the-brain-dev/trainer-local-mlx, dense Vector DB, auto-wiki.
  */
 export interface DeepLayerPlugin {
   readonly layer: MemoryLayer.DEEP;
@@ -71,7 +71,7 @@ export interface HarvesterPlugin {
  * clean, context-worthy summaries. Replaces the hardcoded
  * content-cleaner.ts module.
  *
- * Default: @the-brain/content-cleaner-default (Claude XML / progress)
+ * Default: @the-brain-dev/content-cleaner-default (Claude XML / progress)
  * Swap: domain-specific cleaner (legal, medical, academic), LLM-based.
  */
 export interface ContentCleanerPlugin {
@@ -97,8 +97,8 @@ export interface CleanedContent {
  * Storage Backend — abstracts database operations behind a
  * common interface. Replaces the hardcoded SQLite/BrainDB.
  *
- * Default: @the-brain/storage-sqlite (Drizzle + bun:sqlite)
- * Swap: Postgres (@the-brain/storage-pg), LibSQL, Vector DB.
+ * Default: @the-brain-dev/storage-sqlite (Drizzle + bun:sqlite)
+ * Swap: Postgres (@the-brain-dev/storage-pg), LibSQL, Vector DB.
  */
 export interface StorageBackend {
   /** Initialize tables/schema */
@@ -137,8 +137,8 @@ export interface StorageBackend {
  * Scheduler — manages timed/recurring tasks. Replaces the hardcoded
  * setInterval in daemon.ts.
  *
- * Default: @the-brain/scheduler-interval (simple setInterval)
- * Swap: cron-based (@the-brain/scheduler-croner), distributed (BullMQ).
+ * Default: @the-brain-dev/scheduler-interval (simple setInterval)
+ * Swap: cron-based (@the-brain-dev/scheduler-croner), distributed (BullMQ).
  */
 export interface SchedulerPlugin {
   readonly name: string;
@@ -165,9 +165,9 @@ export interface SchedulerHandle {
  * exportable format. Generalizes the auto-wiki plugin to support
  * any output target.
  *
- * Default: @the-brain/plugin-auto-wiki (Markdown wiki + registry)
- * Swap: @the-brain/output-notion, @the-brain/output-json-export,
- *       @the-brain/output-obsidian, @the-brain/output-slack-digest.
+ * Default: @the-brain-dev/plugin-auto-wiki (Markdown wiki + registry)
+ * Swap: @the-brain-dev/output-notion, @the-brain-dev/output-json-export,
+ *       @the-brain-dev/output-obsidian, @the-brain-dev/output-slack-digest.
  */
 export interface OutputPlugin {
   readonly name: string;

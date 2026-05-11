@@ -3,8 +3,8 @@
  * Multi-project aware: loads config.json, creates ProjectManager,
  * routes data to active project or global brain.
  */
-import { BrainDB, PluginManager, createHookSystem, LayerRouter, HookEvent, MemoryLayer, ProjectManager, resolveBackends, ExtensionLoader, safeParseConfig } from "@the-brain/core";
-import type { PromptContext, InteractionContext, ConsolidationContext, TheBrainConfig, ContentCleanerPlugin, StorageBackend, SchedulerPlugin, OutputPlugin, BackendConfig } from "@the-brain/core";
+import { BrainDB, PluginManager, createHookSystem, LayerRouter, HookEvent, MemoryLayer, ProjectManager, resolveBackends, ExtensionLoader, safeParseConfig } from "@the-brain-dev/core";
+import type { PromptContext, InteractionContext, ConsolidationContext, TheBrainConfig, ContentCleanerPlugin, StorageBackend, SchedulerPlugin, OutputPlugin, BackendConfig } from "@the-brain-dev/core";
 import { consola } from "consola";
 import { join } from "node:path";
 import { mkdir, writeFile, readFile, unlink } from "node:fs/promises";
@@ -89,34 +89,34 @@ async function loadConfig(): Promise<TheBrainConfig> {
 // ── Plugin loading ─────────────────────────────────────────────
 
 async function loadPlugins(hooks: ReturnType<typeof createHookSystem>, db: BrainDB) {
-  const graphMemoryMod = await import("@the-brain/plugin-graph-memory");
+  const graphMemoryMod = await import("@the-brain-dev/plugin-graph-memory");
   const graphMemory = graphMemoryMod.createGraphMemoryPlugin(db);
 
-  const spmMod = await import("@the-brain/plugin-spm-curator");
+  const spmMod = await import("@the-brain-dev/plugin-spm-curator");
   const spmCurator = spmMod.createSpmCurator();
 
-  const curatorMod = await import("@the-brain/plugin-data-curator");
+  const curatorMod = await import("@the-brain-dev/plugin-data-curator");
   const dataCurator = curatorMod.createDataCurator();
 
-  const cursorMod = await import("@the-brain/plugin-harvester-cursor");
+  const cursorMod = await import("@the-brain-dev/plugin-harvester-cursor");
   const cursorHarvester = cursorMod.default ?? cursorMod;
 
-  const claudeMod = await import("@the-brain/plugin-harvester-claude");
+  const claudeMod = await import("@the-brain-dev/plugin-harvester-claude");
   const claudeHarvester = claudeMod.default ?? claudeMod;
 
-  const identityMod = await import("@the-brain/plugin-identity-anchor");
+  const identityMod = await import("@the-brain-dev/plugin-identity-anchor");
   const identityAnchor = identityMod.createIdentityAnchorPlugin();
 
-  const wikiMod = await import("@the-brain/plugin-auto-wiki");
+  const wikiMod = await import("@the-brain-dev/plugin-auto-wiki");
   const autoWiki = wikiMod.createAutoWikiPlugin(db);
 
-  const mlxMod = await import("@the-brain/trainer-local-mlx");
+  const mlxMod = await import("@the-brain-dev/trainer-local-mlx");
   const mlxTrainer = mlxMod.createMlxTrainer();
 
-  const hermesMod = await import("@the-brain/plugin-harvester-hermes");
+  const hermesMod = await import("@the-brain-dev/plugin-harvester-hermes");
   const hermesHarvester = hermesMod.default ?? hermesMod;
 
-  const lmEvalMod = await import("@the-brain/plugin-harvester-lm-eval");
+  const lmEvalMod = await import("@the-brain-dev/plugin-harvester-lm-eval");
   const lmEvalHarvester = lmEvalMod.default ?? lmEvalMod;
 
   return { graphMemory, spmCurator, dataCurator, cursorHarvester, claudeHarvester, hermesHarvester, lmEvalHarvester, identityAnchor, autoWiki, mlxTrainer };

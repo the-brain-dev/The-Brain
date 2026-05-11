@@ -4,8 +4,8 @@
 import { consola } from "consola";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { TheBrainConfig } from "@the-brain/core";
-import { safeParseConfig } from "@the-brain/core";
+import type { TheBrainConfig } from "@the-brain-dev/core";
+import { safeParseConfig } from "@the-brain-dev/core";
 
 const CONFIG_DIR = join(process.env.HOME || "~", ".the-brain");
 const CONFIG_PATH = join(CONFIG_DIR, "config.json");

@@ -1,5 +1,5 @@
 /**
- * Tests for @the-brain/plugin-harvester-cursor — coverage boost.
+ * Tests for @the-brain-dev/plugin-harvester-cursor — coverage boost.
  *
  * Tests discoverWorkspaces, getCursorBasePath, plugin shape,
  * and workspace discovery with mock Cursor directory structures.

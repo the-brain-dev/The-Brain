@@ -1,5 +1,5 @@
 /**
- * @the-brain/plugin-harvester-hermes
+ * @the-brain-dev/plugin-harvester-hermes
  *
  * Polls Hermes Agent's SQLite state.db (~/.hermes/state.db),
  * pairs user→assistant messages into Interaction objects,
@@ -21,7 +21,7 @@ import {
   definePlugin,
   HookEvent,
   type PluginHooks,
-} from "@the-brain/core";
+} from "@the-brain-dev/core";
 
 // ── Types ──────────────────────────────────────────────────────────
 

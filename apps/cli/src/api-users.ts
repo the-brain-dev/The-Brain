@@ -8,8 +8,8 @@
  *   import { registerUserRoutes } from "./api-users";
  *   registerUserRoutes(server, authDB);
  */
-import type { AuthDB } from "@the-brain/core";
-import { UserRole } from "@the-brain/core";
+import type { AuthDB } from "@the-brain-dev/core";
+import { UserRole } from "@the-brain-dev/core";
 
 // ── Helpers ──────────────────────────────────────────────────────
 

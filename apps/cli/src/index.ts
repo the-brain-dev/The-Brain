@@ -31,7 +31,7 @@ import { mcpCommand } from "./commands/mcp";
 import { agentCommand } from "./commands/agent";
 import { docsCommand } from "./commands/docs";
 import { userCommand } from "./commands/user";
-import { getExtensionCommands } from "@the-brain/core";
+import { getExtensionCommands } from "@the-brain-dev/core";
 
 const cli = cac("the-brain");
 

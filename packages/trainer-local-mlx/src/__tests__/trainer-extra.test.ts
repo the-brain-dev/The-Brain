@@ -2,13 +2,13 @@
  * Tests for trainer-local-mlx — covering the plugin definition and hooks
  */
 import { describe, test, expect } from "bun:test";
-import { HookEvent } from "@the-brain/core";
+import { HookEvent } from "@the-brain-dev/core";
 
 describe("trainer-local-mlx", () => {
   test("createMlxTrainer returns a plugin definition", async () => {
     const { createMlxTrainer } = await import("../index");
     const plugin = await Promise.resolve(createMlxTrainer());
-    expect(plugin.name).toBe("@the-brain/trainer-local-mlx");
+    expect(plugin.name).toBe("@the-brain-dev/trainer-local-mlx");
     expect(plugin.version).toBeDefined();
     expect(plugin.description).toContain("MLX");
     expect(typeof plugin.setup).toBe("function");

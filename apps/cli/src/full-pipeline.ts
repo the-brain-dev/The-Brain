@@ -1,8 +1,8 @@
 // Full pipeline test: harvest, curate, MLX train
 // bun run apps/cli/src/full-pipeline.ts
-import { BrainDB, createHookSystem, PluginManager, HookEvent, MemoryLayer } from "@the-brain/core";
-import { createGraphMemoryPlugin } from "@the-brain/plugin-graph-memory";
-import { createSpmCurator } from "@the-brain/plugin-spm-curator";
+import { BrainDB, createHookSystem, PluginManager, HookEvent, MemoryLayer } from "@the-brain-dev/core";
+import { createGraphMemoryPlugin } from "@the-brain-dev/plugin-graph-memory";
+import { createSpmCurator } from "@the-brain-dev/plugin-spm-curator";
 import { existsSync, writeFileSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -49,15 +49,15 @@ async function main() {
   });
 
   // Load Claude Harvester
-  const claudeMod = await import("@the-brain/plugin-harvester-claude");
+  const claudeMod = await import("@the-brain-dev/plugin-harvester-claude");
   await pm.load(claudeMod.default || claudeMod);
 
   // Load Hermes Harvester
-  const hermesMod = await import("@the-brain/plugin-harvester-hermes");
+  const hermesMod = await import("@the-brain-dev/plugin-harvester-hermes");
   await pm.load(hermesMod.default || hermesMod);
 
   // Load lm-eval Harvester
-  const lmEvalMod = await import("@the-brain/plugin-harvester-lm-eval");
+  const lmEvalMod = await import("@the-brain-dev/plugin-harvester-lm-eval");
   await pm.load(lmEvalMod.default || lmEvalMod);
 
   // Harvest

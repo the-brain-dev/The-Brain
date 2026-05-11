@@ -4,7 +4,7 @@
  * Tests the ANSI-rendered components without needing a terminal.
  */
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { BrainDB } from "@the-brain/core";
+import { BrainDB } from "@the-brain-dev/core";
 import { join } from "node:path";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

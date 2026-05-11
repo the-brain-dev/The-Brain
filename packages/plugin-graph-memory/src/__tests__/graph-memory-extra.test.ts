@@ -1,10 +1,10 @@
 /**
- * Additional tests for @the-brain/plugin-graph-memory — boosting coverage
+ * Additional tests for @the-brain-dev/plugin-graph-memory — boosting coverage
  */
 import { describe, test, expect, mock } from "bun:test";
 import { createGraphMemoryPlugin } from "../index";
-import { HookEvent } from "@the-brain/core";
-import type { GraphNodeRecord } from "@the-brain/core";
+import { HookEvent } from "@the-brain-dev/core";
+import type { GraphNodeRecord } from "@the-brain-dev/core";
 
 describe("GraphMemory — correction detection patterns", () => {
   test("detects 'no, actually' correction and creates node", async () => {

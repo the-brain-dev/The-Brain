@@ -5,7 +5,7 @@
  * instruction/response pair suitable for fine-tuning.
  */
 
-import { generateText, type LLMBackend } from "@the-brain/core";
+import { generateText, type LLMBackend } from "@the-brain-dev/core";
 
 export interface RewrittenExample {
   instruction: string;

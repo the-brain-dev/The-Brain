@@ -1,5 +1,5 @@
 /**
- * @the-brain/plugin-data-curator
+ * @the-brain-dev/plugin-data-curator
  *
  * Quality-gated data curation pipeline for training data.
  * Full Option D: Heuristics → LLM Judge → LLM Rewriter.
@@ -19,7 +19,7 @@ import {
   type InteractionContext,
   type MemoryFragment,
   type LLMBackend,
-} from "@the-brain/core";
+} from "@the-brain-dev/core";
 import { evaluateHeuristics, type HeuristicReport } from "./heuristics";
 import { judgeInteraction, type QualityJudgment } from "./judge";
 import { rewriteInteraction, type RewrittenExample } from "./rewriter";
@@ -73,7 +73,7 @@ export function createDataCurator(configOverrides: Partial<DataCuratorConfig> = 
   const instance = new DataCuratorPlugin(config);
 
   const definition = definePlugin({
-    name: "@the-brain/plugin-data-curator",
+    name: "@the-brain-dev/plugin-data-curator",
     version: "0.1.0",
     description:
       "Quality-gated data curation — heuristics + LLM Judge + LLM Rewriter for training data",

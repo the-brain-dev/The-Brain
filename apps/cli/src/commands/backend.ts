@@ -3,14 +3,14 @@
  *
  * Usage:
  *   the-brain backend list
- *   the-brain backend set storage @the-brain/storage-postgres
+ *   the-brain backend set storage @the-brain-dev/storage-postgres
  *   the-brain backend set cleaner ./my-custom-cleaner.ts
  *   the-brain backend unset storage
  */
 import { join } from "node:path";
 import { readFile, writeFile, access } from "node:fs/promises";
-import type { TheBrainConfig } from "@the-brain/core";
-import { safeParseConfig } from "@the-brain/core";
+import type { TheBrainConfig } from "@the-brain-dev/core";
+import { safeParseConfig } from "@the-brain-dev/core";
 
 const CONFIG_PATH = join(process.env.HOME || "~", ".the-brain", "config.json");
 const VALID_SLOTS = ["storage", "cleaner", "scheduler"] as const;
