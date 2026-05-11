@@ -1,0 +1,9 @@
+{
+  "cycle": 2,
+  "harness": "add-caching",
+  "description": "Add middleware caching layer. Prediction: +15% latency improvement, no accuracy impact.",
+  "edit_id": "edit-cache-01",
+  "edit_component": "middleware",
+  "prediction": "no accuracy impact expected",
+  "result_file": "cycle-02-caching-regression.json"
+}

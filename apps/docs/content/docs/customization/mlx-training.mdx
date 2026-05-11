@@ -1,0 +1,150 @@
+---
+title: MLX Training
+description: Local LoRA fine-tuning on Apple Silicon — how adapters work, Llama + Ollama example
+---
+
+the-brain's Deep Layer uses Apple MLX for zero-cost, fully private LoRA training.
+
+> **⚠️ LoRA adapters are permanently bound to their base model.** An adapter trained on `mlx-community/Llama-3.2-1B-Instruct-4bit` only works with that exact model — same architecture, same tokenizer. It's not a standalone model, it's a set of weights that *bias* one specific model toward your style. If you switch base models, you need to retrain. Think of it like a tailored suit — it only fits one person.
+
+## Concrete Example: Llama 3.2 + Ollama
+
+Here's a full workflow using Meta's Llama 3.2 1B as the base model:
+
+### 1. Configure the base model
+
+```json
+{
+  "mlx": {
+    "enabled": true,
+    "modelPath": "mlx-community/Llama-3.2-1B-Instruct-4bit",
+    "loraOutputDir": "~/.the-brain/lora-checkpoints",
+    "schedule": "0 2 * * *"
+  }
+}
+```
+
+### 2. What happens
+
+- **During the day**: You work with Cursor, Claude Code, or any AI tool. the-brain harvests your interactions — corrections ("no, use `useCallback`"), preferences ("arrow functions"), patterns ("always Jest + Testing Library").
+- **At 2 AM**: SPM has promoted the surprising, high-value memories to the DEEP layer. MLX training runs — ~200 iterations on your consolidated memories — producing `adapter.safetensors`.
+- **Result**: A 2-5 MB adapter file that, when loaded with Llama 3.2, makes the model consistently follow your patterns. It will default to arrow functions, suggest Jest over Vitest, and remember your preferred architecture style.
+
+### 3. Loading the adapter in Ollama
+
+```bash
+# Pull the base model
+ollama pull llama3.2:1b
+
+# Create a custom model with the adapter
+ollama create the-brain-model --from llama3.2:1b --adapter ~/.the-brain/lora-checkpoints/adapter.safetensors
+```
+
+Then point the-brain's LLM config at it:
+
+```json
+{
+  "llm": {
+    "default": "ollama-adapted",
+    "backends": {
+      "ollama-adapted": {
+        "provider": "ollama",
+        "baseUrl": "http://localhost:11434/v1",
+        "defaultModel": "the-brain-model"
+      }
+    }
+  }
+}
+```
+
+The model now behaves as if it's been working with you for months. Same Llama 3.2 — just biased toward your style.
+
+### 4. Loading in LM Studio
+
+1. Download `Llama-3.2-1B-Instruct` from LM Studio
+2. In model settings → "LoRA Adapter" → browse to `~/.the-brain/lora-checkpoints/adapter.safetensors`
+3. All subsequent generations use the adapted model
+
+### What changes in practice
+
+Before adapter:
+> "Write a React login form"
+> → Generates a generic form with `function LoginForm()`, uses `useState`, doesn't handle errors explicitly
+
+After adapter (3 weeks of corrections):
+> "Write a React login form"
+> → Uses arrow functions, `useCallback` for handlers, React Hook Form + Zod, explicit `try-catch` on submit, named exports
+
+The adapter learned that *you* write React a specific way — without you ever configuring it manually.
+
+## Prerequisites
+
+- macOS with Apple Silicon (M1/M2/M3/M4)
+- Python 3.11+ and `uv`
+- `uv run --with mlx-lm python3 -c "import mlx.core; print('MLX ready')"`
+
+## Configuration
+
+```json
+{
+  "mlx": {
+    "enabled": true,
+    "modelPath": "mlx-community/Llama-3.2-1B-Instruct-4bit",
+    "loraOutputDir": "~/.the-brain/lora-checkpoints",
+    "schedule": "0 2 * * *"
+  }
+}
+```
+
+## Training Flow
+
+1. **Day**: Harvest interactions → SPM evaluates → promote to DEEP
+2. **Night (2 AM)**: Load DEEP memories → filter noise → MLX LoRA training
+
+## Manual Training
+
+```bash
+the-brain train              # Train on DEEP memories
+the-brain train --dry-run    # Preview
+the-brain train --iterations 200
+
+# Switch base model (useful for 16GB Macs):
+THE_BRAIN_MLX_MODEL=mlx-community/Llama-3.2-1B-Instruct-4bit the-brain train --global
+
+# Add extra Python dependencies (semicolon-separated):
+THE_BRAIN_MLX_DEPS="mlx-audio" the-brain train --global
+```
+
+## Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `learningRate` | 1e-4 | Learning rate |
+| `loraRank` | 16 | LoRA rank |
+| `loraAlpha` | 32 | Scaling factor |
+| `batchSize` | 4 | Batch size |
+| `iterations` | 200 | Steps per run |
+| `minFragments` | 3 | Min memories to trigger |
+
+## Output
+
+```
+~/.the-brain/lora-checkpoints/
+├── adapter.safetensors    # LoRA weights (~2-5 MB)
+├── training_config.json   # Run metadata
+└── training_data.jsonl    # Input data
+```
+
+## Using the Adapter
+
+```bash
+# LM Studio: add adapter path in model settings
+
+# CLI inference
+uv run --with mlx-lm --with mlx-vlm python3 -c "
+from mlx_lm import load, generate
+model, tokenizer = load('mlx-community/Llama-3.2-1B-Instruct-4bit',
+                         adapter_path='~/.the-brain/lora-checkpoints')
+print(generate(model, tokenizer, prompt='Write a React component'))
+"
+```

@@ -1,0 +1,100 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": [
+      "ESNext"
+    ],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@the-brain/core": [
+        "./packages/core/src"
+      ],
+      "@the-brain/core/*": [
+        "./packages/core/src/*"
+      ],
+      "@the-brain/plugin-graph-memory": [
+        "./packages/plugin-graph-memory/src"
+      ],
+      "@the-brain/plugin-spm-curator": [
+        "./packages/plugin-spm-curator/src"
+      ],
+      "@the-brain/plugin-harvester-cursor": [
+        "./packages/plugin-harvester-cursor/src"
+      ],
+      "@the-brain/plugin-identity-anchor": [
+        "./packages/plugin-identity-anchor/src"
+      ],
+      "@the-brain/plugin-auto-wiki": [
+        "./packages/plugin-auto-wiki/src"
+      ],
+      "@the-brain/plugin-harvester-claude": [
+        "./packages/plugin-harvester-claude/src"
+      ],
+      "@the-brain/plugin-harvester-hermes": [
+        "./packages/plugin-harvester-hermes/src"
+      ],
+      "@the-brain/plugin-harvester-gemini": [
+        "./packages/plugin-harvester-gemini/src"
+      ],
+      "@the-brain/trainer-local-mlx": [
+        "./packages/trainer-local-mlx/src"
+      ],
+      "@the-brain/mcp-server": [
+        "./packages/mcp-server/src"
+      ],
+      "@the-brain/mcp-server/*": [
+        "./packages/mcp-server/src/*"
+      ],
+      "@the-brain/storage-libsql": [
+        "./packages/storage-libsql/src"
+      ],
+      "@the-brain/storage-libsql/*": [
+        "./packages/storage-libsql/src/*"
+      ],
+      "@the-brain/docs": [
+        "./apps/docs/src"
+      ],
+      "@the-brain/docs/*": [
+        "./apps/docs/src/*"
+      ],
+      "@the-brain/cli": [
+        "./apps/cli/src"
+      ],
+      "@the-brain/cli/*": [
+        "./apps/cli/src/*"
+      ],
+      "@the-brain/plugin-harvester-lm-eval": [
+        "./packages/plugin-harvester-lm-eval/src"
+      ],
+      "@the-brain/plugin-harvester-lm-eval/*": [
+        "./packages/plugin-harvester-lm-eval/src/*"
+      ],
+      "@the-brain/plugin-data-curator": [
+        "./packages/plugin-data-curator/src"
+      ],
+      "@the-brain/plugin-data-curator/*": [
+        "./packages/plugin-data-curator/src/*"
+      ]
+    }
+  },
+  "include": [
+    "packages/**/*.ts",
+    "apps/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

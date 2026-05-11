@@ -1,0 +1,39 @@
+---
+title: Project Structure
+description: Monorepo layout and package organization
+---
+
+```
+the-brain/
+├── apps/
+│   ├── cli/                    # CLI (cac-based, 18 commands)
+│   ├── docs/                   # Fumadocs documentation
+│   └── menu-bar/               # macOS menu bar (Swift)
+├── packages/
+│   ├── core/                   # Types, hooks, plugin manager, DB
+│   ├── plugin-graph-memory/    # ⚡ Instant Layer
+│   ├── plugin-spm-curator/     # ⚖️ Selection Layer
+│   ├── plugin-harvester-cursor/# Cursor IDE harvester
+│   ├── plugin-harvester-claude/# Claude Code harvester
+│   ├── plugin-harvester-hermes/# Hermes Agent harvester
+│   ├── plugin-harvester-gemini/# Gemini CLI harvester
+│   ├── plugin-harvester-lm-eval/# lm-eval harvester
+│   ├── plugin-identity-anchor/ # ⚓ Stable self-vector
+│   ├── plugin-auto-wiki/       # Weekly wiki output
+│   ├── trainer-local-mlx/      # Local MLX LoRA training
+│   ├── python-sidecar/         # Python MLX train script
+│   ├── mcp-server/             # MCP protocol implementation
+│   └── storage-libsql/         # Turso/LibSQL backend
+├── scripts/
+├── install.sh
+└── package.json
+```
+
+## Adding a Package
+
+1. Create `packages/<name>/` with `package.json`
+2. `src/index.ts` exporting `default definePlugin({...})`
+3. Tests in `src/__tests__/`
+4. `CHANGELOG.md`
+5. Register in `apps/cli/src/engine.ts` plugin loading
+6. Update docs in `apps/docs/content/docs/customization/`

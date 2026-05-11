@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE-BRAIN // 2049</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=VT323&amp;display=swap');
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: #050505;
+    font-family: 'VT323', 'Courier New', monospace;
+    overflow: hidden;
+  }
+
+  .crt-fullscreen {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: #060b08;
+    color: #39ff14;
+    text-shadow: 
+      0 0 6px #39ff14,
+      0 0 12px #39ff14,
+      0 0 24px #39ff14;
+    box-shadow: 
+      inset 0 0 180px rgba(57, 255, 20, 0.05),
+      0 0 80px rgba(0, 255, 245, 0.08);
+  }
+
+  .crt-fullscreen::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+      transparent,
+      transparent 3px,
+      rgba(57, 255, 20, 0.07) 3px,
+      rgba(57, 255, 20, 0.07) 4px
+    );
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .crt-fullscreen::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      rgba(57, 255, 20, 0.03),
+      transparent 18%,
+      transparent 82%,
+      rgba(0, 255, 245, 0.025)
+    );
+    pointer-events: none;
+    animation: crt-flicker 1.6s infinite alternate;
+    z-index: 3;
+  }
+
+  @keyframes crt-flicker {
+    0% { opacity: 0.92; }
+    10% { opacity: 1; }
+    20% { opacity: 0.95; }
+    100% { opacity: 1; }
+  }
+
+  .rain {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+      transparent,
+      transparent 6px,
+      rgba(0, 255, 245, 0.035) 7px,
+      rgba(0, 255, 245, 0.035) 8px
+    );
+    pointer-events: none;
+    z-index: 4;
+    animation: rain-fall 1.2s linear infinite;
+    pointer-events: none;
+  }
+
+  @keyframes rain-fall {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 800px; }
+  }
+
+  .terminal-text {
+    font-size: 1.45rem;
+    line-height: 1.15;
+    letter-spacing: 0.8px;
+  }
+
+  .section-header {
+    font-size: 1.1rem;
+    letter-spacing: 4px;
+    color: #39ff14;
+    opacity: 0.6;
+  }
+
+  .btn-blade {
+    font-family: 'VT323', monospace;
+    font-size: 1.45rem;
+    background: transparent;
+    border: 3px solid #39ff14;
+    color: #39ff14;
+    padding: 14px 42px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    transition: all 0.1s linear;
+  }
+
+  .btn-blade:hover {
+    background: #39ff14;
+    color: #050505;
+    box-shadow: 0 0 25px #39ff14,
+                inset 0 0 15px rgba(0, 0, 0, 0.4);
+    text-shadow: none;
+  }
+
+  .command-box {
+    font-family: 'VT323', monospace;
+    background: #00110a;
+    border: 3px solid #39ff14;
+    padding: 18px 28px;
+    font-size: 1.28rem;
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.25);
+    letter-spacing: 0.5px;
+    word-break: break-word;
+  }
+
+  .memory-count {
+    transition: all 0.3s ease;
+  }
+</style>
+</head>
+<body>
+
+  <!-- FULLSCREEN CRT -->
+  <div class="crt-fullscreen flex items-center justify-center relative">
+
+    <!-- Rain overlay -->
+    <div class="rain"></div>
+
+    <div class="max-w-[880px] w-full px-6 relative z-10">
+      
+      <!-- BOOT SEQUENCE -->
+      <div id="boot-sequence" class="mb-8 font-mono text-sm opacity-75 tracking-wider">
+        <div class="boot-line">THE-BRAIN 1.1 — BUILD 204912</div>
+        <div class="boot-line">INITIALIZING MEMORY CORE...</div>
+        <div class="boot-line">LOADING GRAPH LAYER...</div>
+        <div class="boot-line">SPM ENGINE ONLINE</div>
+      </div>
+
+      <!-- MAIN TITLE -->
+      <div class="mb-10">
+        <div class="font-bold text-7xl tracking-[-2px] mb-1">THE-BRAIN</div>
+        <div class="text-[#00fff5] text-2xl tracking-[6px] -mt-2">RECLAIM YOUR MIND</div>
+      </div>
+
+      <!-- ENCOURAGING COPY -->
+      <div class="mb-10 max-w-[620px]">
+        <div class="terminal-text text-2xl leading-snug mb-4">
+          In the rain of the city,<br>
+          your memories shouldn't belong<br>
+          to anyone else.
+        </div>
+
+        <div class="text-[#39ff14]/70 text-[1.35rem] leading-snug">
+          Local-first. Extension-only.<br>
+          Three-layer cognitive architecture<br>
+          that actually stays with you.
+        </div>
+      </div>
+
+      <!-- INSTALL COMMAND -->
+      <div class="mb-9">
+        <div class="section-header mb-2.5">BOOT COMMAND</div>
+        <div class="command-box font-mono">
+          <span class="text-[#39ff14]/60">$</span> curl -fsSL https://raw.githubusercontent.com/the-brain-dev/The-Brain/main/install.sh | bash
+        </div>
+        <div class="text-xs text-[#39ff14]/40 mt-1.5 ml-1">Requires: Bun + uv (macOS / Linux)</div>
+      </div>
+
+      <!-- CTA BUTTONS -->
+      <div class="flex flex-wrap gap-x-4 gap-y-3 mb-12">
+        <a href="/docs" class="btn-blade no-underline inline-block">
+          &gt; ENTER THE ARCHIVE
+        </a>
+        <a href="https://github.com/the-brain-dev/The-Brain" target="_blank" class="btn-blade no-underline inline-block">
+          &gt; SOURCE CODE
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Bottom status bar -->
+    <div class="absolute bottom-7 left-0 right-0 px-8 flex justify-between text-xs font-mono text-[#39ff14]/50 z-10">
+      <div class="flex gap-5">
+        <div>DAEMON: <span class="text-emerald-400">ONLINE</span></div>
+        <div>MEMORIES: <span id="memory-count" class="memory-count text-[#00fff5]">87</span></div>
+      </div>
+      <div class="text-[#00fff5]">MODEL: Qwen3.6-35B-A3B</div>
+    </div>
+
+  </div>
+
+<script>
+  // Boot sequence
+  function startBootSequence() {
+    const lines = document.querySelectorAll('#boot-sequence .boot-line');
+    lines.forEach((line, i) => {
+      setTimeout(() => {
+        line.style.transition = 'opacity 0.35s ease';
+        line.style.opacity = '1';
+      }, (i + 1) * 580);
+    });
+  }
+
+  // Dynamic memory count
+  function updateMemoryCount() {
+    const countEl = document.getElementById('memory-count');
+    if (!countEl) return;
+
+    let current = Math.floor(Math.random() * 90) + 40;   // start with random 40-130
+    countEl.textContent = current;
+
+    // Change every 7-12 seconds by small random amount
+    setInterval(() => {
+      const change = Math.floor(Math.random() * 4) + 1; // +1 to +4
+      const direction = Math.random() > 0.5 ? 1 : -1;
+      current = Math.max(12, Math.min(180, current + change * direction));
+      countEl.textContent = current;
+    }, Math.random() * 5500 + 7200);
+  }
+
+  window.onload = () => {
+    startBootSequence();
+    updateMemoryCount();
+  };
+</script>
+</body>
+</html>

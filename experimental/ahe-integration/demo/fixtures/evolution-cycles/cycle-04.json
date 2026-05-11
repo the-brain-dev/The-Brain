@@ -1,0 +1,9 @@
+{
+  "cycle": 4,
+  "harness": "refactor-tools",
+  "description": "Refactor tool registry — structural change. Prediction: no accuracy impact expected.",
+  "edit_id": "edit-tool-registry-03",
+  "edit_component": "tools",
+  "prediction": "no accuracy impact expected",
+  "result_file": "cycle-04-tool-regression.json"
+}

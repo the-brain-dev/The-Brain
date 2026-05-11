@@ -1,0 +1,26 @@
+{
+  "results": {
+    "mmlu": {
+      "acc,none": 0.892,
+      "acc_stderr,none": 0.012,
+      "acc_norm,none": 0.901,
+      "acc_norm_stderr,none": 0.011
+    },
+    "gsm8k": {
+      "exact_match,strict-match": 0.945,
+      "exact_match_stderr,strict-match": 0.008
+    }
+  },
+  "config": {
+    "model": "hf-causal",
+    "model_args": "pretrained=claude-sonnet-4",
+    "batch_size": 8,
+    "num_fewshot": 5
+  },
+  "task_hashes": {
+    "mmlu": "hash-mmlu-cycle1",
+    "gsm8k": "hash-gsm8k-cycle1"
+  },
+  "total_evaluation_time_seconds": 245.67,
+  "model_name": "claude-sonnet-4"
+}

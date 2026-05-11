@@ -1,0 +1,107 @@
+---
+title: MCP Tools
+description: Model Context Protocol tools reference
+---
+
+the-brain exposes these tools via MCP for use with Claude Desktop, Cursor, Zed, and other MCP clients.
+
+## Memory Tools
+
+| Tool | Description |
+|------|-------------|
+| `memory_search` | Search memories by query |
+| `memory_store` | Store new memory |
+| `memory_context` | Get context for a prompt |
+| `memory_list` | List paginated memories |
+
+## Graph Tools
+
+| Tool | Description |
+|------|-------------|
+| `graph_search` | Search graph nodes |
+| `graph_add_node` | Create graph node |
+| `graph_connect` | Connect two nodes |
+
+## Brain Management
+
+| Tool | Description |
+|------|-------------|
+| `brain_stats` | Get comprehensive statistics |
+| `brain_config get` | Read a config value |
+| `brain_config set` | Set a config value |
+| `identity_get` | Get identity anchor data |
+| `identity_update` | Update identity traits |
+
+## Project Tools
+
+| Tool | Description |
+|------|-------------|
+| `project_list` | List known projects |
+| `project_switch` | Switch active project |
+
+## Training Tools
+
+| Tool | Description |
+|------|-------------|
+| `training_status` | Check training state |
+| `training_consolidate` | Run consolidation |
+
+## Pipeline Tools
+
+| Tool | Description |
+|------|-------------|
+| `pipeline_ingest` | Ingest raw content |
+| `pipeline_status` | Pipeline queue status |
+
+## Scheduler Tools
+
+| Tool | Description |
+|------|-------------|
+| `scheduler_list` | List scheduled tasks |
+| `scheduler_schedule` | Create task |
+| `scheduler_cancel` | Remove task |
+
+## Meta-Harness Tools
+
+Tools for integrating the-brain as a cognitive layer in meta-harness systems (AHE, Meta-Harness). Enables predictive regression detection across harness evolution cycles.
+
+| Tool | Description |
+|------|-------------|
+| `brain_predict_regression` | Predict expected benchmark score ranges before harness edits. Returns per-metric confidence intervals. |
+| `brain_record_run` | Record benchmark results after evaluation. Updates fingerprints and returns surprise assessment per metric. |
+| `brain_get_fingerprint` | Get per-model per-benchmark performance fingerprints — running mean, std, sample count. |
+| `brain_get_regression_graph` | Get causal graph of harness edits → benchmark regressions from graph memory. |
+| `brain_get_surprise_feed` | Get anomalous results for HITL review — results where observed score deviated >2σ from baseline. |
+| `brain_compare_agents` | Compare multiple models on a benchmark — rankings with per-metric differences. |
+
+### Meta-Harness Integration Flow
+
+```
+AHE Proposer generates edit
+  → brain_predict_regression("claude", "mmlu")
+  ← "acc: 0.8900–0.9100 (85% confidence)"
+
+AHE Evaluator runs benchmarks
+  → brain_record_run("claude", "mmlu", {acc: 0.85}, "edit-247")
+  ← "⚠️ acc: 0.8500 vs expected 0.8900–0.9100, z=3.20"
+
+HITL Reviewer checks anomalies
+  → brain_get_surprise_feed(min_surprise: 0.7)
+  ← "claude/mmlu/acc: z=3.20, claude/gsm8k: z=2.85"
+
+Next cycle proposer looks for patterns
+  → brain_get_regression_graph(model: "claude")
+  ← "Edit #89 (tool registry) also regressed Claude on MMLU"
+```
+
+## Resources
+
+| URI | Description |
+|-----|-------------|
+| `brain://stats` | Brain statistics |
+| `brain://memories/recent` | Recent memories |
+| `brain://graph/high-weight` | High-weight nodes |
+| `brain://identity` | Identity anchor |
+| `brain://projects` | Project list |
+| `brain://training/status` | Training state |
+| `brain://config` | Current config |

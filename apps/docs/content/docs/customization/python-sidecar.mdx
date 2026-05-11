@@ -1,0 +1,136 @@
+---
+title: MLX Python Sidecar
+description: Python MLX sidecar scripts for LoRA training and file conversion
+---
+
+the-brain uses a Python sidecar for two tasks that require Python libraries: LoRA training via Apple MLX and file conversion via MarkItDown.
+
+## Scripts
+
+| Script | Purpose | Called By |
+|--------|---------|-----------|
+| `train.py` | Main LoRA fine-tuning loop | `trainer-local-mlx` plugin (nightly cron) |
+| `run_lora.py` | Standalone trainer for manual runs | CLI (development) |
+| `convert_file.py` | Converts files to markdown via MarkItDown | Daemon (`/api/ingest-file`) |
+| `generate_lora_data.py` | Sample training data generator | Development / testing |
+| `gen_fragments.py` | Hardcoded fragment set for testing | Development |
+
+Location: `packages/python-sidecar/`
+
+## Prerequisites
+
+```bash
+# MLX dependencies (Apple Silicon only)
+uv run --with mlx-lm --with mlx-vlm python3 -c "import mlx.core; print('MLX ready')"
+
+# File conversion (optional — for drag-and-drop ingest)
+uv run --with markitdown python3 -c "from markitdown import MarkItDown; print('MarkItDown ready')"
+```
+
+## Training (`train.py`)
+
+**Usage:**
+
+```bash
+uv run --with mlx-lm --with mlx-vlm python3 packages/python-sidecar/train.py \
+  --model-path mlx-community/Llama-3.2-1B-Instruct-4bit \
+  --lora-output-dir ~/.the-brain/lora-checkpoints \
+  --learning-rate 1e-4 \
+  --lora-rank 16 \
+  --iterations 200 \
+  --data '[{"text": "Example training sample"}]'
+```
+
+**Model override via env vars:**
+
+```bash
+# Switch base model without editing config
+THE_BRAIN_MLX_MODEL=mlx-community/Llama-3.2-1B-Instruct-4bit \
+  uv run --with mlx-lm --with mlx-vlm python3 packages/python-sidecar/train.py [...]
+
+# Add extra dependencies (e.g., audio support)
+THE_BRAIN_MLX_DEPS="mlx-audio" \
+  uv run --with mlx-lm --with mlx-vlm python3 packages/python-sidecar/train.py [...]
+```
+
+Both env vars are read by `trainer-local-mlx` and `python-sidecar/run_lora.py`.
+
+**Parameters:**
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--model-path` | required | MLX-compatible model (HF hub or local) |
+| `--lora-output-dir` | required | Output directory for adapter weights |
+| `--learning-rate` | `1e-4` | Learning rate |
+| `--lora-rank` | `16` | LoRA rank |
+| `--lora-alpha` | `32` | Scaling factor |
+| `--batch-size` | `4` | Batch size |
+| `--iterations` | `200` | Training steps |
+| `--max-seq-length` | `1024` | Max sequence length |
+
+**Training flow:**
+
+1. Memory fragments are loaded from the daemon's active database
+2. Text content is extracted and deduplicated
+3. Instruction-response pairs are formatted for training
+4. MLX-LM LoRA adapter is trained
+5. Weights are saved as `adapter.safetensors`
+
+**Output:**
+
+```
+~/.the-brain/lora-checkpoints/
+├── adapter.safetensors    # LoRA weights (~2-5 MB)
+├── training_config.json   # Run metadata (model, params, timestamp)
+└── training_data.jsonl    # Input data (for reproducibility)
+```
+
+## File Conversion (`convert_file.py`)
+
+**Usage:**
+
+```bash
+$ uv run python3 packages/python-sidecar/convert_file.py meeting-notes.pdf
+→ Markdown content printed to stdout
+
+$ uv run python3 packages/python-sidecar/convert_file.py --json report.docx
+→ {"success": true, "markdown": "...", "meta": {"file_name": "report.docx", ...}}
+```
+
+**Supported formats:**
+
+| Category | Formats |
+|----------|---------|
+| Documents | PDF, DOCX, PPTX, XLSX, HTML, EPUB, RTF |
+| Images | JPEG, PNG, GIF, WebP, BMP, SVG (via OCR) |
+| Code | CSV, JSON, XML, YAML, TOML, INI |
+| Archives | ZIP, TAR, GZ (first file extracted) |
+
+Powered by [MarkItDown](https://github.com/microsoft/markitdown) (Microsoft).
+
+## Troubleshooting
+
+**MLX not available:**
+```bash
+# Check Apple Silicon
+python3 -c "import platform; print(platform.processor())"
+# Should be "arm"
+
+# Install MLX
+uv pip install mlx-lm
+
+# Or set NO_MLX=1 to skip MLX entirely
+```
+
+**MarkItDown import error:**
+```bash
+uv pip install markitdown[all]
+
+# For OCR support (images with text):
+uv pip install markitdown[all] pillow pytesseract
+```
+
+**Training data is empty:**
+- No DEEP memories have been promoted yet
+- Run `the-brain consolidate --now` first, then `the-brain train`
+- Minimum 3 fragments required (configurable via `mlx.minFragments`)

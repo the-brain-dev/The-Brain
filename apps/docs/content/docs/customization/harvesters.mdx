@@ -1,0 +1,227 @@
+---
+title: Harvesters
+description: Adding support for new AI tools and data sources — formats, deduplication, state management
+---
+
+Harvesters read AI tool data and emit interactions. Each follows a standard pattern with format-specific parsing.
+
+## Cursor Harvester
+
+Reads from `~/.cursor/` and `~/Library/Application Support/Cursor/`.
+
+### Supported Source Formats
+
+| Source | Format | Source ID | Details |
+|--------|--------|-----------|---------|
+| `state.vscdb` | SQLite `ItemTable` | `cursor` | Keys: `aiChat.%`, `chat.%`, `composer.%` |
+| `state.vscdb` | SQLite `cursorDiskKV` | `cursor` | Keys: `chat::%`, `composer::%`, `conversation::%` |
+| `logs/` | JSONL / JSON / .log | `cursor` | Incremental read via file offsets |
+| `agent-transcripts/` | JSONL | `cursor` (id: `cursor-ag-...`) | Cursor v3+ |
+| `ai-tracking/ai-code-tracking.db` | SQLite | `cursor` (id: `cursor-tr-...`) | `conversation_summaries` + `ai_code_hashes` |
+
+### Deduplication
+
+- SHA-256 of `messages + request + response + sessionId + timestamp`, truncated to 16 hex
+- Two-level: file offsets + `processedIds` Set (capped at 10,000)
+
+### State File
+
+`~/.the-brain/cursor-harvester-state.json`
+
+```json
+{
+  "lastPollTimestamp": 1714800000000,
+  "processedIds": ["cursora1b2c3d4e5f6g7h8"],
+  "fileOffsets": { "/path/to/log.jsonl": 12345 }
+}
+```
+
+## Claude Harvester
+
+Reads from `~/.claude/projects/` and `~/.claude/history.jsonl`.
+
+### Supported Source Formats
+
+| Source | Format | Source ID | Details |
+|--------|--------|-----------|---------|
+| `projects/<slug>/` | JSONL sessions + .json sub-dirs | `claude-code` | Full user→assistant pairs |
+| `history.jsonl` | JSONL | `claude-code-history` | Prompt-only, supplementary |
+
+**Filters**: Excludes `isMeta` and `isSidechain` messages.
+
+### Deduplication
+
+- SHA-256 of `prompt + "\n" + response`, truncated to 16 hex
+- Three-level: file offsets + `processedIds` Set + in-batch `seen` Set
+
+### State File
+
+`~/.the-brain/claude-harvester-state.json`
+
+## Hermes Harvester
+
+Reads from `~/.hermes/state.db` (Hermes Agent's SQLite database).
+
+### Supported Source Format
+
+| Source | Format | Source ID | Details |
+|--------|--------|-----------|---------|
+| `state.db` | SQLite (read-only) | `hermes-agent` | `sessions` + `messages` tables, user↔assistant pairs |
+
+**Filters**: Excludes `session_meta` and `tool` role messages.
+
+### Deduplication
+
+- SHA-256 of `prompt + "\\n" + response`, truncated to 16 hex
+- Incremental via `lastId` offset (messages table AUTOINCREMENT id)
+
+### State File
+
+`~/.the-brain/hermes-state.json`
+
+```json
+{
+  "lastId": 42,
+  "lastAt": 1714800000000,
+  "sessions": ["session-1"],
+  "totalIx": 15,
+  "totalSes": 3
+}
+```
+
+## Gemini CLI Harvester
+
+Reads from `~/.gemini/tmp/` (Gemini CLI's local conversation logs).
+
+### Supported Source Formats
+
+| Source | Format | Source ID | Details |
+|--------|--------|-----------|---------|
+| `~/.gemini/tmp/<project>/logs.json` | JSON array | `gemini-cli` | Flat message array: `{sessionId, messageId, type, message, timestamp}` |
+| `~/.gemini/tmp/<project>/chats/session-*.json` | JSON | `gemini-cli-chat` | Full chat sessions with block-based content |
+| `~/.gemini/projects.json` | JSON | — | Maps project paths to slugs (discovery only) |
+
+**Filters**: Excludes `"info"` type messages. Pairs consecutive `user → gemini` messages.
+
+**Content blocks**: In chat sessions, content is an array of blocks (`text`, `tool_use`, `thinking`). Text and thinking blocks are joined; tool_use blocks are stripped with a fallback `[tool use]` marker.
+
+### Deduplication
+
+- SHA-256 of `prompt + "\x00" + response`, truncated to 16 hex
+- Per-session message ID dedup via `processedMessageIds` Set
+
+### State File
+
+`~/.the-brain/gemini-harvester-state.json`
+
+```json
+{
+  "lastPollTimestamp": 1714800000000,
+  "processedIds": ["gemini-a1b2c3d4e5f6g7h8"],
+  "projectSlugs": ["my-project"],
+  "fileOffsets": { "/path/to/logs.json": 12345 }
+}
+```
+
+## lm-eval Harvester
+
+Reads lm-evaluation-harness JSON result files for benchmark tracking and regression fingerprinting. Enables the-brain to serve as a cognitive layer for meta-harness systems.
+
+### Supported Source Format
+
+| Source | Format | Source ID | Details |
+|--------|--------|-----------|---------|
+| `~/.the-brain/eval-results/*.json` | JSON | `lm-eval` | Standard lm-eval output with `results`, `config`, `task_hashes` |
+
+**Watch directory**: Configurable via `LM_EVAL_WATCH_DIR` env var. Auto-created on first daemon start.
+
+### Deduplication
+
+- Run-level: FNV-1a hash of `model + task_hashes`
+- Processed hashes persisted in state file (capped at 1000)
+
+### Fingerprinting
+
+- **Per-model per-benchmark per-metric** running statistics via Welford's online algorithm
+- **Anomaly detection**: >2σ deviation from baseline (>3 samples required)
+- **Confidence**: grows with sample count, caps at 0.95
+- **Drift detection**: sliding window Z-score against historical baseline
+
+### State File
+
+`~/.the-brain/lm-eval-harvester-state.json`
+
+```json
+{
+  "lastPollTimestamp": 1714800000000,
+  "processedHashes": ["a1b2c3d4"],
+  "fingerprints": {
+    "claude-sonnet-4::mmlu::acc": {
+      "modelName": "claude-sonnet-4",
+      "benchmark": "mmlu",
+      "metric": "acc",
+      "mean": 0.892,
+      "std": 0.012,
+      "n": 15,
+      "values": [0.88, 0.89, 0.90, ...]
+    }
+  }
+}
+```
+
+### Integration with Identity Anchor
+
+The lm-eval harvester feeds into the identity anchor's `HarnessFingerprintStore`. On each `ON_INTERACTION` event, fingerprints are auto-updated. Custom hooks (`identity-anchor:predictRegression`, `identity-anchor:assessSurprise`) expose predictions to meta-harness consumers via MCP.
+
+## Creating a Custom Harvester
+
+### Required Behaviors
+
+1. **Deduplication**: SHA-256 hash of prompt + response
+2. **State persistence**: Save `lastOffset`/`processedIds` to `~/.the-brain/<name>-state.json`
+3. **Project detection**: Match `workDir` against registered contexts
+4. **Incremental reading**: Track file offsets — never re-read
+
+### Template
+
+```typescript
+import { definePlugin, HookEvent } from "@the-brain/core";
+import { createHash } from "node:crypto";
+
+const STATE_PATH = join(process.env.HOME!, ".the-brain",
+  "my-harvester-state.json");
+
+export default definePlugin({
+  name: "harvester-my-ide",
+  async setup(hooks) {
+    let state = { lastOffset: 0, processedIds: [] as string[] };
+
+    hooks.hook(HookEvent.HARVESTER_POLL, async () => {
+      const lines = await readNewLines(state.lastOffset);
+
+      for (const line of lines) {
+        const hash = createHash("sha256")
+          .update(line.prompt + "\x00" + line.response)
+          .digest("hex");
+
+        if (state.processedIds.includes(hash)) continue;
+        state.processedIds.push(hash);
+        if (state.processedIds.length > 10000)
+          state.processedIds = state.processedIds.slice(-5000);
+
+        await hooks.callHook(HookEvent.HARVESTER_NEW_DATA, {
+          interaction: {
+            id: hash.slice(0, 16),
+            timestamp: line.timestamp,
+            prompt: line.prompt,
+            response: line.response,
+            source: "my-ide",
+          },
+          fragments: [],
+          promoteToDeep() {},
+        });
+      }
+    });
+  },
+});
+```

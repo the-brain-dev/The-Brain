@@ -1,0 +1,125 @@
+---
+title: Memory Layers
+description: How INSTANT, SELECTION, and DEEP layers work — internals and configuration
+---
+
+the-brain organizes memory across three layers, each processing information at different timescales.
+
+## ⚡ Layer 1: INSTANT (Working Memory)
+
+**Plugin**: `plugin-graph-memory`
+
+Intercepts prompts and injects real-time biases before they reach the LLM.
+
+### Detection Pipeline
+
+The `AFTER_RESPONSE` handler runs a 6-stage pipeline using **language-agnostic structural heuristics** (no English regex):
+
+1. **Correction detection** — structural heuristics with dynamic confidence weights
+   - Short prompt + long explanatory response (ratio > 2.5:1) → likely correction
+   - Very short prompt (< 50 chars) + substantial response (> 100 chars)
+   - High token novelty (response introduces new vocabulary not in prompt)
+2. **Preference detection** — cross-interaction cluster tracking
+   - Short declarative statements (15-150 chars) → preference candidates
+   - Token overlap with previously detected preferences → reinforced
+   - Repeated vocabulary across 2+ interactions → emerging preference
+3. **Pattern detection** — keywords appearing ≥3 times in recent interactions
+4. **Concept node creation** — new keywords not matching any existing node
+5. **Node interconnection** — bidirectional links between all new nodes
+6. **Weight decay** — periodic decay for >24h unmatched nodes
+
+### Quality Filters
+
+- **Unicode-aware tokenizer** — splits on non-letter boundaries, works for all scripts
+  (Latin, Cyrillic, CJK, Arabic, etc.) — no English stop words needed
+- **Weight decay**: every ~10 interactions, nodes >24h old lose 2% weight (floor: 0.05)
+- **Weight boost**: matched nodes gain +0.05 per use
+- **Correction weights**: 0.5-0.85 based on structural heuristic confidence
+- **Preference weight**: always 0.7
+- **Concept weight**: always 0.4
+
+### Context Injection
+
+`BEFORE_PROMPT` extracts keywords → searches graph nodes → filters by `minWeight` →
+boosts matched nodes → fetches connected nodes → injects formatted context.
+
+Edge cases: empty keywords → no injection. Connected nodes also respect `minWeight`.
+Metadata from BEFORE_PROMPT (`matchedNodeIds`, `promptKeywords`) flows to AFTER_RESPONSE.
+
+## ⚖️ Layer 2: SELECTION (The Gatekeeper)
+
+**Plugin**: `plugin-spm-curator` (surprise gate) + `plugin-data-curator` (quality gate)
+
+The Selection Layer has two gates that run in sequence:
+
+1. **Data Curator** (`plugin-data-curator`) — quality gate, runs first
+   - Rejects system noise, empty responses, off-topic content via heuristics
+   - Scores remaining interactions 1-10 via LLM Judge (local Ollama model)
+   - Only quality-passing interactions reach the surprise gate
+2. **SPM Curator** (`plugin-spm-curator`) — surprise gate, runs second
+   - Composite surprise score (TF-IDF or EMA-Gaussian)
+   - Promotes surprising interactions to Deep Memory
+
+### Dual-Mode Architecture
+
+1. **TF-IDF mode** (default, `useTfidf: true`): Wider spread, +93% better discrimination
+   - Builds vocabulary from production memories at daemon startup
+   - `initTfidfFromTexts(texts)` → `finalizeTfidf()` lifecycle
+   - Falls back to EMA-Gaussian before vocabulary is locked
+
+2. **EMA-Gaussian mode** (fallback): Running mean/variance per feature
+   - Uses 6 scalar features: promptLen, responseLen, totalLen, lexicalDiversity, hourOfDay, dayOfWeek
+
+### Composite Score Formula
+
+```
+composite = scalarWeight × scalarScore + embeddingWeight × embScore + noveltyWeight × noveltyScore
+```
+
+All sub-scores normalized to [0, 1]. Default weights: `scalar=0.35, embedding=0.40, novelty=0.25`.
+
+### Quality Features
+
+- **Duplicate detection**: djb2 hash of first 200 chars; Set of 5,000 recent hashes; duplicates get score 0
+- **N-gram novelty**: character n-grams (default n=4) compared against 50,000-cache FIFO
+- **Z-score clamping**: capped at [0, 5] to prevent outlier dominance
+- **TF-IDF seed**: `finalizeTfidf(seedTexts)` primes centroid to avoid all scores being 0.5 at startup
+
+### Runtime Introspection
+
+```typescript
+// Access via hook
+hooks.callHook("spm-curator:getInstance", (instance) => {
+  instance.setThreshold(0.5);   // Dynamic threshold
+  instance.getStats();          // gaussians, centroidDim, promoteRate, etc.
+});
+```
+
+## 🌌 Layer 3: DEEP (Long-Term)
+
+**Plugins**: `trainer-local-mlx` + `plugin-auto-wiki`
+
+Two complementary outputs from consolidated memories:
+
+| Plugin | What it does | Output |
+|--------|-------------|--------|
+| `trainer-local-mlx` | LoRA fine-tunes a base model on your patterns | `adapter.safetensors` (~2-5 MB) |
+| `plugin-auto-wiki` | Generates interlinked Markdown knowledge graph | `~/wiki/` (Karpathy-style wiki) |
+
+> **Important — LoRA adapters are model-bound.** Adapter trained on `mlx-community/Llama-3.2-1B-Instruct-4bit` only works with that exact base model. Not standalone.
+
+### How they work together
+
+After overnight consolidation (2 AM cron), two things happen in parallel:
+1. **MLX LoRA**: Promoted DEEP memories → training data → `adapter.safetensors`. Reloading this adapter in Ollama/LM Studio makes the model consistently follow your preferences.
+2. **Auto-Wiki**: Promoted DEEP memories → extracted concepts → interlinked `.md` pages with entity nodes, cross-references, and a searchable index.
+
+### Promotion Flow
+
+<Mermaid chart={`\ngraph TB\n    subgraph INSTANT["⚡ INSTANT — Graph Memory"]\n        A1["AFTER_RESPONSE handler"]\n    end\n\n    subgraph CURATOR["⚖️ Data Curator — Quality Gate"]\n        H["Heuristics Gate"]\n        J["LLM Judge"]\n        R["LLM Rewriter"]\n        H -->|"pass"| J\n        J -->|"score ≥ 6"| R\n    end\n\n    subgraph SPM["⚖️ SPM Curator — Surprise Gate"]\n        C1["Composite Surprise Score"]\n        C2["Score > Threshold?"]\n        C1 --> C2\n    end\n\n    subgraph DEEP["🌌 DEEP — Consolidation"]\n        D1["DEEP_CONSOLIDATE (2 AM cron)"]\n        D2["MLX LoRA Training"]\n        D3["Auto-Wiki Generation"]\n    end\n\n    A1 -->|"ON_INTERACTION"| H\n    R -->|"cleaned interaction"| C1\n    C2 -->|"yes — SELECTION_PROMOTE"| D1\n    C2 -->|"no"| X["Discarded"]\n    D1 --> D2\n    D1 --> D3\n\n    style INSTANT fill:#4a1942,stroke:#fb7185,color:#fff\n    style CURATOR fill:#1e3a5f,stroke:#60a5fa,color:#fff\n    style SPM fill:#3b1f3b,stroke:#c084fc,color:#fff\n    style DEEP fill:#2d1b4e,stroke:#a78bfa,color:#fff\n    style X fill:#3f1a1a,stroke:#ef4444,color:#fff\n`}/>
+
+## Layer Configuration
+
+All three layers are pluggable — swap built-in plugins with custom implementations.
+
+See [Plugin Contracts](/docs/customization/plugin-contracts) for the interfaces each layer plugin must implement.

@@ -1,0 +1,6 @@
+{
+  "title": "Start Here",
+  "root": false,
+  "pages": ["installation", "quickstart", "tutorial", "configuration", "updating"],
+  "defaultOpen": true
+}

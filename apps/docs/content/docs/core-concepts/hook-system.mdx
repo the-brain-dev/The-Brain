@@ -1,0 +1,88 @@
+---
+title: Hook System
+description: Event-driven plugin system powering the-brain's cognitive layers
+---
+
+All plugins communicate through hooks defined in `@the-brain/core`.
+
+## Core Hook Events
+
+17 lifecycle events defined in the `HookEvent` enum:
+
+| Hook | When | Consumer |
+|------|------|----------|
+| `HARVESTER_POLL` | Daemon polls AI data sources | Harvesters |
+| `HARVESTER_NEW_DATA` | New interaction found | All layers |
+| `BEFORE_PROMPT` | Before prompt reaches LLM | Graph Memory |
+| `AFTER_RESPONSE` | After LLM responds | SPM Curator |
+| `ON_INTERACTION` | Every interaction | SPM Curator, Identity Anchor |
+| `SELECTION_EVALUATE` | Evaluate for promotion | SPM Curator |
+| `SELECTION_PROMOTE` | Promote to deeper layer | SPM Curator → DEEP |
+| `DEEP_CONSOLIDATE` | Deep layer consolidation | MLX Trainer, Auto-Wiki |
+| `CONSOLIDATION_START` | Consolidation cycle begins | All layers |
+| `CONSOLIDATION_COMPLETE` | Consolidation cycle ends | Notifications |
+| `TRAINING_START` | MLX training begins | Identity Anchor |
+| `TRAINING_COMPLETE` | MLX training finishes | Notifications |
+| `TRAINING_ERROR` | MLX training fails | Error logging, notifications |
+| `DAEMON_START` | Daemon startup | All plugins |
+| `DAEMON_STOP` | Daemon shutdown | Cleanup |
+| `IDENTITY_SWITCH_USER` | User identity changes (team mode) | Identity Anchor |
+| `IDENTITY_DRIFT_DETECTED` | Coding style drift detected | Identity Anchor |
+
+## Registration
+
+```typescript
+import { definePlugin, HookEvent } from "@the-brain/core";
+
+export default definePlugin({
+  name: "my-plugin",
+  setup(hooks) {
+    hooks.hook(HookEvent.AFTER_RESPONSE, async (ctx) => {
+      // ctx.interaction, ctx.fragments, ctx.promoteToDeep()
+    });
+  },
+});
+```
+
+## Plugin-Defined Custom Hooks
+
+Since 2026-05-09, `HookEventName` accepts custom string event names in addition to the `HookEvent` enum. This allows plugins to define their own events without `as any` casts:
+
+```typescript
+// Plugins can register custom events:
+hooks.callHook("identity-anchor:switchUser", userId);
+hooks.callHook("wiki:generate", { topic: "memory-layers" });
+```
+
+**Known plugin-defined hooks:**
+
+| Hook | Plugin | Purpose |
+|------|--------|---------|
+| `identity-anchor:switchUser` | Identity Anchor | Switch active user in team mode |
+| `identity-anchor:predictRegression` | Identity Anchor | Predict benchmark scores before harness edits |
+| `identity-anchor:assessSurprise` | Identity Anchor | Compare observed vs predicted benchmark |
+| `identity-anchor:getFingerprints` | Identity Anchor | Dump all benchmark fingerprints |
+| `identity-anchor:detectDrift` | Identity Anchor | Detect systematic model degradation |
+| `identity-anchor:fingerprintSummary` | Identity Anchor | Human-readable fingerprint summary |
+| `wiki:generate` | Auto-Wiki | Trigger wiki generation |
+| `spm-curator:getInstance` | SPM Curator | Access SPM curator singleton |
+| `training:run` | MLX Trainer | Trigger training programmatically |
+
+## Execution
+
+- Handlers execute **serially** in registration order
+- Errors in one handler don't stop others
+- Powered by `hookable` — lightweight, async-safe
+
+## Layer Routing
+
+```typescript
+const router = new LayerRouter();
+router.registerInstant(graphMemory);    // ⚡ Layer 1
+router.registerSelection(spmCurator);   // ⚖️ Layer 2
+router.registerDeep(mlxTrainer);       // 🌌 Layer 3
+
+await router.runInstant(promptCtx);     // Inject context
+await router.runSelection(ctx);         // Evaluate + promote
+await router.runDeep(ctx);              // Train + wiki
+```

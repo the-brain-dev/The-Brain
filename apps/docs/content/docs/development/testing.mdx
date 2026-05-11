@@ -1,0 +1,108 @@
+---
+title: Testing
+description: Test conventions and practices for the-brain
+---
+
+## Test Runner
+
+```bash
+bun test                  # All tests
+bun test path/to/file     # Single file
+bun test --coverage        # With coverage
+bun test --watch           # Watch mode
+```
+
+## Conventions
+
+- Tests live in `src/__tests__/` alongside source files
+- `bun:test` API: `describe`, `test`, `expect`
+- Use `process.env.HOME` override for test isolation
+- Integration tests use real filesystem under temp dirs
+- No real API keys or paid tokens in tests
+- When fixing a bug, write a regression test first
+
+## Coverage Target
+
+>80% line coverage across all packages.
+
+```bash
+bun test --coverage                    # All
+bun test --coverage packages/core      # Core only
+bun test --coverage packages/plugin-*  # Plugins
+bun test --coverage apps/cli           # CLI
+```
+
+## Key Test Files
+
+| File | What It Tests |
+|------|---------------|
+| `packages/core/src/__tests__/` | BrainDB, hooks, plugins, layers |
+| `packages/plugin-spm-curator/src/__tests__/` | SPM evaluation, TF-IDF, promotion |
+| `packages/plugin-graph-memory/src/__tests__/` | Graph nodes, corrections, context |
+| `packages/plugin-harvester-hermes/src/__tests__/` | Hermes state.db parsing, session pairing, dedup |
+| `packages/plugin-harvester-gemini/src/__tests__/` | Gemini CLI logs.json parsing, project detection, dedup |
+| `apps/cli/src/__tests__/` | Pipeline E2E, daemon, commands |
+
+## Test Harness
+
+`TestHarness` provides an isolated test environment with in-memory DB, hooks, and plugins.
+
+```typescript
+import { TestHarness } from "@the-brain/core";
+
+const harness = new TestHarness({
+  projectName: "test-project",  // Optional: isolated project
+});
+
+await harness.start();
+
+// Inject interactions
+await harness.injectInteraction({
+  prompt: "Write a React component",
+  response: "Here is a component...",
+  source: "test",
+});
+
+// Inject multiple
+await harness.injectInteractions([
+  { prompt: "Fix auth", response: "Done", source: "test" },
+  { prompt: "Add tests", response: "Added", source: "test" },
+]);
+
+// Set memories directly
+await harness.setMemories([
+  { id: "m1", layer: MemoryLayer.DEEP, content: "...", timestamp: Date.now(), source: "test" },
+]);
+
+// Run SPM evaluation
+const result = await harness.runSpemEvaluation();
+
+// Run full consolidation pipeline
+await harness.runConsolidation();
+
+// Access DB + stats
+const stats = await harness.db.getStats();
+expect(stats.memories).toBe(3);
+
+await harness.stop();  // Cleans up temp files
+```
+
+### HarnessOptions
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `projectName` | random UUID | Isolated project name |
+| `disableMlx` | `true` | Skip MLX training calls |
+| `enableWiki` | `false` | Enable auto-wiki output |
+
+### HarnessState
+
+```typescript
+interface HarnessState {
+  db: BrainDB;
+  hooks: ReturnType<typeof createHookSystem>;
+  pluginManager: PluginManager;
+  projectName: string;
+  tempDir: string;
+}
+```

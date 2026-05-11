@@ -1,0 +1,9 @@
+{
+  "cycle": 5,
+  "harness": "rollback-tools",
+  "description": "Revert tool registry to cycle 3 state. Prediction: full accuracy recovery.",
+  "edit_id": "edit-rollback-04",
+  "edit_component": "tools",
+  "prediction": "full accuracy recovery",
+  "result_file": "cycle-05-rollback.json"
+}

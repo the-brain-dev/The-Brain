@@ -1,0 +1,6 @@
+{
+  "title": "Core Concepts",
+  "root": false,
+  "pages": ["hook-system", "memory-layers"],
+  "defaultOpen": true
+}

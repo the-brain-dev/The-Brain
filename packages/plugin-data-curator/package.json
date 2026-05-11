@@ -1,0 +1,11 @@
+{
+  "name": "@the-brain/plugin-data-curator",
+  "version": "0.1.0",
+  "description": "Quality-gated data curation — heuristics + LLM Judge + LLM Rewriter for training data",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@the-brain/core": "workspace:*"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "results": {
+    "mmlu": {
+      "acc,none": 0.895,
+      "acc_stderr,none": 0.010,
+      "acc_norm,none": 0.903,
+      "acc_norm_stderr,none": 0.009
+    },
+    "gsm8k": {
+      "exact_match,strict-match": 0.944,
+      "exact_match_stderr,strict-match": 0.007
+    }
+  },
+  "config": { "model_args": "pretrained=claude-sonnet-4", "num_fewshot": 5 },
+  "task_hashes": { "mmlu": "hash-mmlu-cycle3", "gsm8k": "hash-gsm8k-cycle3" },
+  "total_evaluation_time_seconds": 241.50,
+  "model_name": "claude-sonnet-4"
+}

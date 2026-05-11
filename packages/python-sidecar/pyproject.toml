@@ -1,0 +1,9 @@
+[project]
+name = "the-brain-mlx-sidecar"
+version = "0.1.0"
+description = "MLX LoRA training sidecar for the-brain"
+requires-python = ">=3.10"
+dependencies = [
+    "mlx-lm>=0.22.0",
+    "markitdown[all]>=0.1.0",
+]

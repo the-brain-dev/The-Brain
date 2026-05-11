@@ -1,0 +1,18 @@
+{
+  "results": {
+    "mmlu": {
+      "acc,none": 0.878,
+      "acc_stderr,none": 0.013,
+      "acc_norm,none": 0.889,
+      "acc_norm_stderr,none": 0.012
+    },
+    "gsm8k": {
+      "exact_match,strict-match": 0.938,
+      "exact_match_stderr,strict-match": 0.009
+    }
+  },
+  "config": { "model_args": "pretrained=claude-opus-4", "num_fewshot": 5 },
+  "task_hashes": { "mmlu": "hash-opus-mmlu", "gsm8k": "hash-opus-gsm8k" },
+  "total_evaluation_time_seconds": 310.42,
+  "model_name": "claude-opus-4"
+}

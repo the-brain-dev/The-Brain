@@ -1,0 +1,58 @@
+---
+title: Quickstart
+description: Your first the-brain session in 5 minutes
+---
+
+## 1. Start the Daemon
+
+```bash
+the-brain daemon start
+```
+
+Runs in the background, polling your AI tools every 30s.
+
+## 2. Work Normally
+
+Use Cursor, Claude Code, Claude chat, ChatGPT, or any AI tool. the-brain harvests interactions automatically.
+
+## 3. Check Your Brain
+
+```bash
+the-brain inspect --stats     # Memory counts, graph nodes
+the-brain inspect --recent    # Latest interactions
+the-brain inspect --graph     # High-weight graph nodes
+the-brain inspect --search "React hooks"  # Search memory
+```
+
+## 4. Force Consolidation
+
+```bash
+the-brain consolidate --now   # Promote to DEEP layer
+# First time? Use --reprocess to score all instant memories first:
+the-brain consolidate --now --global --reprocess
+the-brain train               # Run LoRA training
+```
+
+## 5. Context Injection
+
+```bash
+the-brain context --query "fix the auth bug" --markdown
+```
+
+Returns relevant memories and corrections to inject into your next LLM prompt.
+
+## 6. Dashboard
+
+```bash
+the-brain dashboard
+```
+
+Live TUI showing memory layers, graph weights, recent interactions.
+
+## 7. Project Contexts
+
+```bash
+the-brain init --project e-commerce
+the-brain switch-context --project e-commerce
+the-brain inspect --stats --global
+```

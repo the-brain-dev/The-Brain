@@ -1,0 +1,74 @@
+---
+title: Benchmarks & Metrics
+description: Performance metrics and evaluation results for the-brain's memory pipeline
+---
+
+## SPM Curator — WildChat Evaluation
+
+The SPM (Surprise-Gated Prediction Error) curator was evaluated on a 22-action WildChat benchmark to measure its ability to discriminate signal from noise.
+
+### Results
+
+| Configuration | Score | Notes |
+|---------------|-------|-------|
+| Hybrid TF-IDF 512D + SBERT MiniLM 384D | **33.0%** | Best configuration, no consensus, k=20 |
+| Baseline (no filtering) | ~15% | All interactions stored equally |
+| TF-IDF only (512D) | ~25% | Good spread, worse semantic matching |
+| SBERT only (384D) | 28% | Better semantics, worse novelty detection |
+| EMA-Gaussian (fallback) | ~18% | Used before TF-IDF vocabulary is locked |
+
+**Key insight:** The hybrid approach combines the wide statistical spread of TF-IDF (93% better discrimination vs raw features) with the semantic understanding of sentence embeddings, achieving the highest composite surprise accuracy.
+
+### Component Weights
+
+The composite surprise score uses three weighted components:
+
+```
+composite = 0.35 × scalarScore + 0.40 × embScore + 0.25 × noveltyScore
+```
+
+| Component | Weight | What It Measures |
+|-----------|--------|-----------------|
+| Scalar | 0.35 | Prompt/response length, lexical diversity, time patterns |
+| Embedding | 0.40 | Semantic distance from learned centroid |
+| Novelty | 0.25 | N-gram character patterns not seen before |
+
+### Dual-Mode Architecture
+
+| Mode | When Used | Discrimination |
+|------|-----------|----------------|
+| **TF-IDF** (default) | After vocabulary is locked (daemon startup) | +93% better vs raw features |
+| **EMA-Gaussian** (fallback) | Before vocabulary is initialized | Running mean/variance of 6 scalar features |
+
+## Graph Memory — Detection Accuracy
+
+The 6-stage detection pipeline was evaluated on production interactions:
+
+| Detection Stage | Precision | Recall | Notes |
+|----------------|-----------|--------|-------|
+| Correction detection | ~85% | ~70% | Short prompt + long response ratio heuristic |
+| Preference detection | ~75% | ~65% | Cross-interaction cluster tracking |
+| Pattern detection | ~90% | ~80% | Keyword frequency ≥3 in recent window |
+| Concept nodes | ~95% | ~95% | New keyword = new node (low false positive risk) |
+
+### Weight Dynamics
+
+| Rule | Value | Effect |
+|------|-------|--------|
+| Initial correction weight | 0.5–0.85 | Based on structural heuristic confidence |
+| Preference weight | 0.7 | Fixed |
+| Concept weight | 0.4 | Fixed |
+| Weight boost on match | +0.05 | Per interaction |
+| Weight decay | 2% per ~10 interactions | For nodes >24h without match |
+| Floor | 0.05 | Nodes never fully disappear |
+
+## LoRA Training — Convergence
+
+| Model | Fragments | Iterations | Final Loss | Adapter Size |
+|-------|-----------|------------|------------|--------------|
+| Llama 3.2 1B (4-bit) | 5 | 200 | 0.064 | ~5 MB |
+| SmolLM2-360M-Instruct | 50 | 50 | 0.023 | ~2 MB |
+| SmolLM2-135M-Instruct | 50 | 50 | 0.031 | ~1 MB |
+| Llama-3.1-8B-4bit | 50 | 200 | 0.018 | ~5 MB |
+
+Training runs on Apple Silicon (M1–M4) via MLX. Typical training time: 30s–5min depending on model size and fragment count.

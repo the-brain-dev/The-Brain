@@ -1,0 +1,217 @@
+---
+title: Configuration Schema
+description: JSON schema reference for ~/.the-brain/config.json
+---
+
+## Top-Level Fields
+
+```json
+{
+  "plugins": [],
+  "daemon": {},
+  "database": {},
+  "mlx": {},
+  "wiki": {},
+  "server": {},
+  "extensions": [],
+  "backends": {},
+  "llm": {},
+  "activeContext": "global",
+  "contexts": {}
+}
+```
+
+### `plugins`
+
+Array of plugin configs.
+
+```json
+{
+  "name": "@the-brain/plugin-graph-memory",
+  "enabled": true,
+  "config": {}
+}
+```
+
+### `daemon`
+
+```json
+{
+  "pollIntervalMs": 30000,
+  "logDir": "~/.the-brain/logs"
+}
+```
+
+### `database`
+
+```json
+{
+  "path": "~/.the-brain/global/brain.db"
+}
+```
+
+### `mlx`
+
+```json
+{
+  "enabled": true,
+  "modelPath": "mlx-community/Llama-3.2-1B-Instruct-4bit",
+  "loraOutputDir": "~/.the-brain/lora-checkpoints",
+  "schedule": "0 2 * * *"
+}
+```
+
+### `wiki`
+
+```json
+{
+  "enabled": true,
+  "outputDir": "~/.the-brain/wiki",
+  "schedule": "0 9 * * 0"
+}
+```
+
+### `server`
+
+```json
+{
+  "mode": "local | remote | team",
+  "bindAddress": "127.0.0.1",
+  "authToken": "mb_xxx",  // remote mode only — team mode uses per-user tokens in auth.db
+  "port": 9420,
+  "mcpPort": 9422
+}
+```
+
+### `extensions`
+
+```json
+["hermes", "my-extension"]
+```
+
+List of extension names (without `.ts` suffix) to load from `~/.the-brain/extensions/`. **Extensions are disabled by default** — if omitted or empty, no extensions are loaded. Add extension filenames here to enable them.
+
+### `backends`
+
+```json
+{
+  "storage": "sqlite | libsql",
+  "cleaner": "default",
+  "scheduler": "interval | cron",
+  "outputs": ["@the-brain/plugin-auto-wiki"]
+}
+```
+
+Module paths support three formats:
+- npm packages: `"libsql"` → resolves `@the-brain/storage-libsql`
+- local paths: `"./my-custom-cleaner.ts"`
+- absolute paths: `"/Users/me/my-backend.ts"`
+
+### `llm`
+
+OpenAI-compatible LLM backends for plugins that need AI inference (data-curator, trainers). All backends use `/v1/chat/completions` — works with Ollama, LM Studio, vLLM, OpenAI, and any compatible server.
+
+```json
+{
+  "default": "ollama-local",
+  "backends": {
+    "ollama-local": {
+      "provider": "ollama",
+      "baseUrl": "http://localhost:11434/v1",
+      "defaultModel": "qwen2.5:3b",
+      "fallbackModels": ["qwen2.5:1.5b"],
+      "timeoutMs": 30000
+    },
+    "lmstudio": {
+      "provider": "lmstudio",
+      "baseUrl": "http://localhost:1234/v1",
+      "defaultModel": "llama-3.2-3b"
+    },
+    "openai": {
+      "provider": "openai",
+      "baseUrl": "https://api.openai.com/v1",
+      "apiKey": "sk-...",
+      "defaultModel": "gpt-4o-mini"
+    }
+  }
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `default` | yes | Name of the default backend to use |
+| `backends` | yes | Named backends — plugins reference by name |
+| `backends.<name>.provider` | yes | Identifier: `"ollama"`, `"lmstudio"`, `"vllm"`, `"openai"`, `"openai-compatible"` |
+| `backends.<name>.baseUrl` | yes | Base URL including `/v1` prefix |
+| `backends.<name>.apiKey` | no | API key for cloud providers. Undefined = no auth (local) |
+| `backends.<name>.defaultModel` | yes | Primary model to use |
+| `backends.<name>.fallbackModels` | no | Fallback cascade — tried in order if primary fails (OOM, timeout, 404) |
+| `backends.<name>.timeoutMs` | no | Request timeout in ms (default: 30000) |
+
+#### Provider base URLs
+
+| Provider | Typical baseUrl |
+|----------|----------------|
+| Ollama (local) | `http://localhost:11434/v1` |
+| LM Studio (local) | `http://localhost:1234/v1` |
+| vLLM (local) | `http://localhost:8000/v1` |
+| OpenAI | `https://api.openai.com/v1` |
+| Any OpenAI-compatible | `https://your-server/v1` |
+
+### Plugin Configs
+
+#### Graph Memory (`plugin-graph-memory`)
+
+```json
+{
+  "name": "@the-brain/plugin-graph-memory",
+  "enabled": true,
+  "config": {
+    "maxInjectNodes": 8,
+    "minWeight": 0.3,
+    "includeConnected": true,
+    "maxConnectedPerNode": 3,
+    "maxConnectedInject": 4,
+    "recentInteractionLimit": 20,
+    "weightBoostOnMatch": 0.05,
+    "weightDecayFactor": 0.98,
+    "minKeywordLength": 3
+  }
+}
+```
+
+#### SPM Curator (`plugin-spm-curator`)
+
+```json
+{
+  "name": "@the-brain/plugin-spm-curator",
+  "enabled": true,
+  "config": {
+    "threshold": 0.30,
+    "alpha": 0.05,
+    "scalarWeight": 0.35,
+    "embeddingWeight": 0.40,
+    "noveltyWeight": 0.25,
+    "ngramN": 4,
+    "ngramCacheSize": 50000,
+    "useTfidf": true
+  }
+}
+```
+
+### `contexts`
+
+```json
+{
+  "my-project": {
+    "name": "my-project",
+    "label": "My Project",
+    "dbPath": "~/.the-brain/projects/my-project/brain.db",
+    "wikiDir": "~/.the-brain/projects/my-project/wiki",
+    "loraDir": "~/.the-brain/projects/my-project/lora-checkpoints",
+    "workDir": "~/code/my-project",
+    "createdAt": 1714800000000,
+    "lastActive": 1714800000000
+  }
+}
+```

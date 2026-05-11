@@ -1,0 +1,60 @@
+---
+title: Content Cleaner
+description: Utilities for cleaning and deduplicating memory content
+---
+
+the-brain provides built-in content cleaning utilities that strip noise from harvested interactions.
+
+## Functions
+
+### `cleanMemoryContent(content: string): string`
+
+Strips Claude XML artifacts and extracts meaningful user requests from observations.
+
+**What it removes**:
+- `<function_calls>` XML blocks
+- `<tool_call>` blocks
+- `<what_happened>` wrappers
+- `observed_from_primary_session` markers
+- Progress summary boilerplate
+- Claude-Mem observer preambles
+
+**What it preserves**:
+- User requests embedded in observations
+- Bash commands from Bash observations
+- File paths from Edit observations
+- MCP tool calls
+
+**Example**:
+
+```typescript
+import { cleanMemoryContent } from "@the-brain/core";
+
+const raw = `<what_happened>User asked about React hooks</what_happened>
+<function_calls><tool_call>read_file</tool_call></function_calls>`;
+
+const cleaned = cleanMemoryContent(raw);
+// → "User asked about React hooks"
+```
+
+### `cleanGraphNodeLabel(label: string): string`
+
+Trims long code-fragment labels to keep graph nodes concise. Uses Unicode-aware
+sentence splitting (`.`, `!`, `?`, `。`, `！`, `？`) to work across all languages.
+
+```typescript
+const label = cleanGraphNodeLabel("use `useCallback` instead of `useMemo` for the handler function in the parent component");
+// → "use `useCallback` instead of `useMemo`"
+```
+
+### `deduplicateContents(items: Array<{content: string}>): Array`
+
+Keeps the highest-signal version when duplicate content is detected.
+
+```typescript
+const deduped = deduplicateContents([
+  { content: "Fix auth bug" },
+  { content: "Fix auth bug in login component" },
+]);
+// → [{ content: "Fix auth bug in login component" }]  (longer = higher signal)
+```

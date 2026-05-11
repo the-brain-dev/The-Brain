@@ -1,0 +1,71 @@
+---
+title: Storage Backends
+description: SQLite, LibSQL, and custom storage backends
+---
+
+the-brain supports pluggable storage backends via the `StorageBackend` interface.
+
+## Built-in Backends
+
+### SQLite (Default)
+
+Local `bun:sqlite` database at `~/.the-brain/global/brain.db`.
+
+```json
+{
+  "backends": { "storage": "sqlite" }
+}
+```
+
+### LibSQL (Turso)
+
+Remote database for multi-machine setups.
+
+```json
+{
+  "backends": { "storage": "libsql" }
+}
+```
+
+```bash
+the-brain backend set --slot storage --backend libsql
+```
+
+Requires `@the-brain/storage-libsql` package. Set `LIBSQL_URL` and `LIBSQL_AUTH_TOKEN` env vars.
+
+## StorageBackend Interface
+
+```typescript
+interface StorageBackend {
+  insertMemory(memory: MemoryFragment): Promise<void>;
+  getMemoriesByLayer(layer: MemoryLayer, limit?: number): Promise<MemoryFragment[]>;
+  getSurprisingMemories(threshold: number): Promise<MemoryFragment[]>;
+  getRecentMemories(hoursAgo?: number): Promise<MemoryFragment[]>;
+  getAllMemories(limit?: number): Promise<MemoryFragment[]>;
+  getStats(): Promise<BrainStats>;
+  close(): void;
+}
+```
+
+## Writing a Custom Backend
+
+```typescript
+import { definePlugin, HookEvent } from "@the-brain/core";
+import type { StorageBackend, MemoryFragment, MemoryLayer } from "@the-brain/core";
+
+export class PostgresStorage implements StorageBackend {
+  async insertMemory(memory: MemoryFragment) { /* ... */ }
+  async getMemoriesByLayer(layer: MemoryLayer, limit = 100) { /* ... */ }
+  async getSurprisingMemories(threshold: number) { /* ... */ }
+  async getStats() { /* ... */ }
+  close() { /* ... */ }
+}
+
+export default definePlugin({
+  name: "storage-postgres",
+  setup(hooks) {
+    const backend = new PostgresStorage();
+    hooks.hook(HookEvent.STORAGE_REGISTER, () => backend);
+  },
+});
+```

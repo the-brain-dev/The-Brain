@@ -1,0 +1,90 @@
+---
+title: Architecture
+description: The 3-layer cognitive architecture of the-brain
+---
+
+the-brain implements a 3-layer cognitive architecture inspired by human memory.
+
+## Data Flow
+
+<Mermaid chart={`
+graph TB
+    subgraph INPUT["📥 Input — Harvesters"]
+        H1["Cursor IDE"]
+        H2["Claude Code"]
+        H3["Gemini CLI"]
+        H4["Hermes Agent"]
+        H5["Drag & Drop"]
+    end
+
+    subgraph INSTANT["⚡ Layer 1: INSTANT — Graph Memory"]
+        G1["Correction Detection"]
+        G2["Preference Tracking"]
+        G3["Pattern Detection"]
+        G4["Concept Nodes"]
+        G5["Weight Decay"]
+    end
+
+    subgraph SELECTION["⚖️ Layer 2: SELECTION — SPM Curator"]
+        S1["Composite Score"]
+        S2["TF-IDF / EMA-Gaussian"]
+        S3["N-gram Novelty"]
+        S4["Deduplication"]
+    end
+
+    subgraph DEEP["🌌 Layer 3: DEEP — Consolidation"]
+        D1["MLX LoRA Training"]
+        D2["SQLite Storage"]
+        D3["Auto-Wiki"]
+    end
+
+    H1 -->|HARVESTER_POLL| INSTANT
+    H2 -->|HARVESTER_POLL| INSTANT
+    H3 -->|HARVESTER_POLL| INSTANT
+    H4 -->|HARVESTER_POLL| INSTANT
+    H5 -->|HARVESTER_POLL| INSTANT
+
+    INSTANT -->|AFTER_RESPONSE| SELECTION
+    SELECTION -->|score > 0.30| DEEP
+    DEEP -->|2AM cron| D1
+    DEEP -->|always| D2
+    DEEP -->|weekly| D3
+
+    style INPUT fill:#1e3a5f,stroke:#22d3ee
+    style INSTANT fill:#4a1942,stroke:#fb7185
+    style SELECTION fill:#4a3a0f,stroke:#fb923c
+    style DEEP fill:#2d1b4e,stroke:#a78bfa
+`}/>
+
+## Design Principles
+
+**Extension-First:** Core is an empty data bus. Everything — harvesters, memory modules, trainers — is a swappable plugin via `definePlugin()`. Extensions are loaded from `~/.the-brain/extensions/` when enabled in `config.json`.
+
+**Local-First:** Data never leaves your machine unless you explicitly install a remote storage plugin. Defaults use local SQLite, local MLX training.
+
+**Selection over Accumulation:** The system actively rejects redundant information. SPM (Surprise-Gated Prediction Error) learns only from what surprises you.
+
+**Ambient UX:** Zero-effort background daemon. No manual input required.
+
+**Research-First:** Early stage. Concepts are solid, APIs may change. The platform is the playground — contribute or build your own layer plugin.
+
+## Database
+
+Three core tables via Drizzle ORM + `bun:sqlite`:
+
+- `memories` — harvested interactions with metadata
+- `graph_nodes` — relational memory nodes (Layer 1)
+- `sessions` — session tracking across your AI tools
+
+## Plugin Lifecycle
+
+1. Plugin defined via `definePlugin({ name, setup })`
+2. `setup(hooks)` registers on hook events
+3. PluginManager loads from config
+4. Hooks fire in registration order
+5. Hot-swappable without restart
+
+## Dive Deeper
+
+- [Hook System](/docs/core-concepts/hook-system) — All 17 lifecycle events + plugin-defined custom hooks
+- [Memory Layers](/docs/core-concepts/memory-layers) — Instant → Selection → Deep internals, scores, promotion flow

@@ -1,0 +1,105 @@
+---
+title: Writing Plugins
+description: Step-by-step guide to creating the-brain plugins
+---
+
+## Minimal Plugin
+
+```typescript
+import { definePlugin, HookEvent } from "@the-brain/core";
+
+export default definePlugin({
+  name: "my-plugin",
+  version: "0.1.0",
+  description: "Does something useful",
+  setup(hooks) {
+    hooks.hook(HookEvent.BEFORE_PROMPT, async (ctx) => {
+      ctx.inject("Always use TypeScript strict mode.");
+    });
+  },
+});
+```
+
+## Plugin Structure
+
+```
+packages/plugin-<name>/
+├── package.json
+├── src/
+│   ├── index.ts
+│   └── __tests__/
+├── CHANGELOG.md
+└── README.md
+```
+
+## Hooks Reference
+
+For the full hook system (17 lifecycle events + plugin-defined custom hooks), see [Hook System](/docs/core-concepts/hook-system).
+
+| Hook | Context |
+|------|---------|
+| `BEFORE_PROMPT` | `{ prompt, injected[], inject() }` |
+| `AFTER_RESPONSE` | `{ interaction, fragments, promoteToDeep() }` |
+| `HARVESTER_POLL` | (none) |
+| `HARVESTER_NEW_DATA` | `{ interaction, fragments, promoteToDeep() }` |
+| `ON_INTERACTION` | `{ interaction, fragments }` |
+| `SELECTION_EVALUATE` | `{ interaction, fragments }` |
+| `SELECTION_PROMOTE` | `{ interaction, fragments }` |
+| `DEEP_CONSOLIDATE` | `{ targetLayer, fragments, results }` |
+| `TRAINING_START` | `{ model, fragmentCount }` |
+| `TRAINING_COMPLETE` | `{ duration, loss, adapterPath }` |
+| `DAEMON_START` | (none) |
+| `DAEMON_STOP` | (none) |
+
+## Example: Context Injector
+
+```typescript
+import { definePlugin, HookEvent } from "@the-brain/core";
+
+export default definePlugin({
+  name: "coding-standards",
+  setup(hooks) {
+    const standards = `Prefer functional components.
+Use async/await over .then().`;
+
+    hooks.hook(HookEvent.BEFORE_PROMPT, async (ctx) => {
+      ctx.inject(standards);
+    });
+  },
+});
+```
+
+## Testing
+
+```typescript
+import { describe, test, expect } from "bun:test";
+import { createHookSystem, HookEvent } from "@the-brain/core";
+import myPlugin from "../index";
+
+describe("my-plugin", () => {
+  test("injects context on BEFORE_PROMPT", async () => {
+    const hooks = createHookSystem();
+    await myPlugin.setup(hooks);
+
+    const ctx = { prompt: "hello", injected: [],
+      inject(s: string) { this.injected.push(s); } };
+    await hooks.callHook(HookEvent.BEFORE_PROMPT, ctx);
+
+    expect(ctx.injected.length).toBeGreaterThan(0);
+  });
+});
+```
+
+## Packaging
+
+```json
+{
+  "name": "@the-brain/plugin-<name>",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "dependencies": {
+    "@the-brain/core": "workspace:*"
+  }
+}
+```

@@ -1,0 +1,63 @@
+---
+title: MCP Server
+description: Expose the-brain as a Model Context Protocol backend
+---
+
+the-brain implements the Model Context Protocol, allowing any MCP-compatible client to use it as a memory backend.
+
+## Supported Clients
+
+- **Claude Desktop** — Add to `claude_desktop_config.json`
+- **Cursor IDE** — Configure MCP server in Cursor settings
+- **Zed** — Add to Zed's context server config
+
+## Starting the Server
+
+```bash
+# stdio transport (for Claude Desktop)
+the-brain mcp serve
+
+# SSE transport (for network clients)
+the-brain mcp serve --sse --port 9422
+```
+
+## Claude Desktop Config
+
+```json
+{
+  "mcpServers": {
+    "the-brain": {
+      "command": "bun",
+      "args": ["run", "the-brain", "mcp", "serve"]
+    }
+  }
+}
+```
+
+For remote mode with auth:
+
+```json
+{
+  "mcpServers": {
+    "the-brain": {
+      "command": "bun",
+      "args": ["run", "the-brain", "mcp", "serve", "--sse"],
+      "env": {
+        "THE_BRAIN_AUTH_TOKEN": "mb_xxx"
+      }
+    }
+  }
+}
+```
+
+## Available Capabilities
+
+- **26 tools**: memory CRUD, graph ops, brain management, training, pipeline, meta-harness
+- **11 resources**: stats, memories, identity, projects, training status
+- **SSE subscriptions**: real-time updates on consolidation events
+- **SSE auth required by default**: SSE transport refuses to start without `server.authToken` in config. Use `--unsafe` flag for local development only.
+
+## See Also
+
+- [MCP Tools Reference](/docs/reference/mcp-tools) — Full tool listing
+- [Remote Mode](/docs/integrations/remote-mode) — Multi-machine setup

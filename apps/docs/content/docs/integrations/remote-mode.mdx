@@ -1,0 +1,80 @@
+---
+title: Remote Mode
+description: Run the-brain on a Linux server, connect from macOS
+---
+
+Remote mode lets you run the-brain on a headless Linux server while using your Mac as a client.
+
+## Architecture
+
+<Mermaid chart={`
+graph TB
+    subgraph Server["Linux Server"]
+        API["API :9420<br/>Bearer mb_xxx"]
+        MCP["MCP SSE :9422<br/>Bearer mb_xxx"]
+        Storage["Storage: SQLite or LibSQL"]
+    end
+    subgraph Agent["Agent (Mac)"]
+        Cursor["Cursor"]
+        Claude["Claude Code"]
+        Gemini["Gemini CLI"]
+    end
+    subgraph MCPClient["MCP Clients"]
+        ClaudeD["Claude Desktop"]
+        CursorZed["Cursor, Zed"]
+    end
+    Agent -->|"push every 60s"| Server
+    MCPClient -->|"SSE + auth"| Server
+
+    style Server fill:#1e3a5f,stroke:#22d3ee
+    style Agent fill:#4a1942,stroke:#fb7185
+    style MCPClient fill:#2d1b4e,stroke:#a78bfa
+`}/>
+
+
+## Server Setup
+
+```bash
+# On Linux server
+the-brain init --remote
+# → Generates auth token, sets bindAddress: 0.0.0.0
+
+the-brain daemon start
+# → API on 0.0.0.0:9420, MCP SSE on 0.0.0.0:9422
+
+cat ~/.the-brain/config.json | grep authToken
+# → Save this token!
+```
+
+## Client Setup
+
+```bash
+# On macOS
+export THE_BRAIN_REMOTE_URL="http://<server-ip>:9420"
+export THE_BRAIN_AUTH_TOKEN="mb_<token>"
+
+# Start push agent (polls local AI interaction data, pushes to server)
+the-brain agent
+
+# Or one-shot
+the-brain agent --once
+```
+
+## Auth
+
+All endpoints except `/api/health` require:
+
+```
+Authorization: Bearer mb_<token>
+```
+
+The agent automatically adds this header.
+
+## Storage Options
+
+- **SQLite** (default): Local to server
+- **LibSQL (Turso)**: Shared across multiple servers
+
+```bash
+the-brain backend set --slot storage --backend libsql
+```

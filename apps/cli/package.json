@@ -1,0 +1,23 @@
+{
+  "name": "@the-brain/cli",
+  "version": "0.1.0",
+  "description": "the-brain CLI — TUI and daemon management",
+  "type": "module",
+  "main": "./src/index.ts",
+  "bin": {
+    "the-brain": "./src/index.ts"
+  },
+  "dependencies": {
+    "@the-brain/core": "workspace:*",
+    "@the-brain/plugin-graph-memory": "workspace:*",
+    "@the-brain/plugin-spm-curator": "workspace:*",
+    "@the-brain/plugin-harvester-cursor": "workspace:*",
+    "@the-brain/plugin-harvester-claude": "workspace:*",
+    "@the-brain/plugin-identity-anchor": "workspace:*",
+    "@the-brain/plugin-auto-wiki": "workspace:*",
+    "@the-brain/trainer-local-mlx": "workspace:*",
+    "@the-brain/mcp-server": "workspace:*",
+    "cac": "^6.7.14",
+    "consola": "^3.4.0"
+  }
+}

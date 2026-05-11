@@ -1,0 +1,11 @@
+{
+  "name": "@the-brain/plugin-harvester-cursor",
+  "version": "0.1.0",
+  "description": "Data Harvester for Cursor IDE — polls and parses local conversation logs",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@the-brain/core": "workspace:*"
+  }
+}

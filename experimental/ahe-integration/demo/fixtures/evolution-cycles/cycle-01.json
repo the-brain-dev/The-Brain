@@ -1,0 +1,9 @@
+{
+  "cycle": 1,
+  "harness": "seed",
+  "description": "Cold start — establishing baselines. Harness has tools [search, read, write], no middleware.",
+  "edit_id": null,
+  "edit_component": null,
+  "prediction": null,
+  "result_file": "cycle-01-baseline.json"
+}

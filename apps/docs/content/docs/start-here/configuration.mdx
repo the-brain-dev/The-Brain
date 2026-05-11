@@ -1,0 +1,41 @@
+---
+title: Configuration
+description: Quick configuration overview for the-brain
+---
+
+Config file: `~/.the-brain/config.json`
+
+## Minimal Configuration
+
+The absolute minimum to get started:
+
+```json
+{
+  "daemon": { "pollIntervalMs": 30000 },
+  "database": { "path": "~/.the-brain/global/brain.db" },
+  "activeContext": "global",
+  "contexts": {},
+  "extensions": [],
+  "plugins": [
+    { "name": "@the-brain/plugin-graph-memory", "enabled": true },
+    { "name": "@the-brain/plugin-spm-curator", "enabled": true }
+  ]
+}
+```
+
+## Configuration Topics
+
+| Topic | Reference |
+|-------|-----------|
+| **Full JSON schema** — all fields, types, defaults | [Configuration Schema](/docs/reference/config-schema) |
+| **Plugin config** — graph memory, SPM, identity anchor | [Config Schema → Plugins](/docs/reference/config-schema#plugins) |
+| **MLX training** — model path, schedule, parameters | [Config Schema → MLX](/docs/reference/config-schema#mlx) |
+| **Server mode** — local vs remote, ports, auth | [Config Schema → Server](/docs/reference/config-schema#server) |
+| **Environment variables** — overrides for paths, tokens | [Environment Variables](/docs/reference/env-variables) |
+
+## Quick Tips
+
+- **Config changes require daemon restart**: `the-brain daemon stop && the-brain daemon start`
+- **Secrets go in env vars**, not in config.json (auth tokens, API keys)
+- **Plugin loading order** matters — hooks fire in registration order
+- **Project contexts** get their own DB, wiki, and LoRA checkpoints — see [CLI Reference → init](/docs/reference/cli-reference#the-brain-init)
