@@ -24,6 +24,33 @@ echo -e "${CYAN}║  Open memory platform for AI           ║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════════╝${NC}"
 echo ""
 
+# ── Detect execution mode (piped vs local) ─────────────────────
+if [ ! -t 0 ]; then
+    # Piped via curl|bash — clone repo to permanent location
+    REPO_DIR="$HOME/.the-brain/repo"
+    if [ -f "$REPO_DIR/package.json" ]; then
+        info "Repository found at $REPO_DIR — updating..."
+        cd "$REPO_DIR"
+        git pull --ff-only origin main 2>/dev/null || true
+        success "Repository up to date"
+    else
+        info "Cloning the-brain repository..."
+        mkdir -p "$(dirname "$REPO_DIR")"
+        git clone --depth 1 https://github.com/the-brain-dev/The-Brain.git "$REPO_DIR" 2>/dev/null
+        if [ $? -ne 0 ] || [ ! -f "$REPO_DIR/package.json" ]; then
+            error "Failed to clone repository. Make sure git is installed: git --version"
+            rm -rf "$REPO_DIR"
+            exit 1
+        fi
+        success "Repository cloned → $REPO_DIR"
+    fi
+    cd "$REPO_DIR"
+else
+    # Running from local file — use script location
+    cd "$(dirname "$0")"
+    REPO_DIR="$(pwd)"
+fi
+
 # ── Check/install Bun ──────────────────────────────────────────
 if command -v bun &> /dev/null; then
     BUN_VERSION=$(bun --version 2>/dev/null)
@@ -53,7 +80,6 @@ fi
 
 # ── Install dependencies ───────────────────────────────────────
 info "Installing project dependencies..."
-cd "$(dirname "$0")"
 
 bun install --frozen-lockfile 2>/dev/null || bun install
 
@@ -150,7 +176,6 @@ fi
 LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
 mkdir -p "$LAUNCH_AGENTS_DIR"
 
-REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 DAEMON_PLIST="$LAUNCH_AGENTS_DIR/com.thebrain.daemon.plist"
 cat > "$DAEMON_PLIST" <<PLISTEOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -197,7 +222,7 @@ echo ""
 
 # ── macOS: Build & install menu bar app ────────────────────────
 if [[ "$(uname -s)" == "Darwin" ]]; then
-    MENU_BAR_DIR="$(dirname "$0")/apps/menu-bar"
+    MENU_BAR_DIR="$REPO_DIR/apps/menu-bar"
 
     if [[ -d "$MENU_BAR_DIR" ]] && command -v swift &> /dev/null; then
         info "macOS detected — building menu bar app..."

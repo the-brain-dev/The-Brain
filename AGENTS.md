@@ -259,14 +259,55 @@ Examples:
   chore: bump Bun to 1.2.0
 ```
 
+## Versioning
+
+**Lockstep versioning**: All packages share the same version number. Bumping the root version bumps everything.
+
+**Inter-package dependencies** use `workspace:*` in `dependencies` — Bun resolves these at link time, so cross-references never need manual version updates:
+```json
+{
+  "dependencies": {
+    "@the-brain-dev/core": "workspace:*"
+  }
+}
+```
+
+### Version Semantics
+
+| Bump | When |
+|------|------|
+| `patch` | Bug fixes, new features (no API breaks), new harvesters, new plugins |
+| `minor` | API breaking changes — plugin contracts, hook signatures, exported types, config schema |
+| `major` | Fundamental architecture overhaul — core rewrite, storage migration, protocol change |
+
+When in doubt: **patch**. Most changes are additive and non-breaking. Reserve minor for intentional contract changes.
+
+### How to Bump
+
+**During a release** — use the release script (handles everything):
+```bash
+bun run scripts/release.ts patch   # or minor, major, or exact x.y.z
+```
+This bumps root `package.json`, bumps all workspace packages to match, finalizes CHANGELOGs, commits, tags, publishes to npm, and adds fresh `[Unreleased]` sections.
+
+**Manually (development / not releasing)** — use `npm version` with workspaces:
+```bash
+# Bump all packages from 0.1.0 to 0.2.0
+npm version 0.2.0 --no-git-tag-version --workspaces
+```
+This updates every `package.json` in the workspace to the same version. No commit, no tag — you control when that happens.
+
+**Manual single-package bump** — edit the `"version"` field in that package's `package.json` directly. Update `bun.lock` with `bun install` if needed.
+
+### Version Consistency
+
+All workspace packages MUST share the same version. After any manual bump, verify:
+```bash
+# Should print the same version for all packages
+grep '"version"' packages/*/package.json apps/*/package.json package.json
+```
+
 ## Releasing
-
-**Lockstep versioning**: All packages share the same version number.
-
-**Version semantics**:
-- `patch`: Bug fixes and new features (no API break)
-- `minor`: API breaking changes (plugin contracts, hook signatures, exported types)
-- `major`: Fundamental architecture overhaul (core rewrite, storage migration, protocol change)
 
 ### Release Steps
 
@@ -275,7 +316,7 @@ Examples:
 3. **Run release script**: `bun run scripts/release.ts patch|minor|major|<x.y.z>`
 4. The script handles: version bump, targeted CHANGELOG finalization, commit, tag, npm publish, new `[Unreleased]` sections, and push to `main`
 
-**Note:** The release script pushes directly to `main`. This requires admin access to bypass branch protection, or a temporary rule exemption. The script uses targeted `git add` (only `package.json`, `bun.lock`, and changelogs) — it never uses `git add .`.
+**Note:** The release script pushes directly to `main`. This requires admin access to bypass branch protection, or a temporary rule exemption. The script uses targeted `git add` (only `package.json` files, `bun.lock`, and changelogs) — it never uses `git add .`.
 
 ### Post-Release
 
