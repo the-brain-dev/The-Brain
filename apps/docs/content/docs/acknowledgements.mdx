@@ -23,34 +23,35 @@ The-brain's 3-layer cognitive architecture draws from several research areas:
 
 The Selection Layer's Surprise-Gated Prediction Error filter is grounded in predictive coding theory and self-supervised learning research:
 
-- **Predictive Coding** — Rao & Ballard (1999). Hierarchical predictive coding in the visual cortex. The idea that the brain constantly predicts sensory input and only processes prediction errors.
-- **World Models** — Ha & Schmidhuber (2018). Learning compressed spatial and temporal representations to predict future states. The "surprise" signal in world models directly inspired SPM's scoring mechanism.
-- **Self-Predictive Representations** — Grill et al. (2020), BYOL. Learning representations by predicting one's own latent states. The concept that self-prediction creates robust, generalizable features inspired the Identity Anchor plugin.
+- **[Predictive Coding](https://doi.org/10.1038/1319)** — Rao & Ballard (1999). Hierarchical predictive coding in the visual cortex. The idea that the brain constantly predicts sensory input and only processes prediction errors.
+- **[World Models](https://arxiv.org/abs/1803.10122)** — Ha & Schmidhuber (2018). Learning compressed spatial and temporal representations to predict future states. The "surprise" signal in world models directly inspired SPM's scoring mechanism.
+- **[Bootstrap Your Own Latent (BYOL)](https://arxiv.org/abs/2006.07733)** — Grill et al. (2020). Learning representations by predicting one's own latent states. The concept that self-prediction creates robust, generalizable features inspired the Identity Anchor plugin.
 
 ### Graph Memory
 
-- **Knowledge Graphs** — The Instant Layer's graph-based memory builds on decades of knowledge graph research, from early semantic networks (Quillian, 1968) to modern graph neural networks (Kipf & Welling, 2017).
-- **Memory Augmented Neural Networks** — Graves et al. (2014), Neural Turing Machines. The concept of external memory with read/write operations.
+- **[Semantic Memory](https://apps.dtic.mil/sti/tr/pdf/AD0641671.pdf)** — Quillian (1968). The first computational model of semantic memory, introducing the concept of spreading activation in semantic networks.
+- **[Graph Convolutional Networks](https://arxiv.org/abs/1609.02907)** — Kipf & Welling (2017). Semi-supervised classification with graph convolutional networks. The foundation of modern graph neural networks that inspired graph-based memory representations.
+- **[Neural Turing Machines](https://arxiv.org/abs/1410.5401)** — Graves et al. (2014). The concept of external memory with differentiable read/write operations, foundational to memory-augmented neural networks.
 
 ### Local Training & Privacy
 
-- **LoRA (Low-Rank Adaptation)** — Hu et al. (2021). Efficient fine-tuning via low-rank matrices. The-brain's Deep Layer uses LoRA to consolidate memories without full model retraining.
-- **Federated Learning** — McMahan et al. (2017). The principle that data should stay on-device inspired the-brain's local-first philosophy.
-- **MLX** — Apple's machine learning framework for Apple Silicon. The `trainer-local-mlx` plugin makes on-device training practical by leveraging Apple's unified memory architecture.
+- **[LoRA: Low-Rank Adaptation](https://arxiv.org/abs/2106.09685)** — Hu et al. (2021). Efficient fine-tuning via low-rank matrices. The-brain's Deep Layer uses LoRA to consolidate memories without full model retraining.
+- **[Federated Learning](https://arxiv.org/abs/1602.05629)** — McMahan et al. (2017). The principle that data should stay on-device inspired the-brain's local-first philosophy.
+- **[MLX](https://github.com/ml-explore/mlx)** — Apple's machine learning framework for Apple Silicon. The `trainer-local-mlx` plugin makes on-device training practical by leveraging Apple's unified memory architecture.
 
 ### Agent Memory Systems
 
-- **MemGPT** — Packer et al. (2023). OS-inspired memory management for LLMs with virtual context. The concept of tiered memory (core vs. archival) parallels the-brain's layer system.
-- **Reflexion** — Shinn et al. (2023). Verbal reinforcement learning where agents reflect on past failures. The pattern of "correction detection" in the-brain's Graph Memory mirrors Reflexion's self-evaluation loop.
-- **Generative Agents** — Park et al. (2023). Simulacra of human behavior with memory streams. The concept of retrieving relevant memories for context-aware behavior.
-- **Meta-Harness (Stanford)** — Meng et al. (2026). Self-improving coding agents via edit-predict-evaluate loops. The-brain's regression fingerprinting and MCP meta-harness tools enable these systems to detect benchmark regressions across evolution cycles.
-- **AHE (Fudan/Peking)** — Autonomous Harness Evolution (2026). Closed-loop codebase improvement. The-brain serves as persistent cognitive layer, tracking edit→regression patterns across cycles via SPM and identity anchor.
+- **[MemGPT](https://arxiv.org/abs/2310.08560)** — Packer et al. (2023). OS-inspired memory management for LLMs with virtual context. The concept of tiered memory (core vs. archival) parallels the-brain's layer system.
+- **[Reflexion](https://arxiv.org/abs/2303.11366)** — Shinn et al. (2023). Verbal reinforcement learning where agents reflect on past failures. The pattern of "correction detection" in the-brain's Graph Memory mirrors Reflexion's self-evaluation loop.
+- **[Generative Agents](https://arxiv.org/abs/2304.03442)** — Park et al. (2023). Simulacra of human behavior with memory streams. The concept of retrieving relevant memories for context-aware behavior.
+- **[Meta-Harness](https://arxiv.org/abs/2603.28052)** — Meng et al. (2026), Stanford. Self-improving coding agents via edit-predict-evaluate loops. The-brain's regression fingerprinting and MCP meta-harness tools enable these systems to detect benchmark regressions across evolution cycles.
+- **AHE: Autonomous Harness Evolution** — Fudan/Peking (2026). Closed-loop codebase improvement. The-brain serves as persistent cognitive layer, tracking edit→regression patterns across cycles via SPM and identity anchor.
 
 ### Cognitive Architecture
 
-- **ACT-R** — Anderson et al. (2004). An integrated theory of the mind with declarative and procedural memory. The-brain's separation of declarative memory (graph, wiki) from procedural memory (LoRA adapters) mirrors ACT-R's architecture.
-- **Global Workspace Theory** — Baars (1988). Consciousness as a global workspace broadcasting to specialized processors. The-brain's hook system (`BEFORE_PROMPT`, `AFTER_RESPONSE`) is a simplified implementation of this broadcasting pattern.
-- **Surprise & Learning** — Itti & Baldi (2009). Bayesian surprise attracts human attention. The SPM curator's surprise-gating directly operationalizes this finding.
+- **[ACT-R: An Integrated Theory of the Mind](https://doi.org/10.1037/0033-295X.111.4.1036)** — Anderson et al. (2004). An integrated theory of the mind with declarative and procedural memory. The-brain's separation of declarative memory (graph, wiki) from procedural memory (LoRA adapters) mirrors ACT-R's architecture.
+- **[A Cognitive Theory of Consciousness](https://philpapers.org/rec/BAAACT)** — Baars (1988). Global Workspace Theory: consciousness as a global workspace broadcasting to specialized processors. The-brain's hook system (`BEFORE_PROMPT`, `AFTER_RESPONSE`) is a simplified implementation of this broadcasting pattern.
+- **[Bayesian Surprise Attracts Human Attention](https://doi.org/10.1016/j.visres.2008.09.007)** — Itti & Baldi (2009). Bayesian surprise attracts human attention. The SPM curator's surprise-gating directly operationalizes this finding.
 
 ## Open Source Dependencies
 
