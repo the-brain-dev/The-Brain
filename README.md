@@ -6,7 +6,7 @@
 
 **[the-brain.dev](https://the-brain.dev)**
 
-> 🧪 **Active research project.** the-brain explores what happens when AI has persistent, private, 3-layer memory. It works today for coding assistants. We're building the platform for everything else. Interested? [Contribute](CONTRIBUTING.md) or [build an extension](https://the-brain.dev/docs/customization/extensions).
+> 🧪 **Experimental — pre-alpha. Far from stable.** the-brain explores what happens when AI has persistent, private, 3-layer memory. Breaking changes, missing features, and rough edges are the norm right now. If you're curious about the concept, [contribute](CONTRIBUTING.md) or [build an extension](https://the-brain.dev/docs/customization/extensions). Production use is not yet recommended.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Built with Bun](https://img.shields.io/badge/Built%20with-Bun-orange)](https://bun.sh)

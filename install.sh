@@ -19,8 +19,8 @@ error() { echo -e "${RED}[the-brain]${NC} ❌ $1"; }
 
 echo ""
 echo -e "${CYAN}╔══════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║       🧠 the-brain Installer             ║${NC}"
-echo -e "${CYAN}║  Pluggable Cognitive OS for AI Agents   ║${NC}"
+echo -e "${CYAN}║  🧠 the-brain Installer                 ║${NC}"
+echo -e "${CYAN}║  Open memory platform for AI           ║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════════╝${NC}"
 echo ""
 

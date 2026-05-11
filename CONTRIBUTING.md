@@ -2,6 +2,8 @@
 
 Thanks for your interest in contributing. This guide keeps things efficient for both sides.
 
+> ⚠️ **Pre-alpha stability.** the-brain is experimental and far from stable. APIs may change without notice, features may be incomplete, and rough edges are expected. Contributions that improve stability, testing, and documentation are especially welcome right now.
+
 ## Code of Conduct
 
 We follow the [Contributor Covenant](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).
