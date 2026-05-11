@@ -14,9 +14,9 @@
  *
  * Steps:
  * 1. Check for uncommitted changes
- * 2. Bump version in root package.json
+ * 2. Bump version in root AND all workspace packages
  * 3. Update CHANGELOG.md files: [Unreleased] -> [version] - date
- * 4. Commit (targeted add: package.json, bun.lock, changelogs) and tag
+ * 4. Commit (targeted add: package.json files, bun.lock, changelogs) and tag
  * 5. Publish to npm (if public)
  * 6. Add new [Unreleased] section to changelogs
  * 7. Commit and push to main
@@ -100,17 +100,17 @@ async function main() {
   }
   console.log("  Working directory clean\n");
 
-  // 2. Bump version in root package.json
+  // 2. Bump version in root AND all workspace packages
   const currentVersion = getVersion();
   console.log(`Current version: ${currentVersion}`);
 
   let newVersion: string;
   if (BUMP_TYPES.has(RELEASE_TARGET)) {
-    await $`npm version ${RELEASE_TARGET} --no-git-tag-version`;
+    await $`npm version ${RELEASE_TARGET} --no-git-tag-version --workspaces`;
     newVersion = getVersion();
   } else {
     newVersion = RELEASE_TARGET;
-    await $`npm version ${newVersion} --no-git-tag-version`;
+    await $`npm version ${newVersion} --no-git-tag-version --workspaces`;
   }
   console.log(`  New version: ${newVersion}\n`);
 
@@ -121,7 +121,7 @@ async function main() {
 
   // 4. Commit and tag
   console.log("Committing and tagging...");
-  await $`git add package.json bun.lock packages/*/CHANGELOG.md apps/*/CHANGELOG.md`;
+  await $`git add package.json packages/*/package.json apps/*/package.json bun.lock packages/*/CHANGELOG.md apps/*/CHANGELOG.md`;
   await $`git commit -m "Release v${newVersion}"`;
   await $`git tag v${newVersion}`;
   console.log();
