@@ -1,0 +1,126 @@
+---
+title: Data Curator
+description: Quality-gated training data pipeline — heuristics, LLM Judge, and LLM Rewriter
+---
+
+The Data Curator plugin (`@the-brain/plugin-data-curator`) is a quality gate that runs **before** the SPM surprise gate in the Selection Layer. It filters out low-quality interactions before they can be promoted to Deep Memory for MLX training.
+
+## Pipeline
+
+```
+Harvester → Data Curator → SPM Curator → Deep Memory → MLX Training
+```
+
+Three-stage pipeline:
+
+1. **Heuristics Gate** — fast regex-based filters (no LLM cost)
+2. **LLM Judge** — local Ollama model scores interactions 1-10
+3. **LLM Rewriter** — transforms salvageable borderline interactions
+
+## Heuristics Gate
+
+Rejects interactions containing:
+
+- Context compaction summaries (`[CONTEXT COMPACTION — REFERENCE ONLY]`)
+- System/background process notifications (`[IMPORTANT: Background process...]`)
+- Model switch notes (`[Note: model was just switched...]`)
+- Empty or very short responses
+- Emoji-only responses
+- Off-topic content (configurable patterns, see below)
+
+These filters catch ~70% of garbage with zero computation cost.
+
+## LLM Judge
+
+Each interaction that passes heuristics gets scored by a local Ollama model across 5 dimensions:
+
+| Dimension | Description |
+|-----------|-------------|
+| Correctness | Is the code/response technically correct? |
+| Completeness | Is the response self-contained? |
+| Educational Value | Does it teach a reusable pattern? |
+| Coherence | Does the response match the prompt intent? |
+| Noise Level | Is it free of system noise? |
+
+**Thresholds:**
+
+| Score | Action |
+|-------|--------|
+| < 4 | **Rejected** — not worth keeping |
+| 4–6 | **Rewrite candidate** — sent to Rewriter |
+| > 6 | **Passed clean** — promoted to SPM |
+
+## LLM Rewriter
+
+For borderline interactions (score 4–6), the Rewriter attempts to produce a clean instruction/response pair:
+
+- Strips system noise, tool call logs, and metadata
+- Extracts only the final working code and relevant explanation
+- Produces structured `{ instruction, response }` output
+
+If rewriting fails or the interaction is unsalvageable, it's rejected outright.
+
+## Configuration
+
+### Environment Variable
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `THE_BRAIN_CURATOR_MODEL` | `qwen2.5:3b` | Ollama model for Judge and Rewriter |
+
+### Plugin Config
+
+```typescript
+interface DataCuratorConfig {
+  /** Minimum overall score (1-10) to pass without rewrite */
+  judgeThreshold: number;        // default: 6
+
+  /** Score range where rewriting is attempted */
+  rewriteRange: { min: 4, max: 6 };
+
+  /** Max concurrent LLM calls */
+  maxConcurrent: number;         // default: 2
+
+  /** Ollama API base URL */
+  ollamaUrl: string;             // default: "http://localhost:11434"
+
+  /** Skip LLM entirely — heuristics only */
+  heuristicsOnly: boolean;       // default: false
+
+  /** Skip Rewriter — reject borderline instead of rewrite */
+  noRewrite: boolean;            // default: false
+
+  /** Locale-specific off-topic patterns */
+  offTopicPatterns?: RegExp[];   // default: none
+}
+```
+
+## Registered Hooks
+
+| Event | When | Action |
+|-------|------|--------|
+| `SELECTION_EVALUATE` | On each new interaction | Runs quality gate before SPM |
+| `ON_INTERACTION` | On each new interaction | Counts for stats |
+
+## Stats & Introspection
+
+Access runtime stats via:
+
+```typescript
+const instance = hooks.callHook("data-curator:getInstance");
+console.log(instance.stats);
+// {
+//   totalInteractions: 245,
+//   rejectedByHeuristics: 68,
+//   rejectedByJudge: 112,
+//   passedClean: 37,
+//   rewritten: 28,
+//   llmFailures: 0,
+// }
+```
+
+## Model Selection
+
+The default model is `qwen2.5:3b` — fast (~9.5s per judgment on Apple Silicon) and capable enough for scoring. For higher accuracy, try `gemma4:e4b`, but expect longer inference times (30s+ on 16GB Macs).
+
+Set via `THE_BRAIN_CURATOR_MODEL=gemma4:e4b` in your environment.

@@ -48,9 +48,17 @@ Metadata from BEFORE_PROMPT (`matchedNodeIds`, `promptKeywords`) flows to AFTER_
 
 ## ⚖️ Layer 2: SELECTION (The Gatekeeper)
 
-**Plugin**: `plugin-spm-curator`
+**Plugin**: `plugin-spm-curator` (surprise gate) + `plugin-data-curator` (quality gate)
 
-Evaluates every interaction and filters noise from signal using a composite surprise score.
+The Selection Layer has two gates that run in sequence:
+
+1. **Data Curator** (`plugin-data-curator`) — quality gate, runs first
+   - Rejects system noise, empty responses, off-topic content via heuristics
+   - Scores remaining interactions 1-10 via LLM Judge (local Ollama model)
+   - Only quality-passing interactions reach the surprise gate
+2. **SPM Curator** (`plugin-spm-curator`) — surprise gate, runs second
+   - Composite surprise score (TF-IDF or EMA-Gaussian)
+   - Promotes surprising interactions to Deep Memory
 
 ### Dual-Mode Architecture
 
@@ -108,36 +116,7 @@ After overnight consolidation (2 AM cron), two things happen in parallel:
 
 ### Promotion Flow
 
-<Mermaid chart={`
-graph TB
-    subgraph INSTANT["⚡ INSTANT — Graph Memory"]
-        A1["AFTER_RESPONSE handler"]
-    end
-    subgraph SPM["⚖️ SPM Curator — Evaluation"]
-        B1["Composite surprise score"]
-        B2["above threshold (default 0.82, TF-IDF mode)"]
-    end
-    subgraph SELECTION["⚖️ SELECTION — Promotion"]
-        C1["SELECTION_PROMOTE → DEEP"]
-    end
-    subgraph DEEP["🌌 DEEP — Consolidation"]
-        D1["DEEP_CONSOLIDATE (2 AM cron)"]
-        D2["MLX LoRA Training"]
-        D3["Auto-Wiki Generation"]
-    end
-
-    A1 -->|"ON_INTERACTION"| B1
-    B1 -->|score > threshold| B2
-    B2 --> C1
-    C1 --> D1
-    D1 --> D2
-    D1 --> D3
-
-    style INSTANT fill:#4a1942,stroke:#fb7185
-    style SPM fill:#4a3a0f,stroke:#fb923c
-    style SELECTION fill:#4a3a0f,stroke:#fb923c
-    style DEEP fill:#2d1b4e,stroke:#a78bfa
-`}/>
+<Mermaid chart={`\ngraph TB\n    subgraph INSTANT["⚡ INSTANT — Graph Memory"]\n        A1["AFTER_RESPONSE handler"]\n    end\n    subgraph CURATOR["⚖️ Data Curator — Quality Gate"]\n        B1["Heuristics / LLM Judge / Rewriter"]\n    end\n    subgraph SPM["⚖️ SPM Curator — Surprise Gate"]\n        C1["Composite surprise score"]\n        C2["above threshold"]\n    end\n    subgraph DEEP["🌌 DEEP — Consolidation"]\n        D1["DEEP_CONSOLIDATE (2 AM cron)"]\n        D2["MLX LoRA Training"]\n        D3["Auto-Wiki Generation"]\n    end\n\n    A1 -->|"ON_INTERACTION"| B1\n    B1 -->|"quality pass"| C1\n    C1 -->|"score > threshold"| C2\n    C2 -->|"SELECTION_PROMOTE"| D1\n    D1 --> D2\n    D1 --> D3\n\n    style INSTANT fill:#4a1942,stroke:#fb7185\n    style CURATOR fill:#4a3a0f,stroke:#fb923c\n    style SPM fill:#4a3a0f,stroke:#fb923c\n    style DEEP fill:#2d1b4e,stroke:#a78bfa\n`}/>
 
 ## Layer Configuration
 
