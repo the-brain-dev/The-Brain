@@ -2,7 +2,7 @@
 """
 the-brain MLX Sidecar — LoRA fine-tuning on Apple Silicon.
 
-Called by @the-brain/trainer-local-mlx to consolidate curated memories
+Called by @the-brain-dev/trainer-local-mlx to consolidate curated memories
 into model weights using Apple's MLX framework.
 
 Usage:

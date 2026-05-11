@@ -10,7 +10,7 @@ import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { BrainDB, MemoryLayer, LayerRouter, PluginManager, createHookSystem } from "@the-brain-dev/core";
+import { BrainDB, MemoryLayer, LayerRouter, PluginManager, createHookSystem, ProjectManager } from "@the-brain-dev/core";
 import type { InteractionContext, MemoryFragment, PromptContext, ConsolidationContext } from "@the-brain-dev/core";
 
 const TEST_HOME = join(tmpdir(), "the-brain-pipeline-e2e-" + Date.now());

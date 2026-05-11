@@ -9,7 +9,7 @@
  *   --global     Target global brain
  */
 import { consola } from "consola";
-import { BrainDB, MemoryLayer, safeParseConfig } from "@the-brain-dev/core";
+import { BrainDB, LayerRouter, MemoryLayer, HookEvent, safeParseConfig } from "@the-brain-dev/core";
 import type { ConsolidationContext, MemoryFragment, Memory, InteractionContext } from "@the-brain-dev/core";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";

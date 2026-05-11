@@ -6,7 +6,7 @@
  *   the-brain health --global     Show global brain health
  */
 import { consola } from "consola";
-import { BrainDB, safeParseConfig } from "@the-brain-dev/core";
+import { BrainDB, MemoryLayer, safeParseConfig } from "@the-brain-dev/core";
 import type { TheBrainConfig } from "@the-brain-dev/core";
 import { join } from "node:path";
 import { readFile, readdir } from "node:fs/promises";

@@ -10,7 +10,7 @@
  * Uses ContentCleaner to extract signal from raw XML-wrapped Claude Code memories.
  * Deduplicates across layers (instant/selection/deep).
  */
-import { BrainDB, AuthDB, safeParseConfig } from "@the-brain-dev/core";
+import { BrainDB, MemoryLayer, AuthDB, safeParseConfig } from "@the-brain-dev/core";
 import {
   cleanMemoryContent,
   cleanGraphNodeLabel,

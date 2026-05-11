@@ -14,7 +14,7 @@
  *   5. Append to log.md
  *   6. Lint for orphans & stale pages
  */
-import { definePlugin, HookEvent } from "@the-brain-dev/core";
+import { definePlugin, HookEvent, MemoryLayer } from "@the-brain-dev/core";
 import type { BrainDB, Memory, GraphNodeRecord, OutputPlugin, OutputGenerateContext, OutputResult } from "@the-brain-dev/core";
 import { mkdir, writeFile, readFile, access } from "node:fs/promises";
 import { join, relative } from "node:path";

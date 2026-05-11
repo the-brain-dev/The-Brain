@@ -6,7 +6,7 @@ description: Step-by-step guide to creating the-brain plugins
 ## Minimal Plugin
 
 ```typescript
-import { definePlugin, HookEvent } from "@the-brain/core";
+import { definePlugin, HookEvent } from "@the-brain-dev/core";
 
 export default definePlugin({
   name: "my-plugin",
@@ -54,7 +54,7 @@ For the full hook system (17 lifecycle events + plugin-defined custom hooks), se
 ## Example: Context Injector
 
 ```typescript
-import { definePlugin, HookEvent } from "@the-brain/core";
+import { definePlugin, HookEvent } from "@the-brain-dev/core";
 
 export default definePlugin({
   name: "coding-standards",
@@ -73,7 +73,7 @@ Use async/await over .then().`;
 
 ```typescript
 import { describe, test, expect } from "bun:test";
-import { createHookSystem, HookEvent } from "@the-brain/core";
+import { createHookSystem, HookEvent } from "@the-brain-dev/core";
 import myPlugin from "../index";
 
 describe("my-plugin", () => {
@@ -94,12 +94,12 @@ describe("my-plugin", () => {
 
 ```json
 {
-  "name": "@the-brain/plugin-<name>",
+  "name": "@the-brain-dev/plugin-<name>",
   "version": "0.1.0",
   "type": "module",
   "main": "./src/index.ts",
   "dependencies": {
-    "@the-brain/core": "workspace:*"
+    "@the-brain-dev/core": "workspace:*"
   }
 }
 ```

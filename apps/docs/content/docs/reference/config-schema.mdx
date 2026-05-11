@@ -27,7 +27,7 @@ Array of plugin configs.
 
 ```json
 {
-  "name": "@the-brain/plugin-graph-memory",
+  "name": "@the-brain-dev/plugin-graph-memory",
   "enabled": true,
   "config": {}
 }
@@ -98,12 +98,12 @@ List of extension names (without `.ts` suffix) to load from `~/.the-brain/extens
   "storage": "sqlite | libsql",
   "cleaner": "default",
   "scheduler": "interval | cron",
-  "outputs": ["@the-brain/plugin-auto-wiki"]
+  "outputs": ["@the-brain-dev/plugin-auto-wiki"]
 }
 ```
 
 Module paths support three formats:
-- npm packages: `"libsql"` → resolves `@the-brain/storage-libsql`
+- npm packages: `"libsql"` → resolves `@the-brain-dev/storage-libsql`
 - local paths: `"./my-custom-cleaner.ts"`
 - absolute paths: `"/Users/me/my-backend.ts"`
 
@@ -164,7 +164,7 @@ OpenAI-compatible LLM backends for plugins that need AI inference (data-curator,
 
 ```json
 {
-  "name": "@the-brain/plugin-graph-memory",
+  "name": "@the-brain-dev/plugin-graph-memory",
   "enabled": true,
   "config": {
     "maxInjectNodes": 8,
@@ -184,7 +184,7 @@ OpenAI-compatible LLM backends for plugins that need AI inference (data-curator,
 
 ```json
 {
-  "name": "@the-brain/plugin-spm-curator",
+  "name": "@the-brain-dev/plugin-spm-curator",
   "enabled": true,
   "config": {
     "threshold": 0.30,

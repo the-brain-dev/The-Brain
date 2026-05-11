@@ -3,7 +3,7 @@ title: Hook System
 description: Event-driven plugin system powering the-brain's cognitive layers
 ---
 
-All plugins communicate through hooks defined in `@the-brain/core`.
+All plugins communicate through hooks defined in `@the-brain-dev/core`.
 
 ## Core Hook Events
 
@@ -32,7 +32,7 @@ All plugins communicate through hooks defined in `@the-brain/core`.
 ## Registration
 
 ```typescript
-import { definePlugin, HookEvent } from "@the-brain/core";
+import { definePlugin, HookEvent } from "@the-brain-dev/core";
 
 export default definePlugin({
   name: "my-plugin",

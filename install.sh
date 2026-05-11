@@ -105,7 +105,7 @@ for pkg_dir in sorted(pathlib.Path('packages').iterdir()):
     with open(pkg_json) as f:
         pkg = json.load(f)
     name = pkg.get('name', '')
-    if not name.startswith('@the-brain/'): continue
+    if not name.startswith('@the-brain-dev/'): continue
     if name not in paths:
         paths[name] = [f'./{pkg_dir}/src']
         paths[f'{name}/*'] = [f'./{pkg_dir}/src/*']

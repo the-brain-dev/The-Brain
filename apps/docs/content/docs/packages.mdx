@@ -23,7 +23,7 @@ Filter packages by the cognitive layer they operate on.
 
 Real-time context injection — corrections, preferences, and patterns detected immediately.
 
-### @the-brain/plugin-graph-memory
+### @the-brain-dev/plugin-graph-memory
 
 - **Version:** v0.1.0
 - **Type:** Memory
@@ -34,7 +34,7 @@ Real-time context injection — corrections, preferences, and patterns detected 
 
 The Gatekeeper — filters noise from signal. Only surprising, high-value memories are promoted to deep storage.
 
-### @the-brain/plugin-spm-curator
+### @the-brain-dev/plugin-spm-curator
 
 - **Version:** v0.1.0
 - **Type:** Memory
@@ -45,21 +45,21 @@ The Gatekeeper — filters noise from signal. Only surprising, high-value memori
 
 Permanent consolidation — overnight LoRA training, identity anchoring, and knowledge wiki generation.
 
-### @the-brain/trainer-local-mlx
+### @the-brain-dev/trainer-local-mlx
 
 - **Version:** v0.1.0
 - **Type:** Trainer
 - **Status:** Starter pack (macOS only)
 - **Description:** Runs overnight at 2 AM. Trains LoRA adapters on consolidated DEEP memories. Fully local — data never leaves your machine. Requires Apple Silicon + uv.
 
-### @the-brain/plugin-identity-anchor
+### @the-brain-dev/plugin-identity-anchor
 
 - **Version:** v0.1.0
 - **Type:** Memory
 - **Status:** Starter pack
 - **Description:** Maintains a stable self-vector across LoRA retrains. Detects drift in coding style and preferences.
 
-### @the-brain/plugin-auto-wiki
+### @the-brain-dev/plugin-auto-wiki
 
 - **Version:** v0.1.0
 - **Type:** Output
@@ -70,35 +70,35 @@ Permanent consolidation — overnight LoRA training, identity anchoring, and kno
 
 Harvesters — collect interactions from any AI tool and push them into the pipeline.
 
-### @the-brain/plugin-harvester-cursor
+### @the-brain-dev/plugin-harvester-cursor
 
 - **Version:** v0.1.0
 - **Type:** Harvester
 - **Status:** Starter pack
 - **Description:** Reads Cursor's local SQLite workspace database. Auto-detects project context via workDir matching.
 
-### @the-brain/plugin-harvester-claude
+### @the-brain-dev/plugin-harvester-claude
 
 - **Version:** v0.1.0
 - **Type:** Harvester
 - **Status:** Starter pack
 - **Description:** Reads Claude Code's local JSONL conversation logs. Tracks offset/checkpoint to avoid re-processing.
 
-### @the-brain/plugin-harvester-gemini
+### @the-brain-dev/plugin-harvester-gemini
 
 - **Version:** v0.1.0
 - **Type:** Harvester
 - **Status:** Starter pack
 - **Description:** Polls Gemini CLI's local JSON logs for new interactions.
 
-### @the-brain/plugin-harvester-hermes
+### @the-brain-dev/plugin-harvester-hermes
 
 - **Version:** v0.1.0
 - **Type:** Harvester
 - **Status:** Starter pack
 - **Description:** Polls Hermes Agent's SQLite state.db for user↔assistant chat interactions.
 
-### @the-brain/plugin-harvester-lm-eval
+### @the-brain-dev/plugin-harvester-lm-eval
 
 - **Version:** v0.1.0
 - **Type:** Harvester
@@ -109,21 +109,21 @@ Harvesters — collect interactions from any AI tool and push them into the pipe
 
 Core framework, integrations, and storage backends.
 
-### @the-brain/core
+### @the-brain-dev/core
 
 - **Version:** v0.1.0
 - **Type:** Core
 - **Status:** Starter pack
 - **Description:** Empty data bus — everything else is a plugin via `definePlugin()`. Includes hook system, BrainDB (Drizzle ORM + sqlite), LayerRouter, ProjectManager, ContentCleaner, AuthDB (multi-user auth), and PermissionResolver.
 
-### @the-brain/mcp-server
+### @the-brain-dev/mcp-server
 
 - **Version:** v0.1.0
 - **Type:** Integration
 - **Status:** Starter pack
 - **Description:** MCP (Model Context Protocol) server — exposes the-brain as a memory backend for Claude Desktop, Cursor, Zed. 26 tools + 11 resources + SSE subscriptions + meta-harness integration tools.
 
-### @the-brain/storage-libsql
+### @the-brain-dev/storage-libsql
 
 - **Version:** v0.1.0
 - **Type:** Storage

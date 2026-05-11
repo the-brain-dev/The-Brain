@@ -85,7 +85,7 @@ See [Hook System](/docs/core-concepts/hook-system) for the full list of 17 lifec
 
 ## Example: Hermes Agent Harvester
 
-The `@the-brain/plugin-harvester-hermes` plugin harvests conversations from Hermes Agent. The example below shows key extension-programming techniques used to build this harvester.
+The `@the-brain-dev/plugin-harvester-hermes` plugin harvests conversations from Hermes Agent. The example below shows key extension-programming techniques used to build this harvester.
 
 **What it did:**
 - **Auto-harvester** — hooked `harvester:poll` (every 30s), read `~/.hermes/state.db`, paired user→assistant messages, emitted `harvester:newData` into the pipeline

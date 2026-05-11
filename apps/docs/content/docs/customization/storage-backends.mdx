@@ -31,7 +31,7 @@ Remote database for multi-machine setups.
 the-brain backend set --slot storage --backend libsql
 ```
 
-Requires `@the-brain/storage-libsql` package. Set `LIBSQL_URL` and `LIBSQL_AUTH_TOKEN` env vars.
+Requires `@the-brain-dev/storage-libsql` package. Set `LIBSQL_URL` and `LIBSQL_AUTH_TOKEN` env vars.
 
 ## StorageBackend Interface
 
@@ -50,8 +50,8 @@ interface StorageBackend {
 ## Writing a Custom Backend
 
 ```typescript
-import { definePlugin, HookEvent } from "@the-brain/core";
-import type { StorageBackend, MemoryFragment, MemoryLayer } from "@the-brain/core";
+import { definePlugin, HookEvent } from "@the-brain-dev/core";
+import type { StorageBackend, MemoryFragment, MemoryLayer } from "@the-brain-dev/core";
 
 export class PostgresStorage implements StorageBackend {
   async insertMemory(memory: MemoryFragment) { /* ... */ }
