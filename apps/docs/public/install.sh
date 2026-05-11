@@ -57,9 +57,10 @@ if command -v bun &> /dev/null; then
 else
     info "Installing Bun..."
     curl -fsSL https://bun.sh/install | bash
-    export PATH="$HOME/.bun/bin:$PATH"
     success "Bun installed"
 fi
+# Always ensure ~/.bun/bin is in PATH (bun link puts binaries there)
+export PATH="$HOME/.bun/bin:$PATH"
 
 # ── Check/install uv (Python sidecar) ──────────────────────────
 if command -v uv &> /dev/null; then
@@ -67,9 +68,10 @@ if command -v uv &> /dev/null; then
 else
     info "Installing uv (Python package manager)..."
     curl -LsSf https://astral.sh/uv/install.sh | sh
-    export PATH="$HOME/.local/bin:$PATH"
     success "uv installed"
 fi
+# Always ensure ~/.local/bin is in PATH (uv installer puts it there)
+export PATH="$HOME/.local/bin:$PATH"
 
 # ── Install dependencies ───────────────────────────────────────
 info "Installing project dependencies..."
@@ -106,8 +108,8 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║   🧠 the-brain is ready!                 ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════╝${NC}"
 echo ""
-echo "  Starting daemon..."
-bun run apps/cli/src/index.ts daemon start 2>/dev/null || echo "  (daemon already running)"
+echo "  Starting daemon (background)..."
+bun run apps/cli/src/index.ts daemon start &>/dev/null &
 
 # ── Create daemon LaunchAgent (auto-start at login) ───────
 LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
