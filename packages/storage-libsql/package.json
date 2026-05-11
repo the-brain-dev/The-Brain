@@ -8,5 +8,9 @@
     "@libsql/client": "^0.14.0",
     "@the-brain/core": "workspace:*",
     "drizzle-orm": "^0.45.2"
-  }
+  },
+  "license": "MIT",
+  "files": [
+    "src"
+  ]
 }

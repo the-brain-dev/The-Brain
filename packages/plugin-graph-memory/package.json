@@ -1,11 +1,15 @@
 {
   "name": "@the-brain/plugin-graph-memory",
   "version": "0.1.0",
-  "description": "Instant Layer plugin — creates fast relational nodes of recent corrections",
+  "description": "Instant Layer plugin \u2014 creates fast relational nodes of recent corrections",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
     "@the-brain/core": "workspace:*"
-  }
+  },
+  "license": "MIT",
+  "files": [
+    "src"
+  ]
 }
