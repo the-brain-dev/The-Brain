@@ -64,9 +64,10 @@ if command -v bun &> /dev/null; then
 else
     info "Installing Bun..."
     curl -fsSL https://bun.sh/install | bash
-    export PATH="$HOME/.bun/bin:$PATH"
     success "Bun installed"
 fi
+# Always ensure ~/.bun/bin is in PATH (bun link puts binaries there)
+export PATH="$HOME/.bun/bin:$PATH"
 
 # ── Check/install uv (Python sidecar) ──────────────────────────
 if command -v uv &> /dev/null; then
@@ -74,9 +75,10 @@ if command -v uv &> /dev/null; then
 else
     info "Installing uv (Python package manager)..."
     curl -LsSf https://astral.sh/uv/install.sh | sh
-    export PATH="$HOME/.local/bin:$PATH"
     success "uv installed"
 fi
+# Always ensure ~/.local/bin is in PATH (uv installer puts it there)
+export PATH="$HOME/.local/bin:$PATH"
 
 # ── Install dependencies ───────────────────────────────────────
 info "Installing project dependencies..."
@@ -121,11 +123,31 @@ cd apps/cli
 bun link 2>/dev/null || true
 cd - > /dev/null
 
-if command -v the-brain &> /dev/null; then
-    success "the-brain is now globally available: $(command -v the-brain)"
+# Ensure ~/.bun/bin is in PATH permanently (not just this session)
+BUN_BIN="$HOME/.bun/bin"
+if [ -x "$BUN_BIN/the-brain" ]; then
+    # Detect shell and add ~/.bun/bin to the right rc file
+    SHELL_NAME=$(basename "${SHELL:-/bin/zsh}")
+    case "$SHELL_NAME" in
+        zsh)  SHELL_RC="$HOME/.zshrc" ;;
+        bash) SHELL_RC="$HOME/.bashrc"
+              [ -f "$HOME/.bash_profile" ] && SHELL_RC="$HOME/.bash_profile" ;;
+        fish) SHELL_RC="$HOME/.config/fish/config.fish" ;;
+        *)    SHELL_RC="" ;;
+    esac
+
+    if [ -n "$SHELL_RC" ] && ! grep -q "$BUN_BIN" "$SHELL_RC" 2>/dev/null; then
+        echo "" >> "$SHELL_RC"
+        echo "# Added by the-brain installer" >> "$SHELL_RC"
+        echo "export PATH=\"$BUN_BIN:\\\$PATH\"" >> "$SHELL_RC"
+        success "Added $BUN_BIN to $SHELL_RC"
+    fi
+    success "the-brain linked — restart terminal or run: source $SHELL_RC"
+elif command -v the-brain &> /dev/null; then
+    success "the-brain is already globally available: $(command -v the-brain)"
 else
     warn "Could not link the-brain globally"
-    warn "  Add to your shell: alias the-brain='bun run $PWD/apps/cli/src/index.ts'"
+    warn "  Add to your shell: alias the-brain='bun run $REPO_DIR/apps/cli/src/index.ts'"
 fi
 
 # ── Initialize the-brain ────────────────────────────────────────
@@ -159,18 +181,8 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║   🧠 the-brain is ready!                 ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════╝${NC}"
 echo ""
-echo "  Starting daemon..."
-DAEMON_OUTPUT=$(bun run apps/cli/src/index.ts daemon start 2>&1) || true
-if echo "$DAEMON_OUTPUT" | grep -q "already running"; then
-    echo "  (daemon already running)"
-elif echo "$DAEMON_OUTPUT" | grep -qE "Daemon started|🧠 the-brain initialized"; then
-    success "Daemon started"
-else
-    warn "Daemon may have failed to start:"
-    echo "$DAEMON_OUTPUT" | while IFS= read -r line; do
-        echo "  $line"
-    done
-fi
+echo "  Starting daemon (background)..."
+bun run apps/cli/src/index.ts daemon start &>/dev/null &
 
 # ── Create daemon LaunchAgent (auto-start at login) ───────
 LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
