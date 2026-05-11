@@ -2,7 +2,6 @@ import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata } from "next";
 import "./global.css";
 import { Inter } from "next/font/google";
-import PasswordGate from "../components/PasswordGate";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -33,9 +32,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning className={inter.className}>
       <body className="flex flex-col min-h-screen">
-        <PasswordGate>
-          <RootProvider>{children}</RootProvider>
-        </PasswordGate>
+        <RootProvider>{children}</RootProvider>
       </body>
     </html>
   );
