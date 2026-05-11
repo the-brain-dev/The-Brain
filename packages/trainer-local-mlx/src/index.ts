@@ -5,7 +5,6 @@
  */
 import { definePlugin, HookEvent } from "@the-brain-dev/core";
 import type { ConsolidationContext, DeepLayerPlugin, MemoryLayer as ML } from "@the-brain-dev/core";
-import { MemoryLayer } from "@the-brain-dev/core";
 import { spawn } from "node:child_process";
 import { join } from "node:path";
 
