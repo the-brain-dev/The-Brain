@@ -86,11 +86,31 @@ cd apps/cli
 bun link 2>/dev/null || true
 cd - > /dev/null
 
-if command -v the-brain &> /dev/null; then
-    success "the-brain is now globally available: $(command -v the-brain)"
+# Ensure ~/.bun/bin is in PATH permanently (not just this session)
+BUN_BIN="$HOME/.bun/bin"
+if [ -x "$BUN_BIN/the-brain" ]; then
+    # Detect shell and add ~/.bun/bin to the right rc file
+    SHELL_NAME=$(basename "${SHELL:-/bin/zsh}")
+    case "$SHELL_NAME" in
+        zsh)  SHELL_RC="$HOME/.zshrc" ;;
+        bash) SHELL_RC="$HOME/.bashrc"
+              [ -f "$HOME/.bash_profile" ] && SHELL_RC="$HOME/.bash_profile" ;;
+        fish) SHELL_RC="$HOME/.config/fish/config.fish" ;;
+        *)    SHELL_RC="" ;;
+    esac
+
+    if [ -n "$SHELL_RC" ] && ! grep -q "$BUN_BIN" "$SHELL_RC" 2>/dev/null; then
+        echo "" >> "$SHELL_RC"
+        echo "# Added by the-brain installer" >> "$SHELL_RC"
+        echo "export PATH=\"$BUN_BIN:\\\$PATH\"" >> "$SHELL_RC"
+        success "Added $BUN_BIN to $SHELL_RC"
+    fi
+    success "the-brain linked — restart terminal or run: source $SHELL_RC"
+elif command -v the-brain &> /dev/null; then
+    success "the-brain is already globally available: $(command -v the-brain)"
 else
     warn "Could not link the-brain globally"
-    warn "  Add to your shell: alias the-brain='bun run $PWD/apps/cli/src/index.ts'"
+    warn "  Add to your shell: alias the-brain='bun run $REPO_DIR/apps/cli/src/index.ts'"
 fi
 
 # ── Initialize the-brain ────────────────────────────────────────
