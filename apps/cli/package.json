@@ -1,11 +1,21 @@
 {
-  "name": "@the-brain/cli",
+  "name": "the-brain",
   "version": "0.1.0",
-  "description": "the-brain CLI — TUI and daemon management",
+  "description": "Open memory platform for AI — 3-layer cognitive architecture, local-first, pluggable",
+  "license": "MIT",
   "type": "module",
-  "main": "./src/index.ts",
   "bin": {
-    "the-brain": "./src/index.ts"
+    "the-brain": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "bun": ">=1.0.0"
+  },
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target node",
+    "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
     "@the-brain/core": "workspace:*",
