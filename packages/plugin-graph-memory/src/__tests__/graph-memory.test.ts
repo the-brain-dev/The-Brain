@@ -3,7 +3,7 @@
  */
 import { describe, test, expect, beforeEach, mock } from "bun:test";
 import { createGraphMemoryPlugin } from "../index";
-import { BrainDB, MemoryLayer, HookEvent } from "@the-brain-dev/core";
+import { BrainDB, HookEvent } from "@the-brain-dev/core";
 import type { PromptContext, GraphNodeRecord } from "@the-brain-dev/core";
 
 function createMockDB(nodes: Partial<GraphNodeRecord>[] = []): BrainDB {
