@@ -271,6 +271,16 @@ const ALL_COMMANDS = [
   "backend", "setup", "docs", "mcp", "agent", "ext", "timeline", "user",
 ];
 
+const COMMAND_ACTIONS: Record<string, string[]> = {
+  daemon: ["start", "stop", "status", "enable", "disable"],
+  backend: ["list", "set", "unset"],
+  user: ["add", "list", "remove", "token", "set-role"],
+  wiki: ["open", "serve", "path", "generate"],
+  docs: ["dev", "build", "serve"],
+  mcp: ["serve"],
+  plugins: ["list"],
+};
+
 function suggestCommand(input: string): string | null {
   let best = null;
   let bestDist = Infinity;
@@ -302,16 +312,16 @@ try {
   cli.parse();
 } catch (err) {
   const message = err instanceof Error ? err.message : String(err);
-  console.error(`Error: ${message}`);
-  // Try to extract the command name from the error and suggest
+  console.error("Error: " + message);
   const argMatch = message.match(/command[`\s]+([^\s`]+)/);
   if (argMatch) {
-    const suggestion = suggestCommand(argMatch[1]);
-    if (suggestion) {
-      console.error(`Did you mean "${suggestion}"?`);
-    }
+    const cmdName = argMatch[1];
+    const suggestion = suggestCommand(cmdName);
+    if (suggestion) console.error('Did you mean "' + suggestion + '"?');
+    const actions = COMMAND_ACTIONS[cmdName];
+    if (actions) console.error("Available actions: " + actions.join(", "));
   }
-  console.error(`Run \`the-brain --help\` for usage information.`);
+  console.error("Run `the-brain " + (argMatch?.[1] || "") + " --help` for more info.");
   process.exit(1);
 }
 
