@@ -16,7 +16,7 @@ Lowercase, hyphen-separated, max 50 chars.
 | `refactor/` | Code restructuring (no behavior change) | `refactor/daemon-engine-separation` |
 | `docs/` | Documentation only | `docs/api-reference-update` |
 | `chore/` | CI, build, deps, tooling | `chore/update-bun` |
-| `release/` | Release preparation (rare) | `release/v1.24.0` |
+| `release/` | Release preparation (changeset bot creates the PR) | `release/v1.24.0` |
 
 ## External Contributors (Fork & PR)
 
@@ -118,16 +118,34 @@ CI runs `bun test` and `bun run lint` on every PR — both must pass before merg
 
 ## Releasing
 
-Lockstep versioning — all packages share the same version number.
+the-brain uses [Changesets](https://github.com/changesets/changesets) for independent versioning — each package has its own version. Core can be 2.0 while a plugin stays at 1.4.
+
+### Creating a Changeset (per PR)
+
+When your PR changes package code, run:
 
 ```bash
-bun run scripts/release.ts patch|minor|major|<x.y.z>
+bunx changeset
 ```
+
+The CLI will ask which packages changed, the bump type (`patch`/`minor`/`major`), and a description.
+Commit the generated `.changeset/*.md` file alongside your code.
+
+### How Releases Happen
+
+1. Merge PRs with changesets → bot collects pending changes
+2. Bot opens a **"Version Packages" PR** showing bump details and generated changelogs
+3. Review and merge the Version Packages PR
+4. On merge: npm publish + GitHub Release (automated)
+
+No manual version bumps. No `scripts/release.ts`. The bot handles everything.
+
+### Bump Semantics
 
 | Bump | Meaning |
 |------|---------|
-| `patch` | Bug fixes + new features (no API break) |
+| `patch` | Bug fixes + new features without API breaks |
 | `minor` | API breaking changes (plugin contracts, hook signatures) |
 | `major` | Architecture overhaul (core rewrite, storage migration) |
 
-The release script uses targeted `git add` (only `package.json`, `bun.lock`, changelogs) and requires admin access to bypass branch protection.
+When in doubt: **patch**. Most changes are additive and non-breaking.

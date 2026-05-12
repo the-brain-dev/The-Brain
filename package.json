@@ -23,6 +23,7 @@
     "daemon": "bun run apps/cli/src/index.ts daemon start"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.31.0",
     "@types/bun": "latest",
     "typescript": "^6.0.3"
   },
