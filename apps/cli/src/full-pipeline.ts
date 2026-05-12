@@ -60,6 +60,10 @@ async function main() {
   const lmEvalMod = await import("@the-brain-dev/plugin-harvester-lm-eval");
   await pm.load(lmEvalMod.default || lmEvalMod);
 
+  // Load Windsurf Harvester
+  const windsurfMod = await import("@the-brain-dev/plugin-harvester-windsurf");
+  await pm.load(windsurfMod.default || windsurfMod);
+
   // Harvest
   console.log("Harvesting Claude Code data...");
   console.time("harvest");

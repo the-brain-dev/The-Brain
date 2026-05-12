@@ -20,7 +20,7 @@
     },
     "apps/cli": {
       "name": "@the-brain-dev/cli",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "bin": {
         "the-brain": "./dist/index.js",
       },
@@ -132,6 +132,13 @@
     },
     "packages/plugin-harvester-lm-eval": {
       "name": "@the-brain-dev/plugin-harvester-lm-eval",
+      "version": "0.1.0",
+      "dependencies": {
+        "@the-brain-dev/core": "workspace:*",
+      },
+    },
+    "packages/plugin-harvester-windsurf": {
+      "name": "@the-brain-dev/plugin-harvester-windsurf",
       "version": "0.1.0",
       "dependencies": {
         "@the-brain-dev/core": "workspace:*",
@@ -547,6 +554,8 @@
     "@the-brain-dev/plugin-harvester-hermes": ["@the-brain-dev/plugin-harvester-hermes@workspace:packages/plugin-harvester-hermes"],
 
     "@the-brain-dev/plugin-harvester-lm-eval": ["@the-brain-dev/plugin-harvester-lm-eval@workspace:packages/plugin-harvester-lm-eval"],
+
+    "@the-brain-dev/plugin-harvester-windsurf": ["@the-brain-dev/plugin-harvester-windsurf@workspace:packages/plugin-harvester-windsurf"],
 
     "@the-brain-dev/plugin-identity-anchor": ["@the-brain-dev/plugin-identity-anchor@workspace:packages/plugin-identity-anchor"],
 

@@ -81,6 +81,12 @@
       "@the-brain-dev/plugin-harvester-lm-eval/*": [
         "./packages/plugin-harvester-lm-eval/src/*"
       ],
+      "@the-brain-dev/plugin-harvester-windsurf": [
+        "./packages/plugin-harvester-windsurf/src"
+      ],
+      "@the-brain-dev/plugin-harvester-windsurf/*": [
+        "./packages/plugin-harvester-windsurf/src/*"
+      ],
       "@the-brain-dev/plugin-data-curator": [
         "./packages/plugin-data-curator/src"
       ],
