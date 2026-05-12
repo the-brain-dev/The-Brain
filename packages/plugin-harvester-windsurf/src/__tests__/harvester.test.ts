@@ -476,7 +476,7 @@ describe("Windsurf Harvester — Trajectory Extraction", () => {
 
 describe("Windsurf Harvester — Tool Calls", () => {
   test("parses tool call with all fields", async () => {
-    const { parseToolCall, parseFields, tryDecodeStr } = await import("../index");
+    const { parseToolCall, tryDecodeStr } = await import("../index");
 
     const tc = encodeToolCall("call_1", "write_file", {
       path: "/tmp/test.ts",
