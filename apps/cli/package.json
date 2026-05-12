@@ -1,6 +1,6 @@
 {
   "name": "@the-brain-dev/cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Open memory platform for AI — 3-layer cognitive architecture, local-first, pluggable",
   "license": "MIT",
   "type": "module",

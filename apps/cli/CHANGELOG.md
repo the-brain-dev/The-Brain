@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+### Patch Changes
+
+- 6ab5309: Rename CLI package from `the-brain` to `@the-brain-dev/cli` for npm org scope consistency. Binary name `the-brain` unchanged.
+
 ## [Unreleased]
 
 ### Added
@@ -27,4 +33,3 @@
 
 - `the-brain context` command — exports brain state as JSON/markdown for external AI agents (Hermes).
 - 5 integration tests for `context` command + 18 unit tests for `ContentCleaner`.
-
