@@ -200,12 +200,19 @@ Full documentation at **[the-brain.dev](https://the-brain.dev)**.
 
 ## 🤝 Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines and [AGENTS.md](AGENTS.md) for project-specific rules (for both humans and agents).
+the-brain is actively seeking contributors. Start here:
+
+1. Read [CONTRIBUTING.md](CONTRIBUTING.md)
+2. Pick a [`good first issue`](https://github.com/the-brain-dev/Brain/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+3. Open a [discussion](https://github.com/the-brain-dev/Brain/discussions) to scope your work before coding
+
+We especially welcome **harvesters** for new data sources (Windsurf, Gemini CLI, terminal history) and documentation improvements.
 
 **Before submitting a PR:**
 ```bash
-bun test --coverage
-bun run lint
+bun test --coverage     # >80% line coverage
+bun run lint            # zero errors
+cd apps/docs && bun run build  # docs compile clean
 ```
 
 ## 📄 License
