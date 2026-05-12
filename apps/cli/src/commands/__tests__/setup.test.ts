@@ -1,7 +1,7 @@
 /**
  * setup command tests — config loading, --status, flag-based mutations.
  */
-import { describe, test, expect, beforeAll, afterAll } from "bun:test";
+import { describe, test, expect, beforeAll, afterAll, mock } from "bun:test";
 import { mkdir, writeFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -21,10 +21,16 @@ function makeConfigJson(overrides: Record<string, unknown> = {}) {
   return JSON.stringify(
     {
       plugins: [],
-      daemon: { pollIntervalMs: 30000, logDir: join(TEST_HOME, ".the-brain", "logs") },
+      daemon: {
+        pollIntervalMs: 30000,
+        logDir: join(TEST_HOME, ".the-brain", "logs"),
+      },
       database: { path: join(TEST_HOME, ".the-brain", "global", "brain.db") },
       mlx: { enabled: false },
-      wiki: { enabled: true, outputDir: join(TEST_HOME, ".the-brain", "global", "wiki") },
+      wiki: {
+        enabled: true,
+        outputDir: join(TEST_HOME, ".the-brain", "global", "wiki"),
+      },
       activeContext: "global",
       contexts: {},
       ...overrides,
@@ -245,13 +251,12 @@ describe("yesNo helper", () => {
   });
 });
 
-describe("showReview back/retry flow", () => {
-  test("Enter returns true (save)", async () => {
+describe("showReview", () => {
+  test("'Save configuration' returns true", async () => {
+    const mockSelect = mock(async () => "save");
+    mock.module("@inquirer/prompts", () => ({ select: mockSelect }));
+
     const { showReview } = await import("../setup");
-    const mockRl = {
-      question: (_q: string, cb: (answer: string) => void) => cb(""),
-      close: () => {},
-    } as any;
 
     const pipeline = {
       harvesters: ["cursor"],
@@ -261,16 +266,15 @@ describe("showReview back/retry flow", () => {
       llm: false,
     };
 
-    const result = await showReview(mockRl, pipeline);
+    const result = await showReview(pipeline);
     expect(result).toBe(true);
   });
 
-  test("'q' returns false (quit)", async () => {
+  test("'Quit (cancel)' returns false", async () => {
+    const mockSelect = mock(async () => "quit");
+    mock.module("@inquirer/prompts", () => ({ select: mockSelect }));
+
     const { showReview } = await import("../setup");
-    const mockRl = {
-      question: (_q: string, cb: (answer: string) => void) => cb("q"),
-      close: () => {},
-    } as any;
 
     const pipeline = {
       harvesters: ["cursor"],
@@ -280,16 +284,15 @@ describe("showReview back/retry flow", () => {
       llm: false,
     };
 
-    const result = await showReview(mockRl, pipeline);
+    const result = await showReview(pipeline);
     expect(result).toBe(false);
   });
 
-  test("'b' returns false (back to retry)", async () => {
+  test("'Back to reconfigure' returns false", async () => {
+    const mockSelect = mock(async () => "back");
+    mock.module("@inquirer/prompts", () => ({ select: mockSelect }));
+
     const { showReview } = await import("../setup");
-    const mockRl = {
-      question: (_q: string, cb: (answer: string) => void) => cb("b"),
-      close: () => {},
-    } as any;
 
     const pipeline = {
       harvesters: ["cursor", "claude"],
@@ -299,8 +302,8 @@ describe("showReview back/retry flow", () => {
       llm: true,
     };
 
-    const result = await showReview(mockRl, pipeline);
-    expect(result).toBe(false); // back → loop should re-run
+    const result = await showReview(pipeline);
+    expect(result).toBe(false);
   });
 });
 

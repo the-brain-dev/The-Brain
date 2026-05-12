@@ -18,15 +18,16 @@
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
+    "@inquirer/prompts": "^8.4.3",
     "@the-brain-dev/core": "workspace:*",
-    "@the-brain-dev/plugin-graph-memory": "workspace:*",
-    "@the-brain-dev/plugin-spm-curator": "workspace:*",
-    "@the-brain-dev/plugin-harvester-cursor": "workspace:*",
-    "@the-brain-dev/plugin-harvester-claude": "workspace:*",
-    "@the-brain-dev/plugin-identity-anchor": "workspace:*",
-    "@the-brain-dev/plugin-auto-wiki": "workspace:*",
-    "@the-brain-dev/trainer-local-mlx": "workspace:*",
     "@the-brain-dev/mcp-server": "workspace:*",
+    "@the-brain-dev/plugin-auto-wiki": "workspace:*",
+    "@the-brain-dev/plugin-graph-memory": "workspace:*",
+    "@the-brain-dev/plugin-harvester-claude": "workspace:*",
+    "@the-brain-dev/plugin-harvester-cursor": "workspace:*",
+    "@the-brain-dev/plugin-identity-anchor": "workspace:*",
+    "@the-brain-dev/plugin-spm-curator": "workspace:*",
+    "@the-brain-dev/trainer-local-mlx": "workspace:*",
     "cac": "^6.7.14",
     "consola": "^3.4.0"
   }

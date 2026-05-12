@@ -13,6 +13,12 @@
   - Backward compatible: missing `pipeline` field → all plugins load as before
   - 39 new tests: pipeline schema validation, engine plugin enable/disable, setup command
 
+### Changed
+
+- Replace readline prompts with @inquirer/prompts for TUI with arrow key navigation (checkbox, select, confirm, input)
+- Remove layer selection step — all 3 memory layers always enabled by default (4 steps instead of 5)
+- install.sh delegates interactive setup to `the-brain setup` command directly (DRY)
+
 ### Patch Changes
 
 - Updated dependencies [b0cb574]
