@@ -54,6 +54,27 @@
 - `context` command deduplicates memories across layers (instant/selection/deep), keeping highest-signal version.
 - `consolidate --reprocess` handles duplicate `sel-` and `deep-` memory IDs gracefully (update instead of crash).
 - SPM default threshold lowered from 0.42 to 0.30 based on production data calibration (was filtering 98.7% → now promotes ~32%).
+- `wiki generate` no longer crashes on null surpriseScore (changed `!== undefined` to `!= null`).
+- `context --markdown` no longer crashes on null surpriseScore (added `?? 0` fallback).
+- `consolidate --reprocess` no longer floods terminal with stack traces on duplicate IDs (`console.error` → `consola.debug`).
+- `daemon start` shows clean warning instead of stack trace when daemon already running (catches `DaemonAlreadyRunningError`).
+- Missing required args (`daemon`, `backend`, `wiki`, etc.) show clean error instead of raw stack trace (try/catch around `cli.parse()`).
+- `the-brain` (no args) and unknown commands show proper help/error in non-TTY terminals (added `command:*` handler + fallback).
+- `setup --layer-instant`, `--mlx`, etc. validate values as `on|off` — garbage input rejected with error instead of silently writing corrupted config.
+- `install.sh` and `apps/docs/public/install.sh` fix double-escaped `$PATH` (`\\\$PATH` → `\$PATH`) so PATH expands correctly when shell RC is sourced.
+- `health`, `inspect`, `consolidate` now consistently reject `--project` + `--global` together.
+- Emoji and box-drawing characters disabled in non-TTY terminals for clean piped output.
+
+### Added
+
+- Levenshtein distance suggestions for unknown commands: `the-brain inspetc` → "Did you mean inspect?"
+- `api-server` and `wiki serve` handle EADDRINUSE by auto-releasing the port (`lsof` + `kill -9` + retry).
+- `train --iterations` validates input as positive integer; rejects NaN, zero, and negative values.
+- `setup` in non-TTY shows helpful fallback message instead of hanging on interactive wizard.
+
+### Removed
+
+- Dead `--layer` flag from `consolidate` (was accepted but never used).
 
 ### Added
 

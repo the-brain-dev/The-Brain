@@ -282,7 +282,7 @@ function formatMarkdown(ctx: ContextOutput): string {
     lines.push("### ⚡ Surprising Patterns");
     for (const p of ctx.spmPatterns.slice(0, 5)) {
       const proj = p.project ? ` [${p.project}]` : "";
-      lines.push(`- s=${p.surpriseScore.toFixed(3)}${proj} ${p.summary}`);
+      lines.push(`- s=${(p.surpriseScore ?? 0).toFixed(3)}${proj} ${p.summary}`);
     }
     lines.push("");
   }

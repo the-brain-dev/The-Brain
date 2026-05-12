@@ -19,6 +19,10 @@ export async function healthCommand(options: {
   project?: string;
   global?: boolean;
 }) {
+  if (options.project && options.global) {
+    consola.error("Cannot use --project and --global together. Choose one.");
+    return;
+  }
   const dbPath = await resolveDbPath(options);
   if (!dbPath || !existsSync(dbPath)) {
     consola.warn("No database found. Run `the-brain init` first.");
@@ -189,6 +193,8 @@ function buildHealthBox(
 ): string {
   const status = daemonRunning ? "🟢 RUNNING" : "🔴 STOPPED";
   const uptimeLine = uptime ? `  Uptime:           ${uptime}\n` : "";
+  const boxH = "\u2500";
+  const useEmoji = process.stdout.isTTY;
 
   // Per-layer breakdown
   const perLayer = stats.perLayer as Record<string, number>;
@@ -198,8 +204,8 @@ function buildHealthBox(
 
   return `
   ${label.toUpperCase()}
-  ${"─".repeat(40)}
-  Status:           ${status}
+  ${boxH.repeat(40)}
+  Status:           ${useEmoji ? status : daemonRunning ? "RUNNING" : "STOPPED"}
 ${uptimeLine}  Total memories:   ${stats.memories}
   Graph nodes:      ${stats.graphNodes}
   Sessions:         ${stats.sessions}

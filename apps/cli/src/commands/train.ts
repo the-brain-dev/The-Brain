@@ -24,6 +24,13 @@ export async function trainCommand(options: {
   iterations?: number;
   dryRun?: boolean;
 }) {
+  // Validate iterations
+  const iterations = options.iterations ?? 50;
+  if (typeof iterations !== "number" || Number.isNaN(iterations) || iterations <= 0 || !Number.isFinite(iterations)) {
+    consola.error(`Invalid iterations value: ${iterations}. Must be a positive integer.`);
+    return;
+  }
+
   let dbPath = DEFAULT_DB_PATH;
 
   // Resolve DB path from config
@@ -106,8 +113,8 @@ export async function trainCommand(options: {
 
     // Create trainer with optional iteration override
     const trainerConfig: Record<string, unknown> = {};
-    if (options.iterations) {
-      trainerConfig.iterations = Math.max(1, options.iterations);
+    if (iterations !== 50) {
+      trainerConfig.iterations = iterations;
     }
     const trainer = createMlxTrainer(trainerConfig);
 

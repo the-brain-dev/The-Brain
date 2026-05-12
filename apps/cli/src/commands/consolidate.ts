@@ -21,11 +21,14 @@ const DEFAULT_DB_PATH = join(process.env.HOME || "~", ".the-brain", "brain.db");
 
 export async function consolidateCommand(options: {
   now?: boolean;
-  layer?: string;
   reprocess?: boolean;
   project?: string;
   global?: boolean;
 }) {
+  if (options.project && options.global) {
+    consola.error("Cannot use --project and --global together. Choose one.");
+    return;
+  }
   let dbPath = DEFAULT_DB_PATH;
 
   // Resolve DB path from config
@@ -209,7 +212,7 @@ async function reprocessMemoriesWithSPM(db: BrainDB) {
         scored++;
       } catch (err) {
         // Already exists from previous reprocess — update instead
-        console.error("[Consolidate] Insert failed (expected if duplicate), updating:", err);
+        consola.debug(`[Consolidate] Memory ${selId} already exists, updating surprise score...`);
         await db.updateMemory(selId, {
           surpriseScore: result.score,
           metadata: JSON.stringify({

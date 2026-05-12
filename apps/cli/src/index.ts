@@ -66,7 +66,6 @@ cli
   .command("consolidate", "Force memory consolidation (Layer 2 -> Layer 3)")
   .option("--now", "Run consolidation immediately")
   .option("--reprocess", "Run all INSTANT memories through SPM first")
-  .option("--layer <layer>", "Target layer: selection|deep")
   .option("--project <name>", "Target a specific project")
   .option("--global", "Target global brain")
   .action(async (options) => {
@@ -249,4 +248,74 @@ cli
 
 // Parse
 cli.help();
-cli.parse();
+
+// ── Levenshtein distance helper ──────────────────────────────
+function levenshtein(a: string, b: string): number {
+  const m = a.length, n = b.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1]
+        ? dp[i - 1][j - 1]
+        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+  return dp[m][n];
+}
+
+const ALL_COMMANDS = [
+  "init", "daemon", "consolidate", "inspect", "train", "plugins",
+  "switch-context", "health", "wiki", "dashboard", "context",
+  "backend", "setup", "docs", "mcp", "agent", "ext", "timeline", "user",
+];
+
+function suggestCommand(input: string): string | null {
+  let best = null;
+  let bestDist = Infinity;
+  for (const cmd of ALL_COMMANDS) {
+    const dist = levenshtein(input, cmd);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = cmd;
+    }
+  }
+  return best && bestDist <= 3 ? best : null;
+}
+
+// Handle unknown commands and missing args for non-TTY environments
+cli.on("command:*", () => {
+  const input = process.argv[2] || "";
+  const suggestion = suggestCommand(input);
+  if (suggestion) {
+    console.error(`Unknown command "${input}". Did you mean "${suggestion}"?`);
+  } else {
+    console.error("Unknown command. Run `the-brain --help` for usage information.");
+  }
+  process.exit(1);
+});
+
+// Handle parse errors gracefully in non-TTY environments
+// (cac throws raw errors instead of using its TTY output handler)
+try {
+  cli.parse();
+} catch (err) {
+  const message = err instanceof Error ? err.message : String(err);
+  console.error(`Error: ${message}`);
+  // Try to extract the command name from the error and suggest
+  const argMatch = message.match(/command[`\s]+([^\s`]+)/);
+  if (argMatch) {
+    const suggestion = suggestCommand(argMatch[1]);
+    if (suggestion) {
+      console.error(`Did you mean "${suggestion}"?`);
+    }
+  }
+  console.error(`Run \`the-brain --help\` for usage information.`);
+  process.exit(1);
+}
+
+// If no command matched and no args, show help (cac skips this in non-TTY)
+if (process.argv.length <= 2) {
+  cli.outputHelp();
+}

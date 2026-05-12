@@ -412,6 +412,13 @@ function showStatus(config: TheBrainConfig): void {
 
 // ── Main command ───────────────────────────────────────────────
 
+function validateOnOff(value: string | undefined, flagName: string): boolean {
+  if (value === undefined) return true; // not passed at all — fine
+  if (value === "on" || value === "off") return true;
+  consola.error(`Invalid value for ${flagName}: "${value}". Must be "on" or "off".`);
+  return false;
+}
+
 export async function setupCommand(options: {
   status?: boolean;
   enable?: string;
@@ -423,6 +430,12 @@ export async function setupCommand(options: {
   llm?: "on" | "off";
   output?: string;
 }) {
+  // Validate on/off flags
+  if (!validateOnOff(options.layerInstant, "--layer-instant")) return;
+  if (!validateOnOff(options.layerSelection, "--layer-selection")) return;
+  if (!validateOnOff(options.layerDeep, "--layer-deep")) return;
+  if (!validateOnOff(options.mlx, "--mlx")) return;
+  if (!validateOnOff(options.llm, "--llm")) return;
   const configPath = getConfigPath();
 
   // Load config
@@ -528,6 +541,15 @@ export async function setupCommand(options: {
     options.output !== undefined;
 
   if (!hasNonInteractiveFlags) {
+    if (!process.stdout.isTTY) {
+      consola.warn("Interactive setup requires a terminal. Use non-interactive flags instead:");
+      consola.info("  the-brain setup --help");
+      consola.info("  the-brain setup --status");
+      consola.info("  the-brain setup --enable <harvester> --disable <harvester>");
+      consola.info("  the-brain setup --layer-instant on|off --layer-selection on|off --layer-deep on|off");
+      consola.info("  the-brain setup --mlx on|off --llm on|off --output <names>");
+      return;
+    }
     config = await interactiveWizard(config);
     changed = true;
   }

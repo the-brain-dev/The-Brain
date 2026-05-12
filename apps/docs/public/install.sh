@@ -102,7 +102,7 @@ if [ -x "$BUN_BIN/the-brain" ]; then
     if [ -n "$SHELL_RC" ] && ! grep -q "$BUN_BIN" "$SHELL_RC" 2>/dev/null; then
         echo "" >> "$SHELL_RC"
         echo "# Added by the-brain installer" >> "$SHELL_RC"
-        echo "export PATH=\"$BUN_BIN:\\\$PATH\"" >> "$SHELL_RC"
+        echo "export PATH=\"$BUN_BIN:\$PATH\"" >> "$SHELL_RC"
         success "Added $BUN_BIN to $SHELL_RC"
     fi
     success "the-brain linked — restart terminal or run: source $SHELL_RC"
