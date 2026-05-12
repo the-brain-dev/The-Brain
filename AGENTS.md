@@ -113,8 +113,8 @@ the-brain/
 │   ├── plugin-auto-wiki/       # 📚 Weekly static wiki output
 │   ├── trainer-local-mlx/      # 💻 Local MLX LoRA training
 │   └── python-sidecar/         # 🐍 Python MLX training script
-├── scripts/
-│   └── release.ts              # Release automation
+├── scripts/                   # Utility scripts (no release.ts — see .changeset/)
+├── .changeset/                # Changesets config + pending changes
 ├── AGENTS.md                   # This file
 ├── CONTRIBUTING.md
 ├── README.md
@@ -167,7 +167,7 @@ Weekly scheduled scan on Mondays at 08:00 UTC.
 | `refactor/` | Code restructuring (no behavior change) | `refactor/daemon-engine-separation` |
 | `docs/` | Documentation only | `docs/api-reference-update` |
 | `chore/` | CI, build, deps, tooling | `chore/update-bun` |
-| `release/` | Release preparation (rare; release script handles this) | `release/v1.24.0` |
+| `release/` | Release preparation (changeset bot creates the PR) | `release/v1.24.0` |
 
 Branch names are **lowercase, hyphen-separated, max 50 chars**.
 
@@ -261,7 +261,7 @@ Examples:
 
 ## Versioning
 
-**Lockstep versioning**: All packages share the same version number. Bumping the root version bumps everything.
+**Independent versioning**: Each package has its own version number. Core can be 2.0 while plugin-graph-memory stays at 1.4.
 
 **Inter-package dependencies** use `workspace:*` in `dependencies` — Bun resolves these at link time, so cross-references never need manual version updates:
 ```json
@@ -272,56 +272,66 @@ Examples:
 }
 ```
 
-### Version Semantics
+### Versioning Tool: Changesets
+
+We use [Changesets](https://github.com/changesets/changesets) to manage versions. It's the standard for monorepos (Next.js, Svelte, Prisma, Chakra UI).
+
+### How to Add a Changeset
+
+When you make a change that affects a package, create a changeset:
+
+```bash
+bunx changeset
+```
+
+The CLI will:
+1. Ask which packages changed (select with space, confirm with enter)
+2. Ask the bump type: `major`, `minor`, or `patch` for each
+3. Ask for a description of the change (shows up in CHANGELOG.md)
+
+This creates a `.changeset/<random-name>.md` file. Commit it alongside your code.
+
+### When to Create a Changeset
+
+**Always** when your PR changes package code (not docs-only PRs). Changesets are per-PR — one changeset can cover multiple packages changed in the same PR.
+
+### Bump Semantics
 
 | Bump | When |
 |------|------|
-| `patch` | Bug fixes, new features (no API breaks), new harvesters, new plugins |
+| `patch` | Bug fixes, new features without API breaks, new harvesters, new plugins |
 | `minor` | API breaking changes — plugin contracts, hook signatures, exported types, config schema |
 | `major` | Fundamental architecture overhaul — core rewrite, storage migration, protocol change |
 
 When in doubt: **patch**. Most changes are additive and non-breaking. Reserve minor for intentional contract changes.
 
-### How to Bump
+### How Releases Happen
 
-**During a release** — use the release script (handles everything):
+1. You merge PRs with changeset files into `main`
+2. The **Changesets GitHub Action** (`.github/workflows/release.yml`) collects all pending changesets
+3. It opens a **"Version Packages" PR** that shows exactly what will be bumped and what changelogs will look like
+4. A human reviews and merges the Version Packages PR
+5. On merge: packages are published to npm, GitHub Releases are created, and `bun.lock` is updated
+
+No manual version bumps. No `scripts/release.ts`. The bot handles everything.
+
+### Manually Running a Release
+
+If the bot needs a nudge:
 ```bash
-bun run scripts/release.ts patch   # or minor, major, or exact x.y.z
+# Create the Version Packages PR locally
+bunx changeset version
+
+# Publish to npm (if public)
+bunx changeset publish
 ```
-This bumps root `package.json`, bumps all workspace packages to match, finalizes CHANGELOGs, commits, tags, publishes to npm, and adds fresh `[Unreleased]` sections.
 
-**Manually (development / not releasing)** — use `npm version` with workspaces:
+### Version Consistency Check
+
+To see current versions across all packages:
 ```bash
-# Bump all packages from 0.1.0 to 0.2.0
-npm version 0.2.0 --no-git-tag-version --workspaces
-```
-This updates every `package.json` in the workspace to the same version. No commit, no tag — you control when that happens.
-
-**Manual single-package bump** — edit the `"version"` field in that package's `package.json` directly. Update `bun.lock` with `bun install` if needed.
-
-### Version Consistency
-
-All workspace packages MUST share the same version. After any manual bump, verify:
-```bash
-# Should print the same version for all packages
 grep '"version"' packages/*/package.json apps/*/package.json package.json
 ```
-
-## Releasing
-
-### Release Steps
-
-1. **Ensure `main` is clean**: All PRs merged, CI passing, no pending work
-2. **Check CHANGELOGs**: Verify all changes since last release are documented under `[Unreleased]`
-3. **Run release script**: `bun run scripts/release.ts patch|minor|major|<x.y.z>`
-4. The script handles: version bump, targeted CHANGELOG finalization, commit, tag, npm publish, new `[Unreleased]` sections, and push to `main`
-
-**Note:** The release script pushes directly to `main`. This requires admin access to bypass branch protection, or a temporary rule exemption. The script uses targeted `git add` (only `package.json` files, `bun.lock`, and changelogs) — it never uses `git add .`.
-
-### Post-Release
-
-- Verify the tag exists on GitHub: https://github.com/the-brain-dev/Brain/tags
-- Verify the docs site rebuilds successfully (Cloudflare Pages auto-deploys from `main`)
 
 ## User override
 
