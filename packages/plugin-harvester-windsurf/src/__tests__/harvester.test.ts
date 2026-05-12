@@ -576,7 +576,6 @@ describe("Windsurf Harvester — Integration", () => {
 describe("Windsurf Harvester — State", () => {
   test("state persists between harvester instances", async () => {
     const { createWindsurfHarvester, extractFromTrajectory } = await import("../index");
-    const hooks = createMockHooks();
     
     // Build a synthetic trajectory for dedup testing
     const step = Buffer.concat([
