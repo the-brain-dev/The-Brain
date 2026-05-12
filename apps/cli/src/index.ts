@@ -31,6 +31,7 @@ import { mcpCommand } from "./commands/mcp";
 import { agentCommand } from "./commands/agent";
 import { docsCommand } from "./commands/docs";
 import { userCommand } from "./commands/user";
+import { setupCommand } from "./commands/setup";
 import { getExtensionCommands } from "@the-brain-dev/core";
 
 const cli = cac("the-brain");
@@ -165,6 +166,22 @@ cli
   .option("--module <path>", "Module path or npm package name")
   .action(async (action: string, options) => {
     await backendCommand(action, options);
+  });
+
+// ── Setup ──────────────────────────────────────────────────────────
+cli
+  .command("setup", "Configure the-brain pipeline interactively")
+  .option("--status", "Show current pipeline configuration")
+  .option("--enable <harvesters>", "Enable specific harvesters (comma-separated)")
+  .option("--disable <harvesters>", "Disable specific harvesters (comma-separated)")
+  .option("--layer-instant <on|off>", "Toggle Instant layer")
+  .option("--layer-selection <on|off>", "Toggle Selection layer")
+  .option("--layer-deep <on|off>", "Toggle Deep layer")
+  .option("--mlx <on|off>", "Toggle MLX training")
+  .option("--llm <on|off>", "Toggle LLM backend")
+  .option("--output <names>", "Set output plugins (comma-separated)")
+  .action(async (options) => {
+    await setupCommand(options);
   });
 
 // ── Docs (Fumadocs) ────────────────────────────────────────────────

@@ -104,6 +104,32 @@ the-brain docs serve                    # Production server
 the-brain docs dev --port 4000          # Custom port
 ```
 
+### `the-brain setup`
+
+Configure pipeline interactively or via flags:
+
+```bash
+the-brain setup                         # Interactive TUI wizard
+the-brain setup --status                # Show current pipeline
+the-brain setup --enable cursor --disable claude   # Toggle harvesters
+the-brain setup --layer-deep off        # Disable Deep layer
+the-brain setup --mlx on                # Enable MLX training
+the-brain setup --llm off               # Disable LLM backend
+the-brain setup --output auto-wiki      # Set output plugins
+```
+
+| Flag | Description |
+|------|-------------|
+| `--status` | Print current pipeline configuration |
+| `--enable <list>` | Comma-separated harvesters to enable |
+| `--disable <list>` | Comma-separated harvesters to disable |
+| `--layer-instant <on\|off>` | Toggle Instant layer |
+| `--layer-selection <on\|off>` | Toggle Selection layer |
+| `--layer-deep <on\|off>` | Toggle Deep layer |
+| `--mlx <on\|off>` | Toggle MLX overnight training |
+| `--llm <on\|off>` | Toggle LLM backend |
+| `--output <list>` | Comma-separated output plugins |
+
 ## Plugins & Backends
 
 ### `the-brain plugins`

@@ -277,6 +277,23 @@ export interface TheBrainConfig {
   extensions?: string[];
   /** LLM backends for plugins that need AI inference (data-curator, trainers, etc.) */
   llm?: LLMConfig;
+  /** User-configurable pipeline (which plugins to load at daemon start) */
+  pipeline?: PipelineConfig;
+}
+
+/** Which harvesters, layers, outputs, and training plugins to load. */
+export interface PipelineConfig {
+  harvesters: string[];
+  layers: {
+    instant: boolean;
+    selection: boolean;
+    deep: boolean;
+  };
+  outputs: string[];
+  training: {
+    mlx: boolean;
+  };
+  llm: boolean;
 }
 
 // ── Zod Schemas (runtime validation) ────────
@@ -345,6 +362,19 @@ export const TheBrainConfigSchema = z.object({
   }).default({}),
   extensions: z.array(z.string()).optional(),
   llm: LLMConfigSchema.optional(),
+  pipeline: z.object({
+    harvesters: z.array(z.string()),
+    layers: z.object({
+      instant: z.boolean(),
+      selection: z.boolean(),
+      deep: z.boolean(),
+    }),
+    outputs: z.array(z.string()),
+    training: z.object({
+      mlx: z.boolean(),
+    }),
+    llm: z.boolean(),
+  }).optional(),
   activeContext: z.string().default("global"),
   contexts: z.record(ProjectContextSchema).default({}),
 });

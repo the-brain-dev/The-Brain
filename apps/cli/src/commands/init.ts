@@ -24,6 +24,13 @@ function getDefaultConfig(): TheBrainConfig {
     { name: "@the-brain-dev/plugin-identity-anchor", enabled: true },
     { name: "@the-brain-dev/plugin-auto-wiki", enabled: true, config: { schedule: "0 9 * * 0" } },
   ],
+  pipeline: {
+    harvesters: ["cursor", "claude"],
+    layers: { instant: true, selection: true, deep: true },
+    outputs: ["auto-wiki"],
+    training: { mlx: false },
+    llm: true,
+  },
   daemon: {
     pollIntervalMs: 30000,
     logDir: join(brainDir, "logs"),
@@ -122,6 +129,10 @@ export async function initCommand(options: {
       // Upgrade old configs that don't have multi-project fields
       if (!config.activeContext) config.activeContext = "global";
       if (!config.contexts) config.contexts = {};
+      // Upgrade old configs that don't have pipeline field
+      if (!config.pipeline) {
+        config.pipeline = getDefaultConfig().pipeline;
+      }
     } catch {
       config = { ...getDefaultConfig() };
     }

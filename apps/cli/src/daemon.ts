@@ -16,6 +16,7 @@ const CONSOLIDATION_INTERVAL = 3600 * 1000; // 1 hour
 export { getConfigDir, getPidFile, getConfigPath };
 export type { DaemonConfig, DaemonEngine };
 export { initDaemon } from "./engine";
+export { isPluginEnabled, PLUGIN_REGISTRY, type PluginEntry } from "./engine";
 
 // ── startDaemon ────────────────────────────────────────────────
 
