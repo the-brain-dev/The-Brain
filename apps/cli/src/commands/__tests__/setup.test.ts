@@ -1,7 +1,7 @@
 /**
  * setup command tests — config loading, --status, flag-based mutations.
  */
-import { describe, test, expect, beforeAll, afterAll } from "bun:test";
+import { describe, test, expect, beforeAll, afterAll, mock } from "bun:test";
 import { mkdir, writeFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -251,8 +251,61 @@ describe("yesNo helper", () => {
   });
 });
 
-// Skipping showReview tests - now uses @inquirer/prompts which requires different mocking
-// These tests can be re-enabled with proper Bun test mocking setup
+describe("showReview", () => {
+  test("'Save configuration' returns true", async () => {
+    const mockSelect = mock(async () => "save");
+    mock.module("@inquirer/prompts", () => ({ select: mockSelect }));
+
+    const { showReview } = await import("../setup");
+
+    const pipeline = {
+      harvesters: ["cursor"],
+      layers: { instant: true, selection: true, deep: true },
+      outputs: ["auto-wiki"],
+      training: { mlx: false },
+      llm: false,
+    };
+
+    const result = await showReview(pipeline);
+    expect(result).toBe(true);
+  });
+
+  test("'Quit (cancel)' returns false", async () => {
+    const mockSelect = mock(async () => "quit");
+    mock.module("@inquirer/prompts", () => ({ select: mockSelect }));
+
+    const { showReview } = await import("../setup");
+
+    const pipeline = {
+      harvesters: ["cursor"],
+      layers: { instant: true, selection: true, deep: true },
+      outputs: [],
+      training: { mlx: false },
+      llm: false,
+    };
+
+    const result = await showReview(pipeline);
+    expect(result).toBe(false);
+  });
+
+  test("'Back to reconfigure' returns false", async () => {
+    const mockSelect = mock(async () => "back");
+    mock.module("@inquirer/prompts", () => ({ select: mockSelect }));
+
+    const { showReview } = await import("../setup");
+
+    const pipeline = {
+      harvesters: ["cursor", "claude"],
+      layers: { instant: true, selection: false, deep: true },
+      outputs: ["auto-wiki"],
+      training: { mlx: true },
+      llm: true,
+    };
+
+    const result = await showReview(pipeline);
+    expect(result).toBe(false);
+  });
+});
 
 describe("getDefaultPipeline", () => {
   test("returns expected defaults", async () => {
