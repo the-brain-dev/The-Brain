@@ -339,6 +339,13 @@ print('Updated tsconfig.json with ' + str(len(paths)) + ' paths')
 "
 success "tsconfig.json up to date"
 
+# ── Build CLI before linking ─────────────────────────────────────
+info "Building the-brain CLI..."
+cd apps/cli
+bun build ./src/index.ts --outdir ./dist --target node
+cd - > /dev/null
+success "CLI built"
+
 # ── Make 'the-brain' globally available ──────────────────────────
 info "Linking the-brain CLI globally..."
 cd apps/cli
