@@ -10,7 +10,11 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
+BLUE='\033[0;34m'
+GRAY='\033[0;90m'
+BOLD='\033[1m'
 NC='\033[0m' # No Color
+RESET='\033[0m'
 
 info()  { echo -e "${CYAN}[the-brain]${NC} $1"; }
 success() { echo -e "${GREEN}[the-brain]${NC} ✅ $1"; }
@@ -75,112 +79,178 @@ else
     REPO_DIR="$(pwd)"
 fi
 
+# ── Interactive multi-select helper ─────────────────────────────
+# Pure bash TUI: arrow keys to navigate, space to toggle, enter to confirm.
+# Renders visual checkboxes [✓] / [ ] with a ▶ cursor indicator.
+# Sets global SELECTED_INDICES array (0-based indices of chosen options).
+multiselect() {
+    local prompt="$1"; shift
+    local options=("$@")
+    local num=${#options[@]}
+    local cursor=0
+    local selected=()
+    local i
+
+    # All options selected by default
+    for ((i = 0; i < num; i++)); do selected[i]=1; done
+
+    # Hide cursor during interaction
+    tput civis 2>/dev/null || true
+
+    _ms_draw() {
+        # Move cursor back to start of list
+        local lines=$((num + 4))
+        [[ -n "$_ms_first" ]] && tput cuu "$lines" 2>/dev/null
+        _ms_first=1
+
+        echo ""
+        echo -e "  ${BOLD}${prompt}${RESET}"
+        echo ""
+
+        for ((i = 0; i < num; i++)); do
+            local mark="[ ]"
+            [[ ${selected[i]} -eq 1 ]] && mark="${GREEN}[✓]${RESET}"
+            local label="${options[i]}"
+            local prefix="   "
+            [[ $i -eq $cursor ]] && prefix=" ${BLUE}▶${RESET} "
+            echo -e "  ${prefix}${mark} ${label}"
+        done
+
+        echo ""
+        echo -e "  ${GRAY}↑↓ navigate  Space toggle  Enter confirm${RESET}"
+    }
+
+    _ms_draw
+
+    while true; do
+        local key=""
+        IFS= read -rsn1 key
+        if [[ "$key" == $'\x1b' ]]; then
+            local rest=""
+            IFS= read -rsn2 -t 0.01 rest 2>/dev/null || true
+            key+="$rest"
+        fi
+
+        case "$key" in
+            $'\x1b[A') ((cursor--)); [[ $cursor -lt 0 ]] && cursor=$((num - 1)) ;;
+            $'\x1b[B') ((cursor++)); [[ $cursor -ge $num ]] && cursor=0 ;;
+            " ")       selected[cursor]=$((1 - selected[cursor])) ;;
+            "")        break ;;  # Enter
+        esac
+        _ms_draw
+    done
+
+    tput cnorm 2>/dev/null || true
+    echo ""
+
+    # Build result array
+    SELECTED_INDICES=()
+    for ((i = 0; i < num; i++)); do
+        [[ ${selected[i]} -eq 1 ]] && SELECTED_INDICES+=("$i")
+    done
+}
+
 # ── Interactive pipeline setup ─────────────────────────────────
 interactive_setup() {
-    # Redirect stdin to /dev/tty when piped (curl|bash), so read works
+    # Ensure stdin is the terminal (needed when piped via curl|bash)
     exec < /dev/tty 2>/dev/null || true
 
     echo ""
-    echo -e "${CYAN}╔══════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║  🧠 the-brain — Interactive Setup       ║${NC}"
-    echo -e "${CYAN}╚══════════════════════════════════════════╝${NC}"
+    echo -e "${CYAN}╔══════════════════════════════════════════╗${RESET}"
+    echo -e "${CYAN}║  🧠 the-brain — Pipeline Setup          ║${RESET}"
+    echo -e "${CYAN}╚══════════════════════════════════════════╝${RESET}"
     echo ""
+    echo -e "  ${GRAY}Select what to enable. All options start checked.${RESET}"
+    echo -e "  ${GRAY}Use ↑↓ to move, Space to toggle, Enter to confirm.${RESET}"
 
     # ── Step 1: Harvesters ──
-    echo -e "${CYAN}Step 1/5:${NC} Harvesters — which AI tools do you use?"
-    echo ""
-    echo "  [1] Cursor IDE       [2] Claude Code CLI    [3] Gemini CLI"
-    echo "  [4] Windsurf IDE     [5] Hermes Agent       [6] LM Eval"
-    echo ""
-    read -p "  Choose (e.g., '1 2' for Cursor+Claude, 'a' for all, Enter=default): " harv
+    multiselect "Step 1/5 — Harvesters" \
+        "Cursor IDE" \
+        "Claude Code CLI" \
+        "Gemini CLI" \
+        "Windsurf IDE" \
+        "Hermes Agent" \
+        "LM Eval"
 
-    case "$harv" in
-        ""|"a"|"all") HARVESTERS='["cursor","claude"]' ;;
-        "n"|"none")   HARVESTERS='[]' ;;
-        *)
-            HARV_LIST=""
-            for num in $harv; do
-                case "$num" in
-                    1) HARV_LIST="$HARV_LIST\"cursor\"," ;;
-                    2) HARV_LIST="$HARV_LIST\"claude\"," ;;
-                    3) HARV_LIST="$HARV_LIST\"gemini\"," ;;
-                    4) HARV_LIST="$HARV_LIST\"windsurf\"," ;;
-                    5) HARV_LIST="$HARV_LIST\"hermes\"," ;;
-                    6) HARV_LIST="$HARV_LIST\"lm-eval\"," ;;
-                esac
-            done
-            HARV_LIST="${HARV_LIST%,}"
-            HARVESTERS="[$HARV_LIST]"
-            ;;
-    esac
+    local HARV_KEYS=("cursor" "claude" "gemini" "windsurf" "hermes" "lm-eval")
+    HARV_LIST=""
+    for idx in "${SELECTED_INDICES[@]}"; do
+        HARV_LIST+="\"${HARV_KEYS[$idx]}\","
+    done
+    HARV_LIST="${HARV_LIST%,}"
+    HARVESTERS="[${HARV_LIST}]"
 
     # ── Step 2: Layers ──
-    echo ""
-    echo -e "${CYAN}Step 2/5:${NC} Memory Pipeline Layers"
-    echo "  [1] Layer 1 — Graph Memory (instant corrections)"
-    echo "  [2] Layer 2 — SPM Curator  (surprise-gated filtering)"
-    echo "  [3] Layer 3 — Identity Anchor (stable self-vector)"
-    echo ""
-    read -p "  Disable any? (e.g., '3' to disable Deep, Enter for all): " layers
+    multiselect "Step 2/5 — Memory Pipeline Layers" \
+        "Layer 1 — Graph Memory        (instant corrections)" \
+        "Layer 2 — SPM Curator          (surprise-gated filtering)" \
+        "Layer 3 — Identity Anchor      (stable self-vector)"
 
-    LAYER_INSTANT=true
-    LAYER_SELECTION=true
-    LAYER_DEEP=true
-    for num in $layers; do
-        case "$num" in
-            1) LAYER_INSTANT=false ;;
-            2) LAYER_SELECTION=false ;;
-            3) LAYER_DEEP=false ;;
+    LAYER_INSTANT=false
+    LAYER_SELECTION=false
+    LAYER_DEEP=false
+    for idx in "${SELECTED_INDICES[@]}"; do
+        case $idx in
+            0) LAYER_INSTANT=true ;;
+            1) LAYER_SELECTION=true ;;
+            2) LAYER_DEEP=true ;;
         esac
     done
 
     # ── Step 3: LLM Backend ──
+    echo -e "  ${BOLD}Step 3/5 — LLM Backend${RESET}"
+    echo "  Enable LLM-powered data classification?"
     echo ""
-    echo -e "${CYAN}Step 3/5:${NC} LLM Backend (data classification)"
-    echo ""
-    read -p "  Enable LLM backend? [Y/n]: " llm_choice
+    read -p "  [Y/n]: " llm_choice
+    llm_choice="${llm_choice:-y}"
     if [[ "$llm_choice" =~ ^[Nn] ]]; then
         LLM_ENABLED=false
     else
         LLM_ENABLED=true
     fi
+    echo ""
 
     # ── Step 4: MLX Training ──
     MLX_ENABLED=false
     if [[ "$(uname -m)" == "arm64" && "$(uname -s)" == "Darwin" ]]; then
-        echo ""
-        echo -e "${CYAN}Step 4/5:${NC} MLX LoRA Training"
+        echo -e "  ${BOLD}Step 4/5 — MLX LoRA Training${RESET}"
         echo "  Apple Silicon detected — enables overnight fine-tuning"
         echo ""
         read -p "  Enable MLX LoRA training? [y/N]: " mlx_choice
+        mlx_choice="${mlx_choice:-n}"
         if [[ "$mlx_choice" =~ ^[Yy] ]]; then
             MLX_ENABLED=true
         fi
+        echo ""
+    else
+        echo -e "  ${GRAY}Step 4/5 — MLX LoRA Training (Apple Silicon only — skipped)${RESET}"
+        echo ""
     fi
 
     # ── Step 5: Outputs ──
-    echo ""
-    echo -e "${CYAN}Step 5/5:${NC} Outputs"
-    echo "  [1] Auto Wiki (weekly digest in ~/.the-brain/wiki/)"
+    echo -e "  ${BOLD}Step 5/5 — Outputs${RESET}"
+    echo "  Auto Wiki — weekly digest in ~/.the-brain/wiki/"
     echo ""
     read -p "  Enable Auto Wiki? [Y/n]: " wiki_choice
+    wiki_choice="${wiki_choice:-y}"
     if [[ "$wiki_choice" =~ ^[Nn] ]]; then
         OUTPUTS='[]'
     else
         OUTPUTS='["auto-wiki"]'
     fi
+    echo ""
 
     # ── Review ──
     echo ""
-    echo "══════════════════════════════════════════"
-    echo "  Configuration Review"
-    echo "══════════════════════════════════════════"
+    echo -e "${CYAN}╔══════════════════════════════════════════╗${RESET}"
+    echo -e "${CYAN}║  📋 Configuration Review                 ║${RESET}"
+    echo -e "${CYAN}╚══════════════════════════════════════════╝${RESET}"
     echo ""
-    echo "  Harvesters:  $HARVESTERS"
-    echo "  Layers:      instant=$LAYER_INSTANT, selection=$LAYER_SELECTION, deep=$LAYER_DEEP"
-    echo "  LLM:         $LLM_ENABLED"
-    echo "  Training:    MLX=$MLX_ENABLED"
-    echo "  Outputs:     $OUTPUTS"
+    echo "  Harvesters:  ${HARVESTERS}"
+    echo "  Layers:      instant=${LAYER_INSTANT}, selection=${LAYER_SELECTION}, deep=${LAYER_DEEP}"
+    echo "  LLM:         ${LLM_ENABLED}"
+    echo "  Training:    MLX=${MLX_ENABLED}"
+    echo "  Outputs:     ${OUTPUTS}"
     echo ""
 
     # ── Write pipeline to config.json ──
