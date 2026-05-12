@@ -1,7 +1,7 @@
 {
   "name": "@the-brain-dev/core",
-  "version": "0.1.0",
-  "description": "Core orchestrator for the-brain \u2014 plugin system, hooks, database, and memory layer interfaces",
+  "version": "0.2.0",
+  "description": "Core orchestrator for the-brain — plugin system, hooks, database, and memory layer interfaces",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

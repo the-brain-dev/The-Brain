@@ -1,6 +1,6 @@
 {
   "name": "@the-brain-dev/storage-libsql",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Remote LibSQL/Turso storage backend for the-brain. SQLite-compatible over HTTP.",
   "type": "module",
   "main": "src/index.ts",

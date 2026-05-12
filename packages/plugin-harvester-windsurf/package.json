@@ -1,6 +1,6 @@
 {
   "name": "@the-brain-dev/plugin-harvester-windsurf",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Data harvester for Windsurf IDE — polls state.vscdb for Cascade conversation trajectories",
   "type": "module",
   "main": "./src/index.ts",

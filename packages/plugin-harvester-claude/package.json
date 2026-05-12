@@ -1,7 +1,7 @@
 {
   "name": "@the-brain-dev/plugin-harvester-claude",
-  "version": "0.1.0",
-  "description": "Data Harvester for Claude Code \u2014 polls ~/.claude/projects/ for conversation transcripts",
+  "version": "0.1.1",
+  "description": "Data Harvester for Claude Code — polls ~/.claude/projects/ for conversation transcripts",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

@@ -1,7 +1,7 @@
 {
   "name": "@the-brain-dev/mcp-server",
-  "version": "0.1.0",
-  "description": "MCP (Model Context Protocol) server \u2014 exposes the-brain as a memory backend for MCP-compatible AI tools",
+  "version": "0.1.1",
+  "description": "MCP (Model Context Protocol) server — exposes the-brain as a memory backend for MCP-compatible AI tools",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

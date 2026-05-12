@@ -1,5 +1,12 @@
 # @the-brain-dev/plugin-harvester-gemini
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [b0cb574]
+  - @the-brain-dev/core@0.2.0
+
 ## 0.1.0 — Initial Release
 
 - Polls `~/.gemini/tmp/<project>/logs.json` for user→gemini message pairs
