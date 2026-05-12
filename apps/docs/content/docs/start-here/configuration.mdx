@@ -39,3 +39,45 @@ The absolute minimum to get started:
 - **Secrets go in env vars**, not in config.json (auth tokens, API keys)
 - **Plugin loading order** matters — hooks fire in registration order
 - **Project contexts** get their own DB, wiki, and LoRA checkpoints — see [CLI Reference → init](/docs/reference/cli-reference#the-brain-init)
+
+## Pipeline Configuration
+
+Control which plugins load when the daemon starts. Set `pipeline` in `config.json`:
+
+```json
+{
+  "pipeline": {
+    "harvesters": ["cursor", "claude"],
+    "layers": {
+      "instant": true,
+      "selection": true,
+      "deep": true
+    },
+    "outputs": ["auto-wiki"],
+    "training": { "mlx": false },
+    "llm": true
+  }
+}
+```
+
+### Pipeline Fields
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `harvesters` | `string[]` | `["cursor","claude"]` | Which AI tool logs to harvest. Options: `cursor`, `claude`, `hermes`, `gemini`, `windsurf`, `lm-eval` |
+| `layers.instant` | `boolean` | `true` | Graph Memory — instant corrections |
+| `layers.selection` | `boolean` | `true` | SPM Curator — surprise-gated filtering |
+| `layers.deep` | `boolean` | `true` | Identity Anchor — stable self-vector |
+| `outputs` | `string[]` | `["auto-wiki"]` | Output plugins. Options: `auto-wiki` |
+| `training.mlx` | `boolean` | `false` | Overnight LoRA training (Apple Silicon only) |
+| `llm` | `boolean` | `true` | LLM backend for data curator classification |
+
+### Managing Pipeline
+
+- **Interactive**: `the-brain setup` — full TUI wizard
+- **Status**: `the-brain setup --status`
+- **Quick toggle**: `the-brain setup --enable cursor --disable hermes`
+- **Layers**: `the-brain setup --layer-deep off`
+- **Restart required**: `the-brain daemon stop && the-brain daemon start`
+
+If `pipeline` is omitted from config, all plugins load (backward compatible).

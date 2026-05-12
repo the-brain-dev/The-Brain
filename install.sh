@@ -24,6 +24,14 @@ echo -e "${CYAN}║  Open memory platform for AI           ║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════════╝${NC}"
 echo ""
 
+# ── Parse flags ──────────────────────────────────────────────────
+QUICK_MODE=false
+for arg in "$@"; do
+    case "$arg" in
+        --quick|--non-interactive|-q) QUICK_MODE=true ;;
+    esac
+done
+
 # ── Detect execution mode (piped vs local) ─────────────────────
 if [ ! -t 0 ]; then
     # Piped via curl|bash — clone repo to permanent location
@@ -50,6 +58,134 @@ else
     cd "$(dirname "$0")"
     REPO_DIR="$(pwd)"
 fi
+
+# ── Interactive pipeline setup ─────────────────────────────────
+interactive_setup() {
+    # Redirect stdin to /dev/tty when piped (curl|bash), so read works
+    exec < /dev/tty 2>/dev/null || true
+
+    echo ""
+    echo -e "${CYAN}╔══════════════════════════════════════════╗${NC}"
+    echo -e "${CYAN}║  🧠 the-brain — Interactive Setup       ║${NC}"
+    echo -e "${CYAN}╚══════════════════════════════════════════╝${NC}"
+    echo ""
+
+    # ── Step 1: Harvesters ──
+    echo -e "${CYAN}Step 1/5:${NC} Harvesters — which AI tools do you use?"
+    echo ""
+    echo "  [1] Cursor IDE       [2] Claude Code CLI    [3] Gemini CLI"
+    echo "  [4] Windsurf IDE     [5] Hermes Agent       [6] LM Eval"
+    echo ""
+    read -p "  Choose (e.g., '1 2' for Cursor+Claude, 'a' for all, Enter=default): " harv
+
+    case "$harv" in
+        ""|"a"|"all") HARVESTERS='["cursor","claude"]' ;;
+        "n"|"none")   HARVESTERS='[]' ;;
+        *)
+            HARV_LIST=""
+            for num in $harv; do
+                case "$num" in
+                    1) HARV_LIST="$HARV_LIST\"cursor\"," ;;
+                    2) HARV_LIST="$HARV_LIST\"claude\"," ;;
+                    3) HARV_LIST="$HARV_LIST\"gemini\"," ;;
+                    4) HARV_LIST="$HARV_LIST\"windsurf\"," ;;
+                    5) HARV_LIST="$HARV_LIST\"hermes\"," ;;
+                    6) HARV_LIST="$HARV_LIST\"lm-eval\"," ;;
+                esac
+            done
+            HARV_LIST="${HARV_LIST%,}"
+            HARVESTERS="[$HARV_LIST]"
+            ;;
+    esac
+
+    # ── Step 2: Layers ──
+    echo ""
+    echo -e "${CYAN}Step 2/5:${NC} Memory Pipeline Layers"
+    echo "  [1] Layer 1 — Graph Memory (instant corrections)"
+    echo "  [2] Layer 2 — SPM Curator  (surprise-gated filtering)"
+    echo "  [3] Layer 3 — Identity Anchor (stable self-vector)"
+    echo ""
+    read -p "  Disable any? (e.g., '3' to disable Deep, Enter for all): " layers
+
+    LAYER_INSTANT=true
+    LAYER_SELECTION=true
+    LAYER_DEEP=true
+    for num in $layers; do
+        case "$num" in
+            1) LAYER_INSTANT=false ;;
+            2) LAYER_SELECTION=false ;;
+            3) LAYER_DEEP=false ;;
+        esac
+    done
+
+    # ── Step 3: LLM Backend ──
+    echo ""
+    echo -e "${CYAN}Step 3/5:${NC} LLM Backend (data classification)"
+    echo ""
+    read -p "  Enable LLM backend? [Y/n]: " llm_choice
+    if [[ "$llm_choice" =~ ^[Nn] ]]; then
+        LLM_ENABLED=false
+    else
+        LLM_ENABLED=true
+    fi
+
+    # ── Step 4: MLX Training ──
+    MLX_ENABLED=false
+    if [[ "$(uname -m)" == "arm64" && "$(uname -s)" == "Darwin" ]]; then
+        echo ""
+        echo -e "${CYAN}Step 4/5:${NC} MLX LoRA Training"
+        echo "  Apple Silicon detected — enables overnight fine-tuning"
+        echo ""
+        read -p "  Enable MLX LoRA training? [y/N]: " mlx_choice
+        if [[ "$mlx_choice" =~ ^[Yy] ]]; then
+            MLX_ENABLED=true
+        fi
+    fi
+
+    # ── Step 5: Outputs ──
+    echo ""
+    echo -e "${CYAN}Step 5/5:${NC} Outputs"
+    echo "  [1] Auto Wiki (weekly digest in ~/.the-brain/wiki/)"
+    echo ""
+    read -p "  Enable Auto Wiki? [Y/n]: " wiki_choice
+    if [[ "$wiki_choice" =~ ^[Nn] ]]; then
+        OUTPUTS='[]'
+    else
+        OUTPUTS='["auto-wiki"]'
+    fi
+
+    # ── Review ──
+    echo ""
+    echo "══════════════════════════════════════════"
+    echo "  Configuration Review"
+    echo "══════════════════════════════════════════"
+    echo ""
+    echo "  Harvesters:  $HARVESTERS"
+    echo "  Layers:      instant=$LAYER_INSTANT, selection=$LAYER_SELECTION, deep=$LAYER_DEEP"
+    echo "  LLM:         $LLM_ENABLED"
+    echo "  Training:    MLX=$MLX_ENABLED"
+    echo "  Outputs:     $OUTPUTS"
+    echo ""
+
+    # ── Write pipeline to config.json ──
+    python3 -c "
+import json
+config_path = '$THE_BRAIN_DIR/config.json'
+with open(config_path) as f:
+    config = json.load(f)
+config['pipeline'] = {
+    'harvesters': json.loads('''$HARVESTERS'''),
+    'layers': {'instant': $LAYER_INSTANT, 'selection': $LAYER_SELECTION, 'deep': $LAYER_DEEP},
+    'outputs': json.loads('''$OUTPUTS'''),
+    'training': {'mlx': $MLX_ENABLED},
+    'llm': $LLM_ENABLED,
+}
+with open(config_path, 'w') as f:
+    json.dump(config, f, indent=2)
+    f.write('\n')
+print('Pipeline config saved to ' + config_path)
+" && success "Pipeline configured"
+}
 
 # ── Check/install Bun ──────────────────────────────────────────
 if command -v bun &> /dev/null; then
@@ -160,20 +296,11 @@ mkdir -p "$THE_BRAIN_DIR"/{logs,wiki,lora-checkpoints}
 # Run init
 bun run apps/cli/src/index.ts init
 
-# ── Enable MLX if Python mlx/mlx-lm packages are installed ─────
-if python3 -c "import mlx; import mlx_lm" 2>/dev/null; then
-    python3 -c "
-import json
-config_path = '$THE_BRAIN_DIR/config.json'
-with open(config_path) as f:
-    config = json.load(f)
-if not config.get('mlx', {}).get('enabled'):
-    config.setdefault('mlx', {})['enabled'] = True
-    with open(config_path, 'w') as f:
-        json.dump(config, f, indent=2)
-        f.write('\n')
-    print('MLX detected — auto-enabled in config')
-" && success "MLX LoRA training enabled"
+# ── Interactive pipeline setup (skip if --quick) ──────────────
+if [ "$QUICK_MODE" = false ]; then
+    interactive_setup
+else
+    info "Quick mode — using default pipeline (cursor+claude, all layers, LLM on, MLX off)"
 fi
 
 echo ""
@@ -358,6 +485,7 @@ fi
 echo ""
 echo -e "  ${CYAN}Next steps:${NC}"
 echo -e "    the-brain inspect --stats     Check your brain's health"
+echo -e "    the-brain setup               Reconfigure pipeline anytime"
 echo -e "    the-brain switch-context      Switch active project"
 echo -e "    the-brain daemon status       Check daemon status"
 echo ""

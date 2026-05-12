@@ -4,7 +4,7 @@
  * routes data to active project or global brain.
  */
 import { BrainDB, PluginManager, createHookSystem, LayerRouter, HookEvent, MemoryLayer, ProjectManager, resolveBackends, ExtensionLoader, safeParseConfig } from "@the-brain-dev/core";
-import type { PromptContext, InteractionContext, ConsolidationContext, TheBrainConfig, ContentCleanerPlugin, StorageBackend, SchedulerPlugin, OutputPlugin, BackendConfig } from "@the-brain-dev/core";
+import type { PromptContext, InteractionContext, ConsolidationContext, TheBrainConfig, ContentCleanerPlugin, StorageBackend, SchedulerPlugin, OutputPlugin, BackendConfig, PipelineConfig } from "@the-brain-dev/core";
 import { consola } from "consola";
 import { join } from "node:path";
 import { mkdir, writeFile, readFile, unlink } from "node:fs/promises";
@@ -86,43 +86,95 @@ async function loadConfig(): Promise<TheBrainConfig> {
   }
 }
 
-// ── Plugin loading ─────────────────────────────────────────────
+// ── Plugin registry ──────────────────────────────────────────────
 
-async function loadPlugins(hooks: ReturnType<typeof createHookSystem>, db: BrainDB) {
-  const graphMemoryMod = await import("@the-brain-dev/plugin-graph-memory");
-  const graphMemory = graphMemoryMod.createGraphMemoryPlugin(db);
+export interface PluginEntry {
+  name: string;
+  type: "harvester" | "layer" | "output" | "training";
+  configKey?: string;        // key in pipeline.harvesters or pipeline.outputs
+  layerKey?: "instant" | "selection" | "deep";
+  importPath: string;
+  factory: string;            // "default" for default export, or named factory function
+  createArgs?: string[];      // arg names: "db" means pass db instance
+  always?: boolean;           // true = always load regardless of pipeline
+}
 
-  const spmMod = await import("@the-brain-dev/plugin-spm-curator");
-  const spmCurator = spmMod.createSpmCurator();
+/** Shape of a loaded plugin instance (before PluginManager registration). */
+interface PluginInstance {
+  definition?: unknown;
+  instance?: unknown;
+  asOutputPlugin?: () => OutputPlugin;
+}
 
-  const curatorMod = await import("@the-brain-dev/plugin-data-curator");
-  const dataCurator = curatorMod.createDataCurator();
+export const PLUGIN_REGISTRY: PluginEntry[] = [
+  // ── Harvesters ──
+  { name: "cursor", type: "harvester", configKey: "cursor", importPath: "@the-brain-dev/plugin-harvester-cursor", factory: "default" },
+  { name: "claude", type: "harvester", configKey: "claude", importPath: "@the-brain-dev/plugin-harvester-claude", factory: "default" },
+  { name: "hermes", type: "harvester", configKey: "hermes", importPath: "@the-brain-dev/plugin-harvester-hermes", factory: "default" },
+  { name: "lm-eval", type: "harvester", configKey: "lm-eval", importPath: "@the-brain-dev/plugin-harvester-lm-eval", factory: "default" },
+  { name: "windsurf", type: "harvester", configKey: "windsurf", importPath: "@the-brain-dev/plugin-harvester-windsurf", factory: "default" },
+  { name: "gemini", type: "harvester", configKey: "gemini", importPath: "@the-brain-dev/plugin-harvester-gemini", factory: "default" },
+  // ── Memory layers ──
+  { name: "graph-memory", type: "layer", layerKey: "instant", importPath: "@the-brain-dev/plugin-graph-memory", factory: "createGraphMemoryPlugin", createArgs: ["db"] },
+  { name: "spm-curator", type: "layer", layerKey: "selection", importPath: "@the-brain-dev/plugin-spm-curator", factory: "createSpmCurator" },
+  { name: "identity-anchor", type: "layer", layerKey: "deep", importPath: "@the-brain-dev/plugin-identity-anchor", factory: "createIdentityAnchorPlugin" },
+  // ── Outputs ──
+  { name: "auto-wiki", type: "output", configKey: "auto-wiki", importPath: "@the-brain-dev/plugin-auto-wiki", factory: "createAutoWikiPlugin", createArgs: ["db"] },
+  // ── Training ──
+  { name: "mlx", type: "training", importPath: "@the-brain-dev/trainer-local-mlx", factory: "createMlxTrainer" },
+  // ── Always-loaded (no pipeline toggle) ──
+  { name: "data-curator", type: "layer", importPath: "@the-brain-dev/plugin-data-curator", factory: "createDataCurator", always: true },
+];
 
-  const cursorMod = await import("@the-brain-dev/plugin-harvester-cursor");
-  const cursorHarvester = cursorMod.default ?? cursorMod;
+export function isPluginEnabled(entry: PluginEntry, pipeline: PipelineConfig | undefined): boolean {
+  if (entry.always) return true;
+  if (!pipeline) return true; // Backward compat: no pipeline = everything enabled
 
-  const claudeMod = await import("@the-brain-dev/plugin-harvester-claude");
-  const claudeHarvester = claudeMod.default ?? claudeMod;
+  if (entry.type === "harvester" && entry.configKey) {
+    return pipeline.harvesters.includes(entry.configKey);
+  }
+  if (entry.type === "layer" && entry.layerKey) {
+    return pipeline.layers[entry.layerKey];
+  }
+  if (entry.type === "output" && entry.configKey) {
+    return pipeline.outputs.includes(entry.configKey);
+  }
+  if (entry.type === "training") {
+    if (entry.name === "mlx") return pipeline.training.mlx;
+  }
+  return true;
+}
 
-  const identityMod = await import("@the-brain-dev/plugin-identity-anchor");
-  const identityAnchor = identityMod.createIdentityAnchorPlugin();
+async function loadPlugins(
+  db: BrainDB,
+  pipeline?: PipelineConfig
+) {
+  const loaded: Record<string, PluginInstance> = {};
 
-  const wikiMod = await import("@the-brain-dev/plugin-auto-wiki");
-  const autoWiki = wikiMod.createAutoWikiPlugin(db);
+  for (const entry of PLUGIN_REGISTRY) {
+    if (!isPluginEnabled(entry, pipeline)) {
+      consola.info(`  Skipping ${entry.name} (disabled in pipeline)`);
+      continue;
+    }
 
-  const mlxMod = await import("@the-brain-dev/trainer-local-mlx");
-  const mlxTrainer = mlxMod.createMlxTrainer();
+    try {
+      const mod = await import(entry.importPath);
+      const factoryFn = entry.factory === "default"
+        ? (mod.default ?? mod)
+        : mod[entry.factory];
 
-  const hermesMod = await import("@the-brain-dev/plugin-harvester-hermes");
-  const hermesHarvester = hermesMod.default ?? hermesMod;
+      if (entry.createArgs) {
+        const args = entry.createArgs.map(arg => arg === "db" ? db : undefined);
+        loaded[entry.name] = factoryFn(...args) as PluginInstance;
+      } else {
+        loaded[entry.name] = factoryFn() as PluginInstance;
+      }
+    } catch (err) {
+      consola.warn(`  Plugin ${entry.name} failed to load: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
 
-  const lmEvalMod = await import("@the-brain-dev/plugin-harvester-lm-eval");
-  const lmEvalHarvester = lmEvalMod.default ?? lmEvalMod;
-
-  const windsurfMod = await import("@the-brain-dev/plugin-harvester-windsurf");
-  const windsurfHarvester = windsurfMod.default ?? windsurfMod;
-
-  return { graphMemory, spmCurator, dataCurator, cursorHarvester, claudeHarvester, hermesHarvester, lmEvalHarvester, windsurfHarvester, identityAnchor, autoWiki, mlxTrainer };
+  return loaded;
 }
 
 // ── Event handlers (shared state) ──────────────────────────────
@@ -246,36 +298,46 @@ export async function initDaemon(config: DaemonConfig): Promise<DaemonEngine> {
   const layerRouter = new LayerRouter();
 
   consola.info("Loading plugins...");
-  const plugins = await loadPlugins(hooks, db);
+  const plugins = await loadPlugins(db, brainConfig.pipeline);
 
-  for (const [name, p] of [
-    ["graph-memory", () => pluginManager.load(plugins.graphMemory)],
-    ["spm-curator", () => pluginManager.load(plugins.spmCurator.definition)],
-    ["harvester-cursor", () => pluginManager.load(plugins.cursorHarvester)],
-    ["harvester-claude", () => pluginManager.load(plugins.claudeHarvester)],
-    ["identity-anchor", () => pluginManager.load(plugins.identityAnchor)],
-    ["auto-wiki", () => pluginManager.load(plugins.autoWiki)],
-    ["harvester-hermes", () => pluginManager.load(plugins.hermesHarvester)],
-    ["harvester-lm-eval", () => pluginManager.load(plugins.lmEvalHarvester)],
-    ["harvester-windsurf", () => pluginManager.load(plugins.windsurfHarvester)],
-  ] as const) {
+  // ── Register loaded plugins with PluginManager ──
+  for (const entry of PLUGIN_REGISTRY) {
+    if (!isPluginEnabled(entry, brainConfig.pipeline)) continue;
+    const plugin = plugins[entry.name];
+    if (!plugin) continue;
+
     try {
-      await p();
+      // MLX trainer: separate handling for Apple Silicon check
+      if (entry.name === "mlx") {
+        try {
+          await pluginManager.load(plugin);
+          consola.info("  MLX trainer loaded");
+        } catch {
+          consola.info("  MLX trainer skipped (requires Apple Silicon + mlx-lm)");
+        }
+        continue;
+      }
+
+      // Harvesters don't have .definition wrapper
+      if (entry.type === "harvester") {
+        await pluginManager.load(plugin);
+      } else {
+        // Layers/outputs may have .definition
+        const def = plugin.definition ?? plugin;
+        await pluginManager.load(def);
+      }
     } catch (err) {
-      consola.warn(`Plugin ${name} failed to load: ${err instanceof Error ? err.message : String(err)}`);
+      consola.warn(`Plugin ${entry.name} failed to load: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
+
   // Collect output plugins
   const outputPlugins: OutputPlugin[] = [...backends.outputs];
-  const wikiOutput = plugins.autoWiki.asOutputPlugin();
-  outputPlugins.push(wikiOutput);
-  consola.info(`  Output plugin: ${wikiOutput.name}`);
-
-  try {
-    await pluginManager.load(plugins.mlxTrainer);
-    consola.info("  MLX trainer loaded");
-  } catch {
-    consola.info("  MLX trainer skipped (requires Apple Silicon + mlx-lm)");
+  const autoWiki = plugins["auto-wiki"];
+  if (autoWiki?.asOutputPlugin) {
+    const wikiOutput = autoWiki.asOutputPlugin();
+    outputPlugins.push(wikiOutput);
+    consola.info(`  Output plugin: ${wikiOutput.name}`);
   }
 
   consola.success(`Loaded ${pluginManager.list().length} plugins`);
@@ -294,19 +356,27 @@ export async function initDaemon(config: DaemonConfig): Promise<DaemonEngine> {
   }
 
   // ── Initialize TF-IDF vocabulary from existing memories ───────────
-  if (plugins.spmCurator.instance.getTfidf()) {
-    consola.info("Building TF-IDF vocabulary from existing memories...");
-    const allMemories = await db.getAllMemories(2000);
-    const texts = allMemories
-      .filter(m => m.content && m.content.length > 20)
-      .map(m => m.content);
-    if (texts.length > 0) {
-      plugins.spmCurator.instance.initTfidfFromTexts(texts);
-      plugins.spmCurator.instance.finalizeTfidf();
-      const stats = plugins.spmCurator.instance.getTfidf()!.getStats();
-      consola.info(`  TF-IDF ready: ${stats.vocabSize} terms from ${stats.docCount} documents`);
-    } else {
-      consola.info("  TF-IDF deferred: no existing memories (will build vocab online)");
+  const spmCurator = plugins["spm-curator"];
+  if (spmCurator?.instance) {
+    const inst = spmCurator.instance as {
+      getTfidf(): { getStats(): { vocabSize: number; docCount: number } } | null;
+      initTfidfFromTexts(texts: string[]): void;
+      finalizeTfidf(): void;
+    };
+    if (inst.getTfidf()) {
+      consola.info("Building TF-IDF vocabulary from existing memories...");
+      const allMemories = await db.getAllMemories(2000);
+      const texts = allMemories
+        .filter(m => m.content && m.content.length > 20)
+        .map(m => m.content);
+      if (texts.length > 0) {
+        inst.initTfidfFromTexts(texts);
+        inst.finalizeTfidf();
+        const stats = inst.getTfidf()!.getStats();
+        consola.info(`  TF-IDF ready: ${stats.vocabSize} terms from ${stats.docCount} documents`);
+      } else {
+        consola.info("  TF-IDF deferred: no existing memories (will build vocab online)");
+      }
     }
   }
 

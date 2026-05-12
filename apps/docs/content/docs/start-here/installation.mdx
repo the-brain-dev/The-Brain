@@ -9,9 +9,35 @@ description: Install the-brain on macOS and Linux in 2 minutes
 curl -fsSL https://the-brain.dev/install.sh | bash
 ```
 
+The installer runs an **interactive wizard** by default — you choose which AI tools to harvest, which memory layers to enable, and whether to use MLX training or LLM backend.
+
+For non-interactive installs (CI, automation):
+
+```bash
+curl -fsSL https://the-brain.dev/install.sh | bash -s -- --quick
+```
+
+The quick mode defaults to: cursor + claude harvesters, all 3 layers, LLM on, MLX off.
+
 The installer auto-detects your OS:
 - **macOS**: Bun CLI + menu bar app + LaunchAgents
 - **Linux**: Bun CLI + remote mode with auth token
+
+## Reconfiguring Later
+
+You can change your pipeline choices anytime:
+
+```bash
+the-brain setup                  # Re-run interactive wizard
+the-brain setup --status         # See current configuration
+the-brain setup --enable cursor,gemini --disable claude
+```
+
+Then restart the daemon:
+
+```bash
+the-brain daemon stop && the-brain daemon start
+```
 
 ## Prerequisites
 

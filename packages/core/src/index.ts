@@ -32,6 +32,7 @@ export type {
   PluginManifest,
   PluginConfig,
   TheBrainConfig,
+  PipelineConfig,
   LLMBackend,
   LLMConfig,
   Session,
