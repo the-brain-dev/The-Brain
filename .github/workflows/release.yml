@@ -28,9 +28,12 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Setup npm auth
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
       - name: Create Release Pull Request or publish
         id: changesets
-        uses: changesets/action@2b98ed6604b4e47bce70ba879e5d6aaf2b0e197b # v1
+        uses: changesets/action@d94a5c301145045a0960133674e003b265942a22 # v1.8.0
         with:
           publish: bunx changeset publish
           version: bunx changeset version
@@ -38,4 +41,3 @@ jobs:
           title: "Version Packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
