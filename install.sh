@@ -32,6 +32,22 @@ for arg in "$@"; do
     esac
 done
 
+# ── Resolve real home directory ──────────────────────────────────
+# In sandboxed environments (Hermes Agent, CI containers, Docker),
+# $HOME may not point to the real user home. Resolve from the OS
+# user database so the CLI is linked and PATH is configured for the
+# actual user's shell, not the sandbox.
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    REAL_HOME=$(dscl . -read "/Users/${USER}" NFSHomeDirectory 2>/dev/null | awk '{print $2}')
+elif command -v getent &>/dev/null; then
+    REAL_HOME=$(getent passwd "${USER}" 2>/dev/null | cut -d: -f6)
+fi
+if [[ -n "${REAL_HOME:-}" ]] && [[ -d "$REAL_HOME" ]] && [[ "$REAL_HOME" != "$HOME" ]]; then
+    warn "Sandboxed HOME detected ($HOME)"
+    info  "Resolved real home → $REAL_HOME"
+    export HOME="$REAL_HOME"
+fi
+
 # ── Detect execution mode (piped vs local) ─────────────────────
 if [ ! -t 0 ]; then
     # Piped via curl|bash — clone repo to permanent location
