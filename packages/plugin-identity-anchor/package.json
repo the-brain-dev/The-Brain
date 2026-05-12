@@ -1,7 +1,7 @@
 {
   "name": "@the-brain-dev/plugin-identity-anchor",
-  "version": "0.1.0",
-  "description": "Deep Layer helper \u2014 maintains stable Self-Vector across retrains to prevent catastrophic forgetting",
+  "version": "0.1.1",
+  "description": "Deep Layer helper — maintains stable Self-Vector across retrains to prevent catastrophic forgetting",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

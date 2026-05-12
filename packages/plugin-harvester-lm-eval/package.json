@@ -1,7 +1,7 @@
 {
   "name": "@the-brain-dev/plugin-harvester-lm-eval",
-  "version": "0.1.0",
-  "description": "Harvests lm-evaluation-harness benchmark results \u2014 feeds eval data into the-brain memory pipeline for regression fingerprinting and meta-harness integration",
+  "version": "0.1.1",
+  "description": "Harvests lm-evaluation-harness benchmark results — feeds eval data into the-brain memory pipeline for regression fingerprinting and meta-harness integration",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

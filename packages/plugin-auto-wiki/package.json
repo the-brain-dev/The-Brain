@@ -1,7 +1,7 @@
 {
   "name": "@the-brain-dev/plugin-auto-wiki",
-  "version": "0.1.0",
-  "description": "Output plugin \u2014 compiles learned knowledge into a static Markdown Wiki every Sunday",
+  "version": "0.1.1",
+  "description": "Output plugin — compiles learned knowledge into a static Markdown Wiki every Sunday",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

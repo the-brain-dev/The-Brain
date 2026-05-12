@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.2.0
+
+### Minor Changes
+
+- b0cb574: Interactive pipeline configurator — user chooses which plugins load at daemon start.
+
+  - New `PipelineConfig` interface + Zod schema in core/types (`pipeline` field in config.json)
+  - `PluginEntry` registry replaces hardcoded `import()` calls in engine.ts
+  - `the-brain setup` CLI command — interactive TUI wizard + non-interactive flags
+  - `install.sh` now runs interactive pipeline setup by default (`--quick` to skip)
+  - Backward compatible: missing `pipeline` field → all plugins load as before
+  - 39 new tests: pipeline schema validation, engine plugin enable/disable, setup command
+
+### Patch Changes
+
+- Updated dependencies [b0cb574]
+  - @the-brain-dev/core@0.2.0
+  - @the-brain-dev/mcp-server@0.1.1
+  - @the-brain-dev/plugin-auto-wiki@0.1.1
+  - @the-brain-dev/plugin-graph-memory@0.1.1
+  - @the-brain-dev/plugin-harvester-claude@0.1.1
+  - @the-brain-dev/plugin-harvester-cursor@0.1.1
+  - @the-brain-dev/plugin-identity-anchor@0.1.1
+  - @the-brain-dev/plugin-spm-curator@0.1.1
+  - @the-brain-dev/trainer-local-mlx@0.1.1
+
 ## 0.1.1
 
 ### Patch Changes
