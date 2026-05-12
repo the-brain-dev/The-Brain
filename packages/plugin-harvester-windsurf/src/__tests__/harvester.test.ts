@@ -12,11 +12,10 @@
  *   - State persistence
  */
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
-import { mkdirSync, writeFileSync, rmSync, readFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, writeFileSync, rmSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import type { PluginHooks } from "@the-brain-dev/core";
-import { HookEvent } from "@the-brain-dev/core";
 
 // ── Protobuf Encoding Helpers ───────────────────────────────────
 
@@ -178,7 +177,7 @@ describe("Windsurf Harvester — Protobuf Decoder", () => {
     test("decodes zero", async () => {
       const { decodeVarint } = await import("../index");
       const buf = Buffer.from(encodeVarint(0));
-      const [val, pos] = decodeVarint(buf, 0);
+      const [val] = decodeVarint(buf, 0);
       expect(val).toBe(0);
     });
   });
@@ -477,7 +476,7 @@ describe("Windsurf Harvester — Trajectory Extraction", () => {
 
 describe("Windsurf Harvester — Tool Calls", () => {
   test("parses tool call with all fields", async () => {
-    const { parseToolCall, parseFields, tryDecodeStr } = await import("../index");
+    const { parseToolCall, tryDecodeStr } = await import("../index");
 
     const tc = encodeToolCall("call_1", "write_file", {
       path: "/tmp/test.ts",
@@ -577,7 +576,6 @@ describe("Windsurf Harvester — Integration", () => {
 describe("Windsurf Harvester — State", () => {
   test("state persists between harvester instances", async () => {
     const { createWindsurfHarvester, extractFromTrajectory } = await import("../index");
-    const hooks = createMockHooks();
     
     // Build a synthetic trajectory for dedup testing
     const step = Buffer.concat([
@@ -635,8 +633,7 @@ describe("Windsurf Harvester — Workspace Discovery", () => {
   let tempDir: string;
 
   beforeEach(() => {
-    tempDir = join(tmpdir(), `brain-test-ws-${Date.now()}`);
-    mkdirSync(tempDir, { recursive: true });
+    tempDir = mkdtempSync(join(tmpdir(), "brain-test-ws-"));
   });
 
   afterEach(() => {
