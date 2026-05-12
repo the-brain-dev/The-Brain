@@ -238,9 +238,13 @@ export async function initCommand(options: {
     consola.info(`Global database ready (${gstats.sessions} sessions, ${gstats.memories} memories)`);
     gdb.close();
 
-    // Save config
-    await writeFile(configPath, JSON.stringify(config, null, 2), "utf-8");
-    consola.success(`Config written to ${configPath}`);
+    // Save config — only if forced or doesn't exist yet
+    if (options.force || !configExists) {
+      await writeFile(configPath, JSON.stringify(config, null, 2), "utf-8");
+      consola.success("Config written to " + configPath);
+    } else {
+      consola.info("Config already exists. Use --force to overwrite.");
+    }
 
     // Wiki directory for active context
     const activeCtx = config.activeContext === "global"
