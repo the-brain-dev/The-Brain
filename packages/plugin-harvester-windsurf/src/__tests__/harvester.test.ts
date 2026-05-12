@@ -178,7 +178,7 @@ describe("Windsurf Harvester — Protobuf Decoder", () => {
     test("decodes zero", async () => {
       const { decodeVarint } = await import("../index");
       const buf = Buffer.from(encodeVarint(0));
-      const [val, pos] = decodeVarint(buf, 0);
+      const [val] = decodeVarint(buf, 0);
       expect(val).toBe(0);
     });
   });
