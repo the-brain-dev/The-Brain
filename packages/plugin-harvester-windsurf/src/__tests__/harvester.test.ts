@@ -16,7 +16,6 @@ import { mkdirSync, mkdtempSync, writeFileSync, rmSync, readFileSync } from "nod
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import type { PluginHooks } from "@the-brain-dev/core";
-import { HookEvent } from "@the-brain-dev/core";
 
 // ── Protobuf Encoding Helpers ───────────────────────────────────
 
