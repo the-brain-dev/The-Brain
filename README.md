@@ -91,6 +91,7 @@ Permanent consolidation of knowledge in human- and model-readable form.
 - `plugin-harvester-claude`
 - `plugin-harvester-gemini`
 - `plugin-harvester-lm-eval`
+- `plugin-harvester-windsurf`
 
 ## 🚀 Quick Start
 
@@ -165,6 +166,7 @@ bun run daemon       # Run daemon from source
 | **@the-brain-dev/plugin-harvester-hermes** | Hermes Agent log reader |
 | **@the-brain-dev/plugin-harvester-gemini** | Gemini CLI log reader |
 | **@the-brain-dev/plugin-harvester-lm-eval** | Benchmark result harvester |
+| **@the-brain-dev/plugin-harvester-windsurf** | Windsurf Cascade trajectory harvester |
 | **@the-brain-dev/plugin-identity-anchor** | Stable self-vector across retrains |
 | **@the-brain-dev/plugin-auto-wiki** | Weekly static wiki from learned knowledge |
 | **@the-brain-dev/trainer-local-mlx** | Local LoRA training on Apple Silicon |

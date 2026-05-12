@@ -173,6 +173,53 @@ Reads lm-evaluation-harness JSON result files for benchmark tracking and regress
 
 The lm-eval harvester feeds into the identity anchor's `HarnessFingerprintStore`. On each `ON_INTERACTION` event, fingerprints are auto-updated. Custom hooks (`identity-anchor:predictRegression`, `identity-anchor:assessSurprise`) expose predictions to meta-harness consumers via MCP.
 
+## Windsurf Harvester
+
+Reads Windsurf IDE's Cascade conversation history from the `state.vscdb` SQLite database.
+
+### Supported Source Format
+
+| Source | Format | Source ID | Details |
+|--------|--------|-----------|---------|
+| `state.vscdb` → `codeium.windsurf` → `cachedActiveTrajectory:*` | Base64 protobuf (wire-format) | `windsurf` | Trajectory steps: f19=user, f20=AI (f3=thinking, f7=tool_calls, f8=visible, f12=provider) |
+
+**Data location** (`User/globalStorage/state.vscdb`):
+- macOS: `~/Library/Application Support/Windsurf/` (also checks `Windsurf - Next` first)
+- Linux: `~/.config/Windsurf/`
+- Windows: `%APPDATA%/Windsurf/`
+
+**Extracted data**: user prompts, AI responses, thinking content (Cascade thinking mode), tool calls with parameters, provider info.
+
+### Deduplication
+
+- SHA-256 of `prompt + "\x00" + response`, truncated to 16 hex
+- Processed IDs persisted in state file (capped at 10,000)
+- Trajectory size change detection (skip unchanged trajectories)
+
+### State File
+
+`~/.the-brain/windsurf-harvester-state.json`
+
+```json
+{
+  "lastPollTimestamp": 1714800000000,
+  "processedIds": ["a1b2c3d4e5f6g7h8"],
+  "trajectorySizes": {
+    "workspace_hash": 12345
+  }
+}
+```
+
+### Project Detection
+
+Reads `workspaceStorage/<id>/workspace.json` to resolve workspace paths for project context matching.
+
+### Limitations
+
+- Only reads the **active** (most recently selected) trajectory per workspace
+- To harvest a different conversation, first select it in Windsurf's Cascade sidebar
+- Protobuf format may change with Windsurf updates
+
 ## Creating a Custom Harvester
 
 ### Required Behaviors

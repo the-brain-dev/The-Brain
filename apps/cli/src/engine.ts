@@ -119,7 +119,10 @@ async function loadPlugins(hooks: ReturnType<typeof createHookSystem>, db: Brain
   const lmEvalMod = await import("@the-brain-dev/plugin-harvester-lm-eval");
   const lmEvalHarvester = lmEvalMod.default ?? lmEvalMod;
 
-  return { graphMemory, spmCurator, dataCurator, cursorHarvester, claudeHarvester, hermesHarvester, lmEvalHarvester, identityAnchor, autoWiki, mlxTrainer };
+  const windsurfMod = await import("@the-brain-dev/plugin-harvester-windsurf");
+  const windsurfHarvester = windsurfMod.default ?? windsurfMod;
+
+  return { graphMemory, spmCurator, dataCurator, cursorHarvester, claudeHarvester, hermesHarvester, lmEvalHarvester, windsurfHarvester, identityAnchor, autoWiki, mlxTrainer };
 }
 
 // ── Event handlers (shared state) ──────────────────────────────
@@ -254,6 +257,7 @@ export async function initDaemon(config: DaemonConfig): Promise<DaemonEngine> {
     ["auto-wiki", () => pluginManager.load(plugins.autoWiki)],
     ["harvester-hermes", () => pluginManager.load(plugins.hermesHarvester)],
     ["harvester-lm-eval", () => pluginManager.load(plugins.lmEvalHarvester)],
+    ["harvester-windsurf", () => pluginManager.load(plugins.windsurfHarvester)],
   ] as const) {
     try {
       await p();

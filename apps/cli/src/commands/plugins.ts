@@ -17,6 +17,7 @@ export async function pluginsCommand(action: string) {
         { name: "@the-brain-dev/plugin-auto-wiki", layer: "Output", desc: "Static Markdown Wiki generator (Sundays)" },
         { name: "@the-brain-dev/plugin-harvester-hermes", layer: "Input", desc: "Harvests Hermes Agent conversations from state.db" },
         { name: "@the-brain-dev/plugin-harvester-lm-eval", layer: "Input", desc: "Harvests lm-evaluation-harness benchmark results" },
+        { name: "@the-brain-dev/plugin-harvester-windsurf", layer: "Input", desc: "Harvests Windsurf Cascade conversation trajectories" },
         { name: "@the-brain-dev/trainer-local-mlx", layer: "Deep", desc: "Local LoRA training on Apple Silicon (MLX)" },
       ];
 
