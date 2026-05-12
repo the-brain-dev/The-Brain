@@ -222,7 +222,7 @@ export function createAutoWikiPlugin(
     for (let i = 0; i < Math.min(memories.length, cfg.maxRawMemories); i++) {
       const m = memories[i];
       const content = escapeMd(m.content.slice(0, 120));
-      const surprise = m.surpriseScore !== undefined ? m.surpriseScore.toFixed(2) : "-";
+      const surprise = m.surpriseScore != null ? m.surpriseScore.toFixed(2) : "-";
       body += `| ${i + 1} | ${m.layer} | ${m.source} | ${surprise} | ${content} |\n`;
     }
 

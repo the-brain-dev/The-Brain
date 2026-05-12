@@ -122,10 +122,10 @@ async function serveWiki(wikiDir: string, port: number) {
   consola.start(`Serving wiki on http://localhost:${port}`);
 
   // Simple static file server using Bun
-  const server = Bun.serve({
+  const serverOptions = {
     port,
-    hostname: "127.0.0.1", // Bind to localhost only — not LAN
-    async fetch(req) {
+    hostname: "127.0.0.1" as const,
+    async fetch(req: Request): Promise<Response> {
       const url = new URL(req.url);
       let filePath = join(wikiDir, url.pathname === "/" ? "index.md" : url.pathname);
 
@@ -152,7 +152,28 @@ async function serveWiki(wikiDir: string, port: number) {
         headers: { "Content-Type": "text/html; charset=utf-8" },
       });
     },
-  });
+  };
+
+  // Start server with EADDRINUSE auto-recovery
+  const { execSync } = await import("node:child_process");
+  let server: ReturnType<typeof Bun.serve>;
+  try {
+    server = Bun.serve(serverOptions);
+  } catch (err: any) {
+    if (err?.code === "EADDRINUSE") {
+      const pid = execSync(`lsof -ti :${port}`, { encoding: "utf-8" }).trim();
+      if (pid && pid !== String(process.pid)) {
+        consola.warn(`Port ${port} in use by PID ${pid}, releasing...`);
+        execSync(`kill -9 ${pid}`);
+        Bun.sleepSync(1000);
+        server = Bun.serve(serverOptions);
+      } else {
+        throw err;
+      }
+    } else {
+      throw err;
+    }
+  }
 
   consola.success(`Wiki available at http://localhost:${port}`);
   consola.info(`Browse: http://localhost:${port}/index.md`);

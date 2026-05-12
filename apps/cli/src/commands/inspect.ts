@@ -13,15 +13,19 @@ const CONFIG_PATH = join(process.env.HOME || "~", ".the-brain", "config.json");
 
 export async function inspectCommand(options: {
   stats?: boolean;
+  memories?: string | boolean;
+  graph?: boolean;
+  recent?: boolean;
   search?: string;
   top?: string;
   sources?: boolean;
-  graph?: boolean;
-  memories?: string | boolean;
-  recent?: boolean;
   project?: string;
   global?: boolean;
 }) {
+  if (options.project && options.global) {
+    consola.error("Cannot use --project and --global together. Choose one.");
+    return;
+  }
   // Resolve target DB path
   const dbPath = await resolveDbPath(options);
   if (!dbPath) return;
@@ -115,6 +119,8 @@ async function resolveDbPath(options: { project?: string; global?: boolean }): P
 async function showStats(db: BrainDB, project?: string, isGlobal?: boolean) {
   const stats = await db.getStats();
   const label = project ? `Project: ${project}` : isGlobal ? "Global Brain" : "the-brain";
+  const useEmoji = process.stdout.isTTY;
+  const boxH = "\u2500";
 
   const typeBar = stats.perGraphType?.length
     ? stats.perGraphType.map((t: any) =>
@@ -131,7 +137,7 @@ async function showStats(db: BrainDB, project?: string, isGlobal?: boolean) {
   consola.box(
     "\n" +
     "  " + label.toUpperCase() + "\n" +
-    "  " + "\u2500".repeat(38) + "\n" +
+    "  " + boxH.repeat(38) + "\n" +
     "  Total memories: " + String(stats.memories).padEnd(20) + "\n" +
     "  Graph nodes:    " + String(stats.graphNodes).padEnd(20) + "\n" +
     "  Sessions:       " + String(stats.sessions).padEnd(20) + "\n" +

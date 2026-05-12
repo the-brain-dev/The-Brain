@@ -3,6 +3,7 @@
  */
 import { consola } from "consola";
 import { startDaemon, stopDaemon } from "../daemon";
+import { DaemonAlreadyRunningError } from "../engine";
 import { writeFile, unlink, readFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { homedir } from "node:os";
@@ -21,7 +22,15 @@ export async function daemonCommand(
       consola.start("Starting the-brain daemon...");
       const parsed = options.pollInterval ? parseInt(String(options.pollInterval), 10) : 30000;
       const pollInterval = Number.isNaN(parsed) || parsed <= 0 ? 30000 : parsed;
-      await startDaemon({ pollIntervalMs: pollInterval });
+      try {
+        await startDaemon({ pollIntervalMs: pollInterval });
+      } catch (err) {
+        if (err instanceof DaemonAlreadyRunningError) {
+          consola.warn(`Daemon already running (PID: ${err.pid}). No action taken.`);
+          return;
+        }
+        throw err;
+      }
       break;
     }
     case "stop": {

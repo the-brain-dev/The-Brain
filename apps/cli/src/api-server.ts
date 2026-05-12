@@ -15,7 +15,7 @@ import { readFileSync, existsSync, realpathSync, writeFileSync } from "node:fs";
 import { basename, join as pathJoin, join, resolve } from "node:path";
 import { homedir } from "node:os";
 import { createHash, randomUUID } from "node:crypto";
-import { spawnSync } from "node:child_process";
+import { spawnSync, execSync } from "node:child_process";
 
 const PORT = 9420;
 
@@ -101,7 +101,8 @@ export function startAPIServer(engine: DaemonEngine, state: APIState, serverCfg?
     return [...canonical];
   })();
 
-  const server = Bun.serve({
+  let server: ReturnType<typeof Bun.serve>;
+  const serverOptions = {
     port: actualPort,
     hostname: cfg.bindAddress,
     async fetch(req): Promise<Response> {
@@ -546,7 +547,27 @@ export function startAPIServer(engine: DaemonEngine, state: APIState, serverCfg?
         return json({ error: "Internal error", detail: String(err) }, corsHeaders, 500);
       }
     },
-  });
+  };
+
+  // Start server with EADDRINUSE auto-recovery
+  try {
+    server = Bun.serve(serverOptions);
+  } catch (err: any) {
+    if (err?.code === "EADDRINUSE") {
+      const pid = execSync(`lsof -ti :${actualPort}`, { encoding: "utf-8" }).trim();
+      if (pid && pid !== String(process.pid)) {
+        console.log(`[API] Port ${actualPort} in use by PID ${pid}, releasing...`);
+        execSync(`kill -9 ${pid}`);
+        // Wait for OS to release the port (synchronous)
+        Bun.sleepSync(1000);
+        server = Bun.serve(serverOptions);
+      } else {
+        throw err;
+      }
+    } else {
+      throw err;
+    }
+  }
 
   // ── Team mode: register user management API routes ──────────
   if (authDB) {
