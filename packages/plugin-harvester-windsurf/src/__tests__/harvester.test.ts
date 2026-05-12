@@ -12,7 +12,7 @@
  *   - State persistence
  */
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
-import { mkdirSync, writeFileSync, rmSync, readFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, writeFileSync, rmSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import type { PluginHooks } from "@the-brain-dev/core";
@@ -635,8 +635,7 @@ describe("Windsurf Harvester — Workspace Discovery", () => {
   let tempDir: string;
 
   beforeEach(() => {
-    tempDir = join(tmpdir(), `brain-test-ws-${Date.now()}`);
-    mkdirSync(tempDir, { recursive: true });
+    tempDir = mkdtempSync(join(tmpdir(), "brain-test-ws-"));
   });
 
   afterEach(() => {
