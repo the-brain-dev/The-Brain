@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { VT323 } from "next/font/google";
+
+const vt323 = VT323({ weight: "400", subsets: ["latin"] });
 
 export default function Home() {
   const [bootOpacity, setBootOpacity] = useState<string[]>([
@@ -10,11 +13,12 @@ export default function Home() {
     "opacity-0",
     "opacity-0",
   ]);
-  const [memoryCount, setMemoryCount] = useState<number>(
-    () => Math.floor(Math.random() * 90) + 40,
-  );
+  const [memoryCount, setMemoryCount] = useState<number>(0);
 
   useEffect(() => {
+    // Randomize on client only (avoid hydration mismatch)
+    setMemoryCount(Math.floor(Math.random() * 90) + 40);
+
     // Boot sequence
     const delays = [200, 800, 1500, 2200];
     const newOpacities = [...bootOpacity];
@@ -38,7 +42,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-black text-[#39ff14] font-mono relative overflow-hidden">
+    <main className={`min-h-screen bg-black text-[#39ff14] relative overflow-hidden ${vt323.className}`}>
       {/* CRT overlay effects */}
       <div className="pointer-events-none fixed inset-0 z-50" style={{
         background: "repeating-linear-gradient(transparent, transparent 3px, rgba(57,255,20,0.07) 3px, rgba(57,255,20,0.07) 4px)",
@@ -52,21 +56,6 @@ export default function Home() {
         animation: "rain-fall 1.2s linear infinite",
         backgroundSize: "100% 800px",
       }} />
-
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
-        body { font-family: 'VT323', 'Courier New', monospace; }
-        @keyframes crt-flicker {
-          0% { opacity: 0.92; }
-          10% { opacity: 1; }
-          20% { opacity: 0.95; }
-          100% { opacity: 1; }
-        }
-        @keyframes rain-fall {
-          0% { background-position: 0 0; }
-          100% { background-position: 0 800px; }
-        }
-      `}</style>
 
       {/* Content */}
       <div className="relative z-10 flex items-center justify-center min-h-screen px-6">
@@ -129,6 +118,20 @@ export default function Home() {
             </div>
             <div className="text-xs text-[#39ff14]/40 mt-1.5 ml-1">
               Requires: Bun + uv (macOS / Linux)
+            </div>
+          </div>
+
+          {/* Warning */}
+          <div className="mb-9 border-2 border-[#ff4444] bg-[#1a0000] p-4 max-w-[620px]" style={{
+            boxShadow: "0 0 15px rgba(255,68,68,0.2)",
+          }}>
+            <div className="text-[#ff4444] text-[1.1rem] tracking-[2px] mb-1" style={{
+              textShadow: "0 0 6px #ff4444",
+            }}>
+              ⚠ EXPERIMENTAL — DO NOT USE IN PRODUCTION
+            </div>
+            <div className="text-[#ff6666]/80 text-[0.95rem] leading-snug">
+              This repository is for experimental purposes only. Breaking changes, missing features, and rough edges are the norm.
             </div>
           </div>
 
