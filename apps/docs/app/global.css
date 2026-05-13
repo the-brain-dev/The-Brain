@@ -10,3 +10,15 @@ html > body[data-scroll-locked] {
   margin-right: 0px !important;
   --removed-body-scroll-bar-size: 0px !important;
 }
+
+@keyframes crt-flicker {
+  0% { opacity: 0.92; }
+  10% { opacity: 1; }
+  20% { opacity: 0.95; }
+  100% { opacity: 1; }
+}
+
+@keyframes rain-fall {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 800px; }
+}

@@ -6,7 +6,7 @@
 
 **[the-brain.dev](https://the-brain.dev)**
 
-> 🧪 **Experimental — pre-alpha. Far from stable.** the-brain explores what happens when AI has persistent, private, 3-layer memory. Breaking changes, missing features, and rough edges are the norm right now. If you're curious about the concept, [contribute](CONTRIBUTING.md) or [build an extension](https://the-brain.dev/docs/customization/extensions). Production use is not yet recommended.
+> 🧪 **Experimental — pre-alpha. Far from stable.** This repository is for experimental purposes only. Do not use in production. the-brain explores what persistent, private, 3-layer AI memory looks like. Breaking changes, missing features, and rough edges are the norm. If you're curious about the concept, [contribute](CONTRIBUTING.md) or [build an extension](https://the-brain.dev/docs/customization/extensions).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Built with Bun](https://img.shields.io/badge/Built%20with-Bun-orange)](https://bun.sh)
