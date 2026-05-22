@@ -15,18 +15,22 @@ const LABEL = "com.thebrain.daemon";
 
 export async function daemonCommand(
   action: string,
-  options: { pollInterval?: number }
+  options: { pollInterval?: number },
 ) {
   switch (action) {
     case "start": {
       consola.start("Starting the-brain daemon...");
-      const parsed = options.pollInterval ? parseInt(String(options.pollInterval), 10) : 30000;
+      const parsed = options.pollInterval
+        ? parseInt(String(options.pollInterval), 10)
+        : 30000;
       const pollInterval = Number.isNaN(parsed) || parsed <= 0 ? 30000 : parsed;
       try {
         await startDaemon({ pollIntervalMs: pollInterval });
       } catch (err) {
         if (err instanceof DaemonAlreadyRunningError) {
-          consola.warn(`Daemon already running (PID: ${err.pid}). No action taken.`);
+          consola.warn(
+            `Daemon already running (PID: ${err.pid}). No action taken.`,
+          );
           return;
         }
         throw err;
@@ -42,10 +46,16 @@ export async function daemonCommand(
       const running = await checkDaemonRunning();
       const launchdLoaded = await checkLaunchdLoaded();
       consola.info(`Daemon status: ${running ? "🟢 running" : "🔴 stopped"}`);
-      consola.info(`Launchd service: ${launchdLoaded ? "🟢 loaded" : "⚪ not loaded"}`);
+      consola.info(
+        `Launchd service: ${launchdLoaded ? "🟢 loaded" : "⚪ not loaded"}`,
+      );
       if (running) {
         try {
-          const pidPath = join(process.env.HOME || "~", ".the-brain", "daemon.pid");
+          const pidPath = join(
+            process.env.HOME || "~",
+            ".the-brain",
+            "daemon.pid",
+          );
           const pidStr = await readFile(pidPath, "utf-8");
           consola.info(`PID: ${pidStr.trim()}`);
         } catch {}
@@ -61,7 +71,9 @@ export async function daemonCommand(
       break;
     }
     default: {
-      consola.error(`Unknown daemon action: ${action}. Use "start", "stop", "status", "enable", or "disable".`);
+      consola.error(
+        `Unknown daemon action: ${action}. Use "start", "stop", "status", "enable", or "disable".`,
+      );
       process.exit(1);
     }
   }
@@ -97,7 +109,7 @@ async function installLaunchdService(pollIntervalMs: number) {
   <true/>
 
   <key>KeepAlive</key>
-  <true/>
+  <false/>
 
   <key>StandardOutPath</key>
   <string>${homedir()}/.the-brain/logs/daemon-stdout.log</string>
@@ -157,7 +169,10 @@ async function removeLaunchdService() {
 
 async function checkLaunchdLoaded(): Promise<boolean> {
   try {
-    const output = execSync(`launchctl list ${LABEL}`, { stdio: "pipe", encoding: "utf-8" });
+    const output = execSync(`launchctl list ${LABEL}`, {
+      stdio: "pipe",
+      encoding: "utf-8",
+    });
     return output.includes(LABEL);
   } catch {
     return false;

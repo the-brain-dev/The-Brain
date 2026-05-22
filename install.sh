@@ -238,7 +238,7 @@ cat > "$DAEMON_PLIST" <<PLISTEOF
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
-    <true/>
+    <false/>
     <key>StandardOutPath</key>
     <string>$THE_BRAIN_DIR/logs/daemon.log</string>
     <key>StandardErrorPath</key>
@@ -307,7 +307,7 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
-    <true/>
+    <false/>
     <key>StandardOutPath</key>
     <string>$THE_BRAIN_DIR/logs/menubar.log</string>
     <key>StandardErrorPath</key>
@@ -439,7 +439,7 @@ if [[ -n "${THE_BRAIN_REMOTE_URL:-}" ]]; then
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
-    <true/>
+    <false/>
     <key>StandardOutPath</key>
     <string>$THE_BRAIN_DIR/logs/agent.log</string>
     <key>StandardErrorPath</key>
