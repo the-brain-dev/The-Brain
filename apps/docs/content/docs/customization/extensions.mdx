@@ -3,13 +3,13 @@ title: Extension System
 description: Extend the-brain with custom scripts loaded at runtime
 ---
 
-the-brain supports zero-config extensions — drop a `.ts` file into `~/.the-brain/extensions/`, add its name to `config.json`'s `extensions` array, and it loads on the next daemon restart.
+The-brain supported zero-config extensions — a `.ts` file could be placed in `~/.the-brain/extensions/`, added to `config.json`'s `extensions` array, and loaded on the next daemon restart.
 
 > ⚠️ **Extensions are disabled by default** for security. You must explicitly enable each extension in `config.json`: `"extensions": ["my-extension"]`.
 
-> 💡 **Extensions are the product.** the-brain's core is a thin event bus + plugin manager. Everything that makes it useful — harvesters, memory strategies, trainers, notifications — is an extension. The built-in starter pack are extensions too. Build yours and grow the ecosystem.
+> **Historical extension model.** the-brain's core was a thin event bus + plugin manager. Harvesters, memory strategies, trainers, and notifications were extensions. The built-in starter pack used the same model.
 
-## Quick Start
+## Historical Quick Start
 
 ```bash
 # Creates directory + sample template

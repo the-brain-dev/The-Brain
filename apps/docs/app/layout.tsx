@@ -9,11 +9,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s — the-brain",
-    default: "the-brain — open memory platform for AI",
+    template: "%s — archive",
+    default: "the-brain — deprecated project archive",
   },
   description:
-    "An open memory platform for AI, in the making. 3-layer cognitive architecture, local-first, entirely pluggable. Research project — contribute, fork, or build an extension.",
+    "the-brain is a deprecated and archived local-first AI memory project. Source code and documentation are preserved for reference only.",
   metadataBase: new URL("https://the-brain.dev"),
   icons: {
     icon: "/favicon-32x32.png",
@@ -21,8 +21,8 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "the-brain — open memory platform for AI",
-    description: "3-layer cognitive architecture. Local-first, pluggable. Research project.",
+    title: "the-brain — deprecated project archive",
+    description: "Deprecated and archived local-first AI memory project. Source and documentation preserved for reference.",
     url: "https://the-brain.dev",
     siteName: "the-brain",
   },

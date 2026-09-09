@@ -1,25 +1,21 @@
 ---
-title: Overview
-description: the-brain — an open memory platform for AI with 3-layer cognitive architecture
+title: Start Here (Archived)
+description: Historical the-brain onboarding documentation
 ---
 
-the-brain is an extensible background daemon that observes your interactions with AI tools and builds a persistent memory tailored to **you**.
+> **DEPRECATED — PROJECT ARCHIVED.** This onboarding section is retained for historical reference. the-brain is no longer maintained and has no supported installation path.
 
-## Why the-brain?
+the-brain was an extensible background daemon that observed interactions with AI tools and built a persistent memory tailored to **you**.
 
-AI forgets everything between sessions. the-brain remembers — your patterns, preferences, corrections, and evolving style. It runs locally, costs nothing, and requires zero effort.
+## What the-brain Was
 
-## Quick Start
+AI tools forget between sessions. the-brain was designed to remember patterns, preferences, corrections, and evolving style. It ran locally and required no manual input.
 
-```bash
-curl -fsSL https://the-brain.dev/install.sh | bash
-the-brain init
-the-brain daemon start
-```
+## Historical Onboarding
 
-That's it. The daemon watches your AI tools and builds your brain in the background.
+The installation and quickstart material in this section describes the former project workflow only. Do not use it to start a new installation.
 
-[→ Full Tutorial](/docs/start-here/tutorial) — end-to-end walkthrough with a real project
+[→ Historical Tutorial](/docs/start-here/tutorial) — end-to-end walkthrough with a real project
 
 ## Architecture at a Glance
 
@@ -35,17 +31,17 @@ graph LR
     style D fill:#2d1b4e,stroke:#a78bfa
 `}/>
 
-## What the-brain Learns
+## What the-brain Was Designed to Learn
 
-- **Corrections**: "No, actually use `useCallback` here" → remembers for next time
-- **Preferences**: "I prefer arrow functions" → injected into every prompt
-- **Patterns**: Repeated choices → auto-suggests related concepts
+- **Corrections**: "No, actually use `useCallback` here" → remembered for later
+- **Preferences**: "I prefer arrow functions" → injected into later contexts
+- **Patterns**: Repeated choices → suggested related concepts
 - **Projects**: Per-project memory isolation with cross-project promotion
-- **Identity**: Your stable self-vector, maintained across retrains
+- **Identity**: A stable self-vector tracked across retrains
 
 ## Sections
 
-- **Start Here** — Installation, quickstart, configuration
+- **Start Here** — Archived installation, quickstart, configuration
 - **Core Concepts** — Architecture, hook system, memory layers
 - **Customization** — Plugins, harvesters, training, storage
 - **Reference** — CLI, config schema, MCP tools, env vars

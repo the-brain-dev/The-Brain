@@ -1,8 +1,8 @@
-# Contributing to the-brain
+# Contributing to the-brain (Archived)
 
-Thanks for your interest in contributing. This guide keeps things efficient for both sides.
+This guide is retained as a historical record of the project's contribution process.
 
-> ⚠️ **Pre-alpha stability.** the-brain is experimental and far from stable. APIs may change without notice, features may be incomplete, and rough edges are expected. Contributions that improve stability, testing, and documentation are especially welcome right now.
+> **DEPRECATED — PROJECT ARCHIVED.** the-brain is no longer maintained. New contributions and support are not expected.
 
 ## Code of Conduct
 
@@ -18,23 +18,21 @@ Using AI to write code is fine. Submitting AI-generated code without understandi
 If you use an agent, run it from the `the-brain` root directory so it picks up `AGENTS.md`
 automatically. Your agent must follow the rules and guidelines in that file.
 
-## Communication
+## Historical Communication Channels
 
-- **Bug reports & feature requests:** [GitHub Issues](https://github.com/the-brain-dev/Brain/issues)
-- **Questions & discussion:** [GitHub Discussions](https://github.com/the-brain-dev/Brain/discussions)
-- **Security issues:** Email maintainers directly (see [README](README.md) for contact)
+The archived repository retains its former [GitHub Issues](https://github.com/the-brain-dev/Brain/issues), [GitHub Discussions](https://github.com/the-brain-dev/Brain/discussions), and security-contact references for historical context. They are not monitored as a supported service.
 
-## Contribution Gate
+## Historical Contribution Gate
 
-First-time contributors start by opening an **Issue or Discussion** (not a PR).
-This lets maintainers scope the work before you invest time.
+First-time contributors started by opening an **Issue or Discussion** (not a PR).
+This let maintainers scope the work before contributors invested time.
 
 Approval happens through maintainer replies:
 
 - `lgtmi`: your future issues will not require re-approval
 - `lgtm`: your future issues and PRs will not require re-approval
 
-Once you receive `lgtm`, you can submit PRs directly. Until then, open an issue first.
+Once a contributor received `lgtm`, they could submit PRs directly. Until then, the former process required an issue first.
 
 ## Quality Bar for Issues
 
@@ -44,22 +42,9 @@ Once you receive `lgtm`, you can submit PRs directly. Until then, open an issue 
 - Explain why it matters.
 - If you want to implement the change yourself, say so.
 
-## Development Environment
+## Historical Development Environment
 
-**Prerequisites:**
-
-- [Bun](https://bun.sh) ≥ 1.0 (runtime, package manager, test runner)
-- [uv](https://docs.astral.sh/uv/) (Python sidecar for MLX training, macOS only)
-- macOS with Apple Silicon for MLX features (optional — core works on any platform)
-
-**Setup:**
-
-```bash
-git clone https://github.com/<your-username>/Brain.git  # your fork
-cd Brain
-git remote add upstream https://github.com/the-brain-dev/Brain.git
-./install.sh
-```
+The source repository remains available for inspection and forking. The former local setup and installation workflow is not supported.
 
 **Verify:**
 
@@ -69,9 +54,9 @@ bun test          # 940+ tests, 0 failures
 bun run lint      # zero errors
 ```
 
-## Development Workflow
+## Historical Development Workflow
 
-We use the **fork-and-PR** model. Direct pushes to `main` are blocked.
+The project used the **fork-and-PR** model. Direct pushes to `main` were blocked.
 
 ```bash
 # 1. Sync with upstream
@@ -98,9 +83,9 @@ Branch naming: lowercase, hyphen-separated, max 50 chars. Prefixes: `feat/`, `fi
 
 See [AGENTS.md](AGENTS.md) for full coding standards, commit conventions, and agent workflow.
 
-## Before Submitting a PR
+## Historical PR Checklist
 
-Do not open a PR unless you've been approved with `lgtm` (see Contribution Gate above).
+The former process required `lgtm` approval before opening a PR (see Historical Contribution Gate above).
 
 ```bash
 bun test --coverage     # >80% line coverage for new code
@@ -120,12 +105,12 @@ Read [PHILOSOPHY.md](PHILOSOPHY.md) for the full vision.
 
 ## FAQ
 
-### Why the contribution gate?
+### Why was there a contribution gate?
 
-the-brain is maintained by a small team. The gate ensures every PR has been discussed and
-scoped before code is written — saving both your time and ours.
+the-brain was maintained by a small team. The gate ensured every PR had been discussed and
+scoped before code was written.
 
-### How do I add a harvester?
+### How was a harvester added?
 
 See [HARVESTERS.md](HARVESTERS.md) for the 9-step checklist: plugin structure, parsing,
 deduplication, hook registration, testing, and daemon wiring.
@@ -134,7 +119,7 @@ deduplication, hook registration, testing, and daemon wiring.
 
 If it's a new memory layer, data source, or training backend, it should be a plugin.
 If it's a fix to the plugin system, hook infrastructure, or data pipeline, it belongs in core.
-When in doubt, open a Discussion first.
+The former process recommended opening a Discussion first when in doubt.
 
 ## License
 

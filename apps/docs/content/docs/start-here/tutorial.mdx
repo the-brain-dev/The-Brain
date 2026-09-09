@@ -1,29 +1,23 @@
 ---
-title: End-to-End Tutorial
-description: Set up the-brain with a React project — from init to context injection
+title: End-to-End Tutorial (Archived)
+description: Historical the-brain workflow from project setup to context injection
 ---
 
-This tutorial walks through a complete the-brain workflow with a real React project. You'll see how memories are harvested, curated, and injected back into your prompts.
+> **DEPRECATED — PROJECT ARCHIVED.** This tutorial documents a former the-brain workflow for historical reference. The project is no longer maintained and should not be installed for new projects.
 
-## Prerequisites
+This tutorial walks through the former the-brain workflow with a real React project. The commands below are not a supported installation or operating procedure.
 
-- macOS with Apple Silicon (for MLX — optional but recommended)
-- [Bun](https://bun.sh) installed
-- A React project you're actively working on (or use any project)
+## Historical Prerequisites
 
-## Step 1: Install the-brain
+- macOS with Apple Silicon (for the former MLX workflow — optional)
+- [Bun](https://bun.sh) was used by the former workflow
+- A React project for reviewing the historical example
 
-```bash
-curl -fsSL https://the-brain.dev/install.sh | bash
-```
+## Step 1: Install the-brain (Historical)
 
-Verify:
+The former public installer has been removed. No supported installation or version-verification path remains; continue only if you are reviewing an existing historical checkout.
 
-```bash
-the-brain --version
-```
-
-## Step 2: Initialize with Your Project
+## Step 2: Initialize with Your Project (Historical)
 
 ```bash
 the-brain init --project my-react-app --work-dir ~/projects/my-react-app --label "My React Project"
@@ -42,7 +36,7 @@ This creates an isolated context for your project:
         └── lora-checkpoints/
 ```
 
-## Step 3: Start the Daemon
+## Step 3: Start the Daemon (Historical)
 
 ```bash
 the-brain daemon start
@@ -202,7 +196,7 @@ Now your brain is always running, always learning.
 
 | Step | Command | What Happens |
 |------|---------|-------------|
-| Install | `curl ... \| bash` | Bun + CLI + LaunchAgents |
+| Historical setup | Public installer removed | Bun + CLI + LaunchAgents |
 | Init | `the-brain init --project X` | Creates isolated context |
 | Start | `the-brain daemon start` | Background daemon starts |
 || Work | Use AI tools | Interactions harvested |
@@ -211,4 +205,4 @@ Now your brain is always running, always learning.
 | Consolidate | `the-brain consolidate --now` | Promote to DEEP |
 | Train | `the-brain train` | MLX LoRA training |
 
-That's it. Your brain is now working for you, getting more accurate with every interaction.
+This workflow is preserved as project history. It is not maintained or supported.

@@ -1,38 +1,36 @@
 ---
-title: Menu Bar App
-description: macOS menu bar app for the-brain
+title: Menu Bar App (Archived)
+description: Historical macOS menu bar integration for the-brain
 ---
 
-The the-brain menu bar app provides quick access to your brain's state and actions.
+> **DEPRECATED — PROJECT ARCHIVED.** This page documents a historical integration. The the-brain menu bar app is no longer maintained or supported.
 
-## Installation
+## Historical Installation
 
-Automatically installed on macOS by `install.sh`:
+The former macOS installer built the menu bar app and configured its LaunchAgent. New installations are not supported.
 
-```bash
-curl -fsSL https://the-brain.dev/install.sh | bash
-```
+## Historical Features
 
-## Features
+The historical app provided:
 
 - **Status indicator**: Green dot = daemon running, gray = stopped
 - **Memory counts**: Instant / Selection / Deep layers
 - **Quick actions**: Consolidate, Train, Wiki Generate
 - **Drag & drop**: Drop files onto the menu bar icon to ingest them
-- **Remote mode**: Reads `THE_BRAIN_REMOTE_URL` and `THE_BRAIN_AUTH_TOKEN` from environment
+- **Remote mode**: Read `THE_BRAIN_REMOTE_URL` and `THE_BRAIN_AUTH_TOKEN` from the environment
 
-## LaunchAgent
+## Historical LaunchAgent
 
-The menu bar app starts automatically on login via `~/Library/LaunchAgents/com.thebrain.bar.plist`.
+The menu bar app started automatically on login via `~/Library/LaunchAgents/com.thebrain.bar.plist`.
 
-The daemon also auto-starts via `~/Library/LaunchAgents/com.thebrain.daemon.plist`.
+The daemon also auto-started via `~/Library/LaunchAgents/com.thebrain.daemon.plist`.
 
 ```bash
 the-brain daemon enable   # Enable auto-launch
 the-brain daemon disable  # Disable auto-launch
 ```
 
-## Building from Source
+## Historical Source Build
 
 ```bash
 cd apps/menu-bar

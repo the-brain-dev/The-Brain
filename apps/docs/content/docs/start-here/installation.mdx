@@ -1,85 +1,27 @@
 ---
-title: Installation
-description: Install the-brain on macOS and Linux in 2 minutes
+title: Installation (Archived)
+description: Historical the-brain installation notes
 ---
 
-## One-Liner
+> **DEPRECATED — PROJECT ARCHIVED.** Installation is no longer supported. The public installer has been removed, and this page is retained only to document the former setup.
 
-```bash
-curl -fsSL https://the-brain.dev/install.sh | bash
-```
+## Historical Setup
 
-The installer runs an **interactive wizard** by default — you choose which AI tools to harvest, which memory layers to enable, and whether to use MLX training or LLM backend.
+The former installer configured Bun, `uv`, the CLI, the daemon, and the macOS menu bar app. It is not available for new installations.
 
-For non-interactive installs (CI, automation):
+Existing local checkouts and installations are unsupported and should not be upgraded through this documentation.
 
-```bash
-curl -fsSL https://the-brain.dev/install.sh | bash -s -- --quick
-```
+## Historical Platform Support
 
-The quick mode defaults to: cursor + claude harvesters, all 3 layers, LLM on, MLX off.
+- **macOS**: Bun CLI, menu bar app, and LaunchAgents
+- **Linux**: Bun CLI and remote mode with an auth token
 
-The installer auto-detects your OS:
-- **macOS**: Bun CLI + menu bar app + LaunchAgents
-- **Linux**: Bun CLI + remote mode with auth token
+## Historical Configuration
 
-## Reconfiguring Later
-
-You can change your pipeline choices anytime:
-
-```bash
-the-brain setup                  # Re-run interactive wizard
-the-brain setup --status         # See current configuration
-the-brain setup --enable cursor,gemini --disable claude
-```
-
-Then restart the daemon:
-
-```bash
-the-brain daemon stop && the-brain daemon start
-```
+The former setup wizard configured harvesters, memory layers, and optional MLX/LLM backends. Those choices are preserved here as project history, not as a supported workflow.
 
 ## Prerequisites
 
-- [Bun](https://bun.sh) (`curl -fsSL https://bun.sh/install | bash`)
-- macOS with Apple Silicon (for MLX training — optional)
-- Python 3.11+ and `uv` (for MLX sidecar — optional)
+The historical project used [Bun](https://bun.sh), Python 3.11+, and `uv` for optional MLX features. These prerequisites do not constitute a supported installation path.
 
-## Manual Install
-
-```bash
-git clone https://github.com/the-brain-dev/The-Brain.git
-cd The-Brain
-./install.sh
-```
-
-This handles everything: Bun checks, dependency installation, config generation, CLI linking, daemon setup, and LaunchAgents (macOS).
-
-## Initialize with a Project
-
-```bash
-the-brain init --project my-app --work-dir ~/projects/my-app
-```
-
-Each project gets isolated memory, wiki, and LoRA checkpoints.
-
-## Remote Mode (Linux Server)
-
-```bash
-# On server
-the-brain init --remote
-the-brain daemon start
-# → API on 0.0.0.0:9420, MCP on 0.0.0.0:9422
-
-# On Mac client
-export THE_BRAIN_REMOTE_URL="http://<server-ip>:9420"
-export THE_BRAIN_AUTH_TOKEN="mb_<token>"
-the-brain agent
-```
-
-## Verify
-
-```bash
-the-brain inspect --stats
-# Memories: 0 | Graph nodes: 0 | Status: running
-```
+No supported installation, initialization, remote-mode setup, or verification path remains.
