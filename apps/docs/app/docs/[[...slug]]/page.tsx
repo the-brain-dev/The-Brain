@@ -58,7 +58,7 @@ export async function generateMetadata(props: {
   if (!page) notFound();
 
   return {
-    title: `${page.data.title} — the-brain`,
+    title: page.data.title,
     description: page.data.description,
   };
 }

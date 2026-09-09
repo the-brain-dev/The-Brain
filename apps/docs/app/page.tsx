@@ -13,32 +13,21 @@ export default function Home() {
     "opacity-0",
     "opacity-0",
   ]);
-  const [memoryCount, setMemoryCount] = useState<number>(0);
 
   useEffect(() => {
-    // Randomize on client only (avoid hydration mismatch)
-    setMemoryCount(Math.floor(Math.random() * 90) + 40);
-
     // Boot sequence
     const delays = [200, 800, 1500, 2200];
-    const newOpacities = [...bootOpacity];
-    delays.forEach((delay, i) => {
-      setTimeout(() => {
-        newOpacities[i] = "opacity-100";
-        setBootOpacity([...newOpacities]);
-      }, delay);
-    });
+    const timers = delays.map((delay, index) =>
+      window.setTimeout(() => {
+        setBootOpacity((previous) => {
+          const next = [...previous];
+          next[index] = "opacity-100";
+          return next;
+        });
+      }, delay),
+    );
 
-    // Dynamic memory count
-    const interval = setInterval(() => {
-      setMemoryCount((prev) => {
-        const change = Math.floor(Math.random() * 4) + 1;
-        const direction = Math.random() > 0.5 ? 1 : -1;
-        return Math.max(12, Math.min(180, prev + change * direction));
-      });
-    }, Math.random() * 5500 + 7200);
-
-    return () => clearInterval(interval);
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, []);
 
   return (
@@ -64,79 +53,62 @@ export default function Home() {
         }}>
 
           {/* Boot Sequence */}
-          <div className="mb-8 font-mono text-sm opacity-75 tracking-wider">
+          <div className="mb-4 sm:mb-8 font-mono text-sm opacity-75 tracking-wider">
             <div className={"transition-opacity duration-300 " + bootOpacity[0]}>
-              THE-BRAIN 1.1 - BUILD 204912
+              THE-BRAIN 1.1 - ARCHIVE BUILD
             </div>
             <div className={"transition-opacity duration-300 " + bootOpacity[1]}>
-              INITIALIZING MEMORY CORE...
+              LOADING PROJECT ARCHIVE...
             </div>
             <div className={"transition-opacity duration-300 " + bootOpacity[2]}>
-              LOADING GRAPH LAYER...
+              SOURCE PRESERVED...
             </div>
             <div className={"transition-opacity duration-300 " + bootOpacity[3]}>
-              SPM ENGINE ONLINE
+              NO ACTIVE MAINTENANCE
             </div>
           </div>
 
           {/* Title */}
-          <div className="mb-10">
-            <div className="font-bold text-7xl tracking-[-2px] mb-1">
+          <div className="mb-6 sm:mb-10">
+            <div className="font-bold text-5xl sm:text-7xl tracking-[-2px] mb-1">
               THE-BRAIN
             </div>
-            <div className="text-[#00fff5] text-2xl tracking-[6px] -mt-2" style={{
+            <div className="text-[#00fff5] text-xl sm:text-2xl tracking-[4px] sm:tracking-[6px] -mt-2" style={{
               textShadow: "0 0 8px #00fff5",
             }}>
-              RECLAIM YOUR MIND
+              REFERENCE ARCHIVE
             </div>
           </div>
 
           {/* Copy */}
-          <div className="mb-10 max-w-[620px]">
+          <div className="mb-6 sm:mb-10 max-w-[620px]">
             <div className="text-[1.45rem] leading-tight mb-4">
-              Three layers.<br />
-              One promise.
+              A preserved project.<br />
+              A reference archive.
             </div>
 
             <div className="text-[#39ff14]/70 text-[1.35rem] leading-snug">
-              Instant &rarr; Selection &rarr; Deep.<br /><br />
-              What happens now.<br />
-              What&apos;s worth keeping.<br />
-              What becomes permanent.<br /><br />
-              All replaceable.<br />
-              All local.
+              the-brain is deprecated and no longer maintained.<br /><br />
+              Source code and documentation remain available for reference only.
             </div>
           </div>
 
-          {/* Install Command */}
-          <div className="mb-9">
-            <div className="text-[1.1rem] tracking-[4px] text-[#39ff14]/60 mb-2.5">
-              BOOT COMMAND
-            </div>
-            <div className="bg-[#00110a] border-3 border-[#39ff14] p-5 text-[1.28rem] shadow-[0_0_20px_rgba(57,255,20,0.25)]" style={{ wordBreak: "break-word" }}>
-              <span className="text-[#39ff14]/60">$</span> curl -fsSL https://raw.githubusercontent.com/the-brain-dev/The-Brain/main/install.sh | bash
-            </div>
-            <div className="text-xs text-[#39ff14]/40 mt-1.5 ml-1">
-              Requires: Bun + uv (macOS / Linux)
-            </div>
-          </div>
-
-          {/* Warning */}
-          <div className="mb-9 border-2 border-[#ff4444] bg-[#1a0000] p-4 max-w-[620px]" style={{
+          {/* Archive status */}
+          <div className="mb-6 sm:mb-9 border-2 border-[#ff4444] bg-[#1a0000] p-4 max-w-[620px]" style={{
             boxShadow: "0 0 15px rgba(255,68,68,0.2)",
           }}>
             <div className="text-[#ff4444] text-[1.1rem] tracking-[2px] mb-1" style={{
               textShadow: "0 0 6px #ff4444",
             }}>
-              ⚠ EXPERIMENTAL — DO NOT USE IN PRODUCTION
+              DEPRECATED — PROJECT ARCHIVED
             </div>
             <div className="text-[#ff6666]/80 text-[0.95rem] leading-snug">
-              This repository is for experimental purposes only. Breaking changes, missing features, and rough edges are the norm.
+              Do not install or use the-brain for new projects. No active maintenance or support is planned.
             </div>
           </div>
 
           {/* CTA */}
-          <div className="flex flex-wrap gap-x-4 gap-y-3 mb-12">
+          <div className="flex flex-wrap gap-x-4 gap-y-3 mb-8 sm:mb-12">
             <Link
               href="/docs"
               className="text-[1.45rem] bg-transparent border-3 border-[#39ff14] text-[#39ff14] py-3.5 px-10 uppercase tracking-[1.5px] hover:bg-[#39ff14] hover:text-black hover:shadow-[0_0_25px_#39ff14] transition-all no-underline inline-block"
@@ -159,17 +131,12 @@ export default function Home() {
       </div>
 
       {/* Status bar */}
-      <div className="fixed bottom-7 left-0 right-0 px-8 flex justify-between text-xs font-mono text-[#39ff14]/50 z-10">
-        <div className="flex gap-5">
-          <div>DAEMON: <span className="text-emerald-400">ONLINE</span></div>
-          <div>
-            MEMORIES:{" "}
-            <span className="text-[#00fff5] transition-all duration-300">
-              {memoryCount}
-            </span>
-          </div>
+      <div className="fixed bottom-4 left-0 right-0 px-4 sm:bottom-7 sm:px-8 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-xs font-mono text-[#39ff14]/50 z-10">
+        <div className="flex flex-wrap gap-x-5 gap-y-1">
+          <div>STATUS: <span className="text-[#ff6666]">ARCHIVED</span></div>
+          <div>SOURCE: <span className="text-[#00fff5]">REFERENCE ONLY</span></div>
         </div>
-        <div className="text-[#00fff5]">MODEL: Qwen3.6-35B-A3B</div>
+        <div className="text-[#00fff5]">MAINTENANCE: STOPPED</div>
       </div>
     </main>
   );

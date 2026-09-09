@@ -2,35 +2,35 @@
   <img src="https://github.com/the-brain-dev/The-Brain/blob/main/apps/docs/public/logo.png?raw=true" alt="the-brain" width="128">
 </p>
 
-# the-brain — open memory platform for AI
+# the-brain — open memory platform for AI (Archived)
 
 **[the-brain.dev](https://the-brain.dev)**
 
-> 🧪 **Experimental — pre-alpha. Far from stable.** This repository is for experimental purposes only. Do not use in production. the-brain explores what persistent, private, 3-layer AI memory looks like. Breaking changes, missing features, and rough edges are the norm. If you're curious about the concept, [contribute](CONTRIBUTING.md) or [build an extension](https://the-brain.dev/docs/customization/extensions).
+> **DEPRECATED — PROJECT ARCHIVED.** the-brain is no longer maintained. Do not install or use it for new projects. The source code and documentation are preserved for reference only.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Built with Bun](https://img.shields.io/badge/Built%20with-Bun-orange)](https://bun.sh)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)](https://www.typescriptlang.org/)
 [![Coverage](https://img.shields.io/badge/coverage-86%25-green)](https://github.com/the-brain-dev/Brain)
 
-**the-brain** is an extension-first platform that observes your interactions with AI tools and builds a persistent, private memory tailored to **you**.
+**the-brain** was an extension-first platform that observed your interactions with AI tools and built a persistent, private memory tailored to **you**.
 
-We don't force a single memory type. Instead, the-brain acts as a **pluggable cognitive host**, connecting various memory modules (Graph, Vector, LoRA) into one cohesive pipeline — all replaceable, all local.
+It was designed as a **pluggable cognitive host**, connecting various memory modules (Graph, Vector, LoRA) into one cohesive pipeline — all replaceable, all local.
 
 ## Table of Contents
 
-- [Quick Start](#-quick-start)
-- [CLI Usage](#-cli-usage)
+- [Quick Start (Archived)](#-quick-start-archived)
+- [CLI Usage (Historical)](#-cli-usage-historical)
 - [Tech Stack](#-tech-stack)
 - [Packages](#-packages)
-- [Building Your Own Plugin](#-building-your-own-plugin)
+- [Plugin Architecture (Historical)](#-plugin-architecture-historical)
 - [Documentation](#-documentation)
-- [Contributing](#-contributing)
+- [Contributing (Archived)](#-contributing-archived)
 - [License](#-license)
 
-## The Concept: A Modular 3-Layer Cognitive Architecture
+## The Former Concept: A Modular 3-Layer Cognitive Architecture
 
-the-brain implements a pluggable 3-layer memory system:
+the-brain implemented a pluggable 3-layer memory system:
 
 ```mermaid
 flowchart LR
@@ -93,26 +93,19 @@ Permanent consolidation of knowledge in human- and model-readable form.
 - `plugin-harvester-lm-eval`
 - `plugin-harvester-windsurf`
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Archived)
 
-### Prerequisites
+### Historical Prerequisites
 
-- **Bun** installed (`curl -fsSL https://bun.sh/install | bash`)
-- (Optional) macOS Apple Silicon + `uv` for MLX LoRA training
+The former project used Bun and, optionally, macOS Apple Silicon with `uv` for MLX LoRA training.
 
-### Installation
+### Installation (Archived)
 
-```bash
-# One-liner install
-curl -fsSL https://the-brain.dev/install.sh | bash
+The public installer has been removed. New installations are not supported. The source-level installer remains in the repository only as a historical artifact.
 
-# Or install from source
-git clone https://github.com/the-brain-dev/Brain.git
-cd Brain
-./install.sh
-```
+## 💻 CLI Usage (Historical)
 
-## 💻 CLI Usage
+The commands below document the former CLI surface and are not a supported operating procedure.
 
 ```bash
 # Initialize database and config
@@ -134,7 +127,7 @@ the-brain plugins list
 the-brain switch-context --project my-app
 ```
 
-### Development
+### Historical Development
 
 ```bash
 bun install          # Install all dependencies
@@ -171,7 +164,7 @@ bun run daemon       # Run daemon from source
 | **@the-brain-dev/plugin-auto-wiki** | Weekly static wiki from learned knowledge |
 | **@the-brain-dev/trainer-local-mlx** | Local LoRA training on Apple Silicon |
 
-## 🔌 Building Your Own Plugin
+## 🔌 Plugin Architecture (Historical)
 
 ```typescript
 import { definePlugin, HookEvent } from '@the-brain-dev/core';
@@ -188,29 +181,23 @@ export default definePlugin({
 });
 ```
 
-See [Writing Plugins](https://the-brain.dev/docs/customization/writing-plugins) for the full plugin authoring guide.
+See [Writing Plugins](https://the-brain.dev/docs/customization/writing-plugins) for the historical plugin authoring guide.
 
 > **Extensions** are lightweight, single-file scripts that don't need a rebuild — but they're **disabled by default**. Enable them in `config.json`: `"extensions": ["name"]`.
 
 ## 📚 Documentation
 
-Full documentation at **[the-brain.dev](https://the-brain.dev)**.
+Archived documentation is available at **[the-brain.dev](https://the-brain.dev)**.
 
-- [the-brain.dev/docs](https://the-brain.dev/docs) — Full documentation (architecture, plugins, configuration, MLX training)
+- [the-brain.dev/docs](https://the-brain.dev/docs) — Archived documentation (architecture, plugins, configuration, MLX training)
 - [AGENTS.md](AGENTS.md) — Rules for AI agents working on this project
 - [CONTRIBUTING.md](CONTRIBUTING.md) — Contribution guidelines
 
-## 🤝 Contributing
+## 🤝 Contributing (Archived)
 
-the-brain is actively seeking contributors. Start here:
+The project is archived and no longer actively maintained. [CONTRIBUTING.md](CONTRIBUTING.md) is retained as a historical description of the former contribution process; new contributions and support are not expected.
 
-1. Read [CONTRIBUTING.md](CONTRIBUTING.md)
-2. Pick a [`good first issue`](https://github.com/the-brain-dev/Brain/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
-3. Open a [discussion](https://github.com/the-brain-dev/Brain/discussions) to scope your work before coding
-
-We especially welcome **harvesters** for new data sources (Windsurf, Gemini CLI, terminal history) and documentation improvements.
-
-**Before submitting a PR:**
+**Historical verification commands:**
 ```bash
 bun test --coverage     # >80% line coverage
 bun run lint            # zero errors

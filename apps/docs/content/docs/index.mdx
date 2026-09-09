@@ -1,19 +1,19 @@
 ---
 title: the-brain
-description: Open memory platform for AI — 3-layer cognitive architecture
+description: Deprecated project archive — 3-layer cognitive architecture reference
 ---
 
-# 🧠 the-brain
+# the-brain archive
 
-**An open memory platform for AI** — in the making. 3-layer cognitive architecture with an extension-first philosophy. Runs locally, costs nothing, and lets you swap any component.
+**the-brain is a deprecated project archive.** This documentation preserves the former 3-layer cognitive architecture and extension-first design for reference.
 
-> 🧪 **Experimental — pre-alpha. Far from stable.** This repository is for experimental purposes only. Do not use in production. the-brain explores what persistent, private, 3-layer AI memory looks like. Breaking changes, missing features, and rough edges are the norm. If you're curious about the concept, [contribute on GitHub](https://github.com/the-brain-dev/The-Brain) or [build an extension](/docs/customization/extensions).
+> **DEPRECATED — PROJECT ARCHIVED.** the-brain is no longer maintained. Do not install or use it for new projects. Source code and documentation are preserved for reference only.
 
 ---
 
-## Why the-brain?
+## What the-brain Was
 
-AI forgets everything between sessions. the-brain remembers — across any AI tool you use. It harvests your conversations, filters noise from signal, and consolidates what matters. No cloud. No telemetry. Just a background daemon learning your patterns.
+AI tools forget between sessions. the-brain was designed to remember across the tools you used. It harvested conversations, filtered noise from signal, and consolidated what mattered. No cloud. No telemetry. Just a background daemon learning your patterns.
 
 <Mermaid chart={`
 graph LR
@@ -31,44 +31,44 @@ graph LR
 
 | | |
 |---|---|
-| 🚀 **[Installation](/docs/start-here/installation)** | Install in 60 seconds on macOS or Linux |
-| ⚡ **[Quickstart](/docs/start-here/quickstart)** | Your first brain in 5 minutes |
+| **[Installation](/docs/start-here/installation)** | Historical installation notes; no supported installer |
+| **[Quickstart](/docs/start-here/quickstart)** | Historical runtime walkthrough |
 | ⚙️ **[Configuration](/docs/start-here/configuration)** | Config file reference |
 | 🏗️ **[Architecture](/docs/core-concepts)** | 3-layer cognitive architecture |
-| 🧩 **[Writing Plugins](/docs/customization/writing-plugins)** | Extend the-brain with custom plugins |
+| 🧩 **[Writing Plugins](/docs/customization/writing-plugins)** | Historical plugin extension guide |
 | 💻 **[CLI Reference](/docs/reference/cli-reference)** | Complete command reference |
 | 🌐 **[MCP Server](/docs/integrations/mcp-server)** | Use with Claude Desktop, Cursor, Zed |
-| 📡 **[Remote Mode](/docs/integrations/remote-mode)** | Run on a Linux server, connect from macOS |
+| 📡 **[Remote Mode](/docs/integrations/remote-mode)** | Historical Linux server and macOS client reference |
 
 ## Architecture at a Glance
 
-Your AI tools feed into three plugin slots:
+The former architecture fed AI tools into three plugin slots:
 
 ```
-Any AI tool → ⚡ INSTANT slot — what happens now (default: graph-memory)
-            → ⚖️ SELECTION slot — what's worth keeping (default: spm-curator)
-            → 🌌 DEEP slot — permanent consolidation (default: mlx-lora + auto-wiki)
+Any AI tool → ⚡ INSTANT slot — immediate context (default: graph-memory)
+            → ⚖️ SELECTION slot — retained information (default: spm-curator)
+            → 🌌 DEEP slot — long-term consolidation (default: mlx-lora + auto-wiki)
 ```
 
-Each slot is replaceable. Add extension names to `config.json` (`"extensions": ["my-ext"]`) and daemon loads them on start. Extensions are **disabled by default** for security — you must explicitly enable each one.
+Each slot was replaceable. The daemon loaded configured extension names from `config.json` (`"extensions": ["my-ext"]`); extensions were **disabled by default** for security.
 
-## What the-brain Learns
+## What the-brain Was Designed to Learn
 
-- **Corrections** — "No, actually use `useCallback` here" → remembers for next time
-- **Preferences** — "I prefer arrow functions" → injected into every context
-- **Patterns** — Repeated choices across sessions → auto-suggests related concepts
-- **Identity** — Your stable preferences and style, maintained across retrains
+- **Corrections** — "No, actually use `useCallback` here" → remembered for later
+- **Preferences** — "I prefer arrow functions" → injected into later contexts
+- **Patterns** — Repeated choices across sessions → suggested related concepts
+- **Identity** — Stable preferences and style tracked across retrains
 
 ## Documentation Sections
 
 | Section | Description |
 |---------|-------------|
-| **[Start Here](/docs/start-here)** | Installation, quickstart, configuration |
+| **[Start Here](/docs/start-here)** | Archived installation, quickstart, configuration |
 | **[Core Concepts](/docs/core-concepts)** | Architecture, hook system, memory layers |
 | **[Customization](/docs/customization)** | Plugins, harvesters, training, extensions |
 | **[Reference](/docs/reference)** | CLI, config schema, MCP tools, env vars |
 | **[Integrations](/docs/integrations)** | MCP server, remote mode, AI tools, team mode, menu bar |
-| **[Development](/docs/development)** | Contributing, project structure, testing |
+| **[Development](/docs/development)** | Archived contribution guidance, project structure, testing |
 
 ## Tech Stack
 
